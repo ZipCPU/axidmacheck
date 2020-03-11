@@ -12,7 +12,9 @@ directory.)
 ## Reconfigure
 
 To reconfigure the project, adjust the AutoFPGA scripts listed in
-[autodata/Makefile](autodata/Makefile), and run `make autodata`.
+[autodata/Makefile](autodata/Makefile), and run `make autodata`.  You will
+need [AutoFPGA](https://github.com/ZipCPU/autofpga)
+built and installed somewhere in your path.
 
 ## Simulation
 
