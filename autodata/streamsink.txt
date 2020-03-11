@@ -1,0 +1,65 @@
+################################################################################
+##
+## Filename: 	autodata/streamsink.txt
+##
+## Project:	AXI DMA Check: A utility to measure AXI DMA speeds
+##
+## Purpose:	
+##
+## Creator:	Dan Gisselquist, Ph.D.
+##		Gisselquist Technology, LLC
+##
+################################################################################
+##
+## Copyright (C) 2020, Gisselquist Technology, LLC
+##
+## This program is free software (firmware): you can redistribute it and/or
+## modify it under the terms of  the GNU General Public License as published
+## by the Free Software Foundation, either version 3 of the License, or (at
+## your option) any later version.
+##
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+## FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+## for more details.
+##
+## You should have received a copy of the GNU General Public License along
+## with this program.  (It's in the $(ROOT)/doc directory.  Run make with no
+## target there if the PDF file isn't present.)  If not, see
+## <http://www.gnu.org/licenses/> for a copy.
+##
+## License:	GPL, v3, as defined and found on www.gnu.org,
+##		http://www.gnu.org/licenses/gpl.html
+##
+##
+################################################################################
+##
+##
+@PREFIX=streamsink
+@NADDR=4
+@SLAVE.BUS=axil
+@SLAVE.TYPE=DOUBLE
+@STREAM=@$(PREFIX)
+@MAIN.DEFNS=
+	wire	@$(STREAM)_tvalid, @$(STREAM)_tready, @$(STREAM)_tlast;
+	wire	[31:0]	@$(PREFIX)_tdata;
+@MAIN.INSERT=
+	streamcounter #(
+		.C_AXIS_DATA_WIDTH(32)
+	) @$(PREFIX)i (
+		.S_AXI_ACLK(@$(SLAVE.BUS.CLOCK.WIRE)),
+		.S_AXI_ARESETN(@$(SLAVE.BUS.RESET)),
+		//
+		.S_AXIS_TVALID(@$(STREAM)_tvalid),
+		.S_AXIS_TREADY(@$(STREAM)_tready),
+		.S_AXIS_TDATA(@$(STREAM)_tdata),
+		.S_AXIS_TLAST(@$(STREAM)_tlast),
+		//
+		@$(SLAVE.ANSIPORTLIST)
+	);
+
+
+@REGS.N=3
+@REGS.0=0 R_STREAMSINK_BEATS
+@REGS.1=1 R_STREAMSINK_PACKETS
+@REGS.2=2 R_STREAMSINK_CLOCKS

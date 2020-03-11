@@ -1,0 +1,10 @@
+main.v
+toplevel.v
+testb.h
+main_tb.cpp
+testb.h
+autofpga.dbg
+rtl.make.inc
+board.h
+regdefs.cpp
+regdefs.h

@@ -1,0 +1,89 @@
+################################################################################
+##
+## Filename: 	autodata/aximm2s.txt
+##
+## Project:	AXI DMA Check: A utility to measure AXI DMA speeds
+##
+## Purpose:	
+##
+## Creator:	Dan Gisselquist, Ph.D.
+##		Gisselquist Technology, LLC
+##
+################################################################################
+##
+## Copyright (C) 2020, Gisselquist Technology, LLC
+##
+## This program is free software (firmware): you can redistribute it and/or
+## modify it under the terms of  the GNU General Public License as published
+## by the Free Software Foundation, either version 3 of the License, or (at
+## your option) any later version.
+##
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+## FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+## for more details.
+##
+## You should have received a copy of the GNU General Public License along
+## with this program.  (It's in the $(ROOT)/doc directory.  Run make with no
+## target there if the PDF file isn't present.)  If not, see
+## <http://www.gnu.org/licenses/> for a copy.
+##
+## License:	GPL, v3, as defined and found on www.gnu.org,
+##		http://www.gnu.org/licenses/gpl.html
+##
+##
+################################################################################
+##
+##
+@PREFIX=mm2s
+@DEVID=MM2S
+@NADDR=4
+@MASTER.BUS=axi
+@MASTER.TYPE=DMA
+@MASTER.OPTIONS=RO
+@SLAVE.BUS=axil
+@SLAVE.TYPE=DOUBLE
+@SLAVE.ANSPREFIX=S_AXIL_
+@INT.DMA.WIRE=@$(PREFIX)_int
+@STREAM=streamsink
+@MAIN.INSERT=
+	aximm2s #(
+		.C_AXI_ADDR_WIDTH(@$MASTER.BUS.AWID),
+		.C_AXI_DATA_WIDTH(@$MASTER.BUS.WIDTH),
+		.C_AXI_ID_WIDTH(@$MASTER.BUS.IDWIDTH)
+	) @$(PREFIX)i (
+		.S_AXI_ACLK(@$(SLAVE.BUS.CLOCK.WIRE)),
+		.S_AXI_ARESETN(@$(SLAVE.BUS.RESET)),
+		//
+		.S_AXIS_TVALID(@$(STREAM)_tvalid),
+		.S_AXIS_TREADY(@$(STREAM)_tready),
+		.S_AXIS_TDATA(@$(STREAM)_tdata),
+		.S_AXIS_TLAST(@$(STREAM)_tlast),
+		@$(SLAVE.ANSIPORTLIST),
+		@$(MASTER.ANSIPORTLIST),
+		.o_int(@$(PREFIX)_int)
+	);
+
+	assign	@$(MASTER.PREFIX)_awvalid = 0;
+	assign	@$(MASTER.PREFIX)_awid    = 0;
+	assign	@$(MASTER.PREFIX)_awaddr  = 0;
+	assign	@$(MASTER.PREFIX)_awlen   = 0;
+	assign	@$(MASTER.PREFIX)_awsize  = 0;
+	assign	@$(MASTER.PREFIX)_awburst = 0;
+	assign	@$(MASTER.PREFIX)_awlock  = 0;
+	assign	@$(MASTER.PREFIX)_awcache = 0;
+	assign	@$(MASTER.PREFIX)_awprot  = 0;
+	assign	@$(MASTER.PREFIX)_awqos   = 0;
+	//
+	assign	@$(MASTER.PREFIX)_wvalid  = 0;
+	assign	@$(MASTER.PREFIX)_wdata   = 0;
+	assign	@$(MASTER.PREFIX)_wstrb   = 0;
+	assign	@$(MASTER.PREFIX)_wlast   = 0;
+	//
+	assign	@$(MASTER.PREFIX)_bready  = 1;
+
+@REGS.NOTE=// AXI MM2S registers
+@REGS.N=3
+@REGS.0=0 R_@$(DEVID)CTRL @$(DEVID)CTRL
+@REGS.1=1 R_@$(DEVID)ADDR @$(DEVID)ADDR
+@REGS.2=2 R_@$(DEVID)LEN @$(DEVID)LEN

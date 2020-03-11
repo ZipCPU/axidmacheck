@@ -1,0 +1,92 @@
+################################################################################
+##
+## Filename: 	autodata/axiram.txt
+##
+## Project:	AXI DMA Check: A utility to measure AXI DMA speeds
+##
+## Purpose:	Create/connect a block RAM via the demofull controller and
+##		interface
+##
+## Creator:	Dan Gisselquist, Ph.D.
+##		Gisselquist Technology, LLC
+##
+################################################################################
+##
+## Copyright (C) 2020, Gisselquist Technology, LLC
+##
+## This program is free software (firmware): you can redistribute it and/or
+## modify it under the terms of  the GNU General Public License as published
+## by the Free Software Foundation, either version 3 of the License, or (at
+## your option) any later version.
+##
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+## FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+## for more details.
+##
+## You should have received a copy of the GNU General Public License along
+## with this program.  (It's in the $(ROOT)/doc directory.  Run make with no
+## target there if the PDF file isn't present.)  If not, see
+## <http://www.gnu.org/licenses/> for a copy.
+##
+## License:	GPL, v3, as defined and found on www.gnu.org,
+##		http://www.gnu.org/licenses/gpl.html
+##
+##
+################################################################################
+##
+##
+@PREFIX=axiram
+@$LGRAM=24
+@$NADDR=(1<<@$(LGRAM))/4
+@SLAVE.BUS=axi
+@SLAVE.TYPE=OTHER
+@MAIN.DEFNS=
+	wire	@$(PREFIX)_we, @$(PREFIX)_rd;
+	wire	[@$(SLAVE.BUS.WIDTH)-1:0]	@$(PREFIX)_wdata;
+	wire	[@$(SLAVE.BUS.WIDTH)/8-1:0]	@$(PREFIX)_wstrb;
+	reg	[@$(SLAVE.BUS.WIDTH)-1:0]	@$(PREFIX)_rdata;
+	wire	[@$(LGRAM)-2-1:0]		@$(PREFIX)_waddr, @$(PREFIX)_raddr;
+	reg	[@$(SLAVE.BUS.WIDTH)-1:0]	@$(PREFIX)_mem [0:(@$(NADDR)-1)];
+	integer	@$(PREFIX)_ik;
+
+@MAIN.INSERT=
+	demofull #(
+		.C_S_AXI_ADDR_WIDTH(@$LGRAM),
+		.C_S_AXI_DATA_WIDTH(@$(SLAVE.BUS.WIDTH)),
+		.C_S_AXI_ID_WIDTH(@$(SLAVE.BUS.IDWIDTH))
+	) @$(PREFIX)i (
+		.S_AXI_ACLK(@$(SLAVE.BUS.CLOCK.WIRE)),
+		.S_AXI_ARESETN(@$(SLAVE.BUS.RESET)),
+		//
+		.o_we(@$(PREFIX)_we),
+		.o_waddr(@$(PREFIX)_waddr),
+		.o_wdata(@$(PREFIX)_wdata),
+		.o_wstrb(@$(PREFIX)_wstrb),
+		.o_rd(@$(PREFIX)_rd),
+		.o_raddr(@$(PREFIX)_raddr),
+		.i_rdata(@$(PREFIX)_rdata),
+		//
+		@$(SLAVE.ANSIPORTLIST)
+	);
+
+	always @(posedge i_clk)
+	if (@$(PREFIX)_we)
+	for(@$(PREFIX)_ik=0; @$(PREFIX)_ik < @$(SLAVE.BUS.WIDTH)/4;
+			@$(PREFIX)_ik = @$(PREFIX)_ik + 1)
+	begin
+		if (@$(PREFIX)_wstrb[@$(PREFIX)_ik])
+			@$(PREFIX)_mem[@$(PREFIX)_waddr][@$(PREFIX)_ik*8 +: 8] <= @$(PREFIX)_wdata[@$(PREFIX)_ik*8 +: 8];
+	end
+
+	always @(posedge i_clk)
+	if (@$(PREFIX)_rd)
+		@$(PREFIX)_rdata <= @$(PREFIX)_mem[@$(PREFIX)_raddr];
+
+@REGS.N=1
+@REGS.0=0 R_AXIRAM AXIRAM RAM
+@SIM.DEFINES=
+
+#define	AXIRAM	VVAR(_axiram_mem)
+#define	RAMSIZE	(1<<@$(LGRAM))
+

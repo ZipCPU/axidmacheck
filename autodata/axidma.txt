@@ -1,0 +1,65 @@
+################################################################################
+##
+## Filename: 	autodata/axidma.txt
+##
+## Project:	AXI DMA Check: A utility to measure AXI DMA speeds
+##
+## Purpose:	
+##
+## Creator:	Dan Gisselquist, Ph.D.
+##		Gisselquist Technology, LLC
+##
+################################################################################
+##
+## Copyright (C) 2020, Gisselquist Technology, LLC
+##
+## This program is free software (firmware): you can redistribute it and/or
+## modify it under the terms of the GNU General Public License as published
+## by the Free Software Foundation, either version 3 of the License, or (at
+## your option) any later version.
+##
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+## FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+## for more details.
+##
+## You should have received a copy of the GNU General Public License along
+## with this program.  (It's in the $(ROOT)/doc directory.  Run make with no
+## target there if the PDF file isn't present.)  If not, see
+## <http://www.gnu.org/licenses/> for a copy.
+##
+## License:	GPL, v3, as defined and found on www.gnu.org,
+##		http://www.gnu.org/licenses/gpl.html
+##
+##
+################################################################################
+##
+##
+@PREFIX=dma
+@DEVID=AXIDMA
+@NADDR=4
+@MASTER.BUS=axi
+@MASTER.TYPE=DMA
+@SLAVE.BUS=axil
+@SLAVE.TYPE=DOUBLE
+@INT.DMA.WIRE=@$(PREFIX)_int
+@SLAVE.ANSPREFIX=S_AXIL_
+@MAIN.INSERT=
+	axidma #(
+		.C_AXI_ADDR_WIDTH(@$MASTER.BUS.AWID),
+		.C_AXI_DATA_WIDTH(@$MASTER.BUS.WIDTH),
+		.C_AXI_ID_WIDTH(@$MASTER.BUS.IDWIDTH)
+	) @$(PREFIX)i (
+		.S_AXI_ACLK(@$(SLAVE.BUS.CLOCK.WIRE)),
+		.S_AXI_ARESETN(@$(SLAVE.BUS.RESET)),
+		@$(SLAVE.ANSIPORTLIST),
+		@$(MASTER.ANSIPORTLIST),
+		.o_int(@$(PREFIX)_int)
+	);
+
+
+@REGS.N=4
+@REGS.0=0 R_@$(DEVID)CTRL @$(DEVID)CTRL
+@REGS.1=1 R_@$(DEVID)SRC  @$(DEVID)SRC
+@REGS.2=2 R_@$(DEVID)DST  @$(DEVID)DST
+@REGS.3=3 R_@$(DEVID)LEN  @$(DEVID)LEN
