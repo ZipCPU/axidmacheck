@@ -7,6 +7,16 @@
 ## Purpose:	A master project makefile.  It tries to build all targets
 ##		within the project, mostly by directing subdirectory makes.
 ##
+## Targets:
+##	autodata -- Applies AutoFPGA to the configuration files to connect
+##		the bus together and build the final design files
+##
+##	test	Builds the full simulation, from RTL (not autodata) through
+##		Verilator test bench, and then runs the test bench.  The result
+##		should be "SUCCESS" on the last line
+##
+##	coverage -- Converts the coverage metrics built during the test to
+##		browsable HTML files that can then be examined.
 ##
 ## Creator:	Dan Gisselquist, Ph.D.
 ##		Gisselquist Technology, LLC
@@ -146,7 +156,13 @@ sw: check-gpp subs
 test: sim sw
 	@echo
 	@echo "Running a design test"
-	+bash -c "./test.sh || true"
+	@$(SUBMAKE) sim test
+
+.PHONY: coverage
+coverage: test
+	@echo
+	@echo "Calculating design coverage measures"
+	@$(SUBMAKE) sim coverage
 
 #
 #

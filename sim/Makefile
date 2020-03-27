@@ -98,6 +98,8 @@ endef
 depends: tags
 	$(build-depends)
 
+.PHONY: test
+test: logs/coverage.dat
 logs/coverage.dat: main_tb
 	./main_tb -d
 
@@ -114,6 +116,9 @@ logs/lcov.dat: logs/coverage.dat
 
 logs/index.html: logs/lcov.dat
 	cd logs/; genhtml lcov.dat
+
+.PHONY: coverage
+coverage: logs/index.html
 
 # lcov -a logs/lcov.dat
 # lcov -c -d appdir -o app_test.info ??
