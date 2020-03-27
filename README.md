@@ -14,7 +14,8 @@ directory.)
 To reconfigure the project, adjust the AutoFPGA scripts listed in
 [autodata/Makefile](autodata/Makefile), and run `make autodata`.  You will
 need [AutoFPGA](https://github.com/ZipCPU/autofpga)
-built and installed somewhere in your path.
+built and installed somewhere in your path.  *Note: Only the dev branch of
+AutoFPGA currently contains AXI support.)*
 
 ## Simulation
 
@@ -24,6 +25,10 @@ There's not much to see, however, unless you run `./main_tb -d` instead to
 produce a VCD file.  There's also a [GTKWave file](sim/axisim.gtkw) which
 you can use when viewing the VCD file to help get some clarity to what's going
 on early on.
+
+You can also run the simulation using `make test`.  A similar main directory
+`make coverage` will build a set of HTML files which can be used to evaluate
+test coverage.
 
 ## License
 
