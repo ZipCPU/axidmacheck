@@ -52,8 +52,8 @@ VDEFS   := $(shell ./vversion.sh)
 VINCD   := $(VROOT)/include
 VINC	:= -I$(VINCD) -I$(VINCD)/vltstd -I$(VOBJDR)
 INCS	:= -I../sw -I$(RTLD) $(VINC)
-VOBJS   := $(OBJDIR)/verilated.o $(OBJDIR)/verilated_vcd_c.o
-CFLAGS	:= -Og -g -Wall $(INCS) $(VDEFS)
+VOBJS   := $(OBJDIR)/verilated.o $(OBJDIR)/verilated_vcd_c.o $(OBJDIR)/verilated_cov.o
+CFLAGS	:= -Og -g -Wall $(INCS) $(VDEFS) -DVM_COVERAGE=1 -D__WORDSIZE=64
 
 SOURCES := $(SIMSOURCES) main_tb.cpp automaster_tb.cpp
 HEADERS := $(foreach header,$(subst .cpp,.h,$(SOURCES)),$(wildcard $(header)))
@@ -97,6 +97,34 @@ endef
 .PHONY: depends
 depends: tags
 	$(build-depends)
+
+logs/coverage.dat: main_tb
+	./main_tb -d
+
+COVTOOL=verilated_cov_2_lcov.py
+logs/annotated/main.v: logs/coverage.dat
+	cd ../rtl; verilator_coverage --annotate ../sim/logs/annotated ../sim/logs/coverage.dat
+
+logs/lcov.dat: logs/coverage.dat
+	python $(COVTOOL) $^	\
+		| sed -e 's/^SF:...wb2axip/SF:..\/..\/wb2axip/' \
+		| sed -e 's/SF:m/SF:..\/..\/rtl\/m/'	\
+		| sed -e 's/SF:s/SF:..\/..\/rtl\/s/'  \
+		> $@
+
+logs/index.html: logs/lcov.dat
+	cd logs/; genhtml lcov.dat
+
+# lcov -a logs/lcov.dat
+# lcov -c -d appdir -o app_test.info ??
+#
+# -z -c -a -e -r -l --dif --summary
+#	-c captures coverage data (I should have this already)
+#	-e extracts particular data from the tracefile
+#	-l lists the contents of the tracefile
+#	-r removes trace file
+#	-z resets execution counts to zero
+
 
 $(OBJDIR)/depends.txt: depends
 

@@ -15,7 +15,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (C) 2017-2019, Gisselquist Technology, LLC
+// Copyright (C) 2020, Gisselquist Technology, LLC
 //
 // This program is free software (firmware): you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as published
@@ -46,18 +46,25 @@
 #include "regdefs.h"
 
 const	REGNAME	raw_bregs[] = {
-	{ R_AXIDMACTRL        ,	"AXIDMACTRL"	},
-	{ R_AXIDMASRC         ,	"AXIDMASRC" 	},
-	{ R_AXIDMADST         ,	"AXIDMADST" 	},
-	{ R_AXIDMALEN         ,	"AXIDMALEN" 	},
-	{ R_MM2SCTRL          ,	"MM2SCTRL"  	},
-	{ R_MM2SADDR          ,	"MM2SADDR"  	},
-	{ R_MM2SLEN           ,	"MM2SLEN"   	},
-	{ R_S2MMCTRL          ,	"S2MMCTRL"  	},
-	{ R_S2MMADDR          ,	"S2MMADDR"  	},
-	{ R_S2MMLEN           ,	"S2MMLEN"   	},
-	{ R_AXIRAM            ,	"AXIRAM"    	},
-	{ R_AXIRAM            ,	"RAM"       	}
+	{ R_AXIDMACTRL        ,	"AXIDMACTRL" 	},
+	{ R_AXIDMASRCLO       ,	"AXIDMASRCLO"	},
+	{ R_AXIDMASRCHI       ,	"AXIDMASRCHI"	},
+	{ R_AXIDMADSTLO       ,	"AXIDMADSTLO"	},
+	{ R_AXIDMADSTHI       ,	"AXIDMADSTHI"	},
+	{ R_AXIDMALENLO       ,	"AXIDMALENLO"	},
+	{ R_AXIDMALENHI       ,	"AXIDMALENHI"	},
+	{ R_MM2SCTRL          ,	"MM2SCTRL"   	},
+	{ R_MM2SADDRLO        ,	"MM2SADDRLO" 	},
+	{ R_MM2SADDRHI        ,	"MM2SADDRHI" 	},
+	{ R_MM2SLENLO         ,	"MM2SLENLO"  	},
+	{ R_MM2SLENHI         ,	"MM2SLENHI"  	},
+	{ R_S2MMCTRL          ,	"S2MMCTRL"   	},
+	{ R_S2MMADDRLO        ,	"S2MMADDRLO" 	},
+	{ R_S2MMADDRHI        ,	"S2MMADDRHI" 	},
+	{ R_S2MMLENLO         ,	"S2MMLENLO"  	},
+	{ R_S2MMLENHI         ,	"S2MMLENHI"  	},
+	{ R_AXIRAM            ,	"AXIRAM"     	},
+	{ R_AXIRAM            ,	"RAM"        	}
 };
 
 // REGSDEFS.CPP.INSERT for any bus masters

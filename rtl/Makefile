@@ -62,9 +62,10 @@ VERILATOR := verilator
 #	-y <dir> Let verilator know that some of our source is in the <dir>
 #		directory
 #	--Mdir <dir>	Place our output files into <dir>, or $(VDIRFB) here
+#	--coverage	Generate coverage measures
 #	-cc	Create C++ output files (in $(VDIRFB)
 #
-VFLAGS= -Wall --MMD -trace $(AUTOVDIRS) -y ../wb2axip/rtl/ --Mdir $(VDIRFB) -cc
+VFLAGS= -Wall --MMD -trace $(AUTOVDIRS) -y ../wb2axip/rtl --Mdir $(VDIRFB) --coverage -cc
 
 #
 # Now that all of our defines are out of the way, we'll specify two default

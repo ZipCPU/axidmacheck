@@ -45,7 +45,8 @@
 	wire	[31:0]	@$(PREFIX)_tdata;
 @MAIN.INSERT=
 	streamcounter #(
-		.C_AXIS_DATA_WIDTH(32)
+		.C_AXIS_DATA_WIDTH(32),
+		.OPT_LOWPOWER(1'b1)
 	) @$(PREFIX)i (
 		.S_AXI_ACLK(@$(SLAVE.BUS.CLOCK.WIRE)),
 		.S_AXI_ARESETN(@$(SLAVE.BUS.RESET)),

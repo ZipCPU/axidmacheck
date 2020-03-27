@@ -52,7 +52,6 @@ template <class VA>	class	AXI_TB : public DEVBUS {
 	bool	m_interrupt;
 #endif
 	VerilatedVcdC	*m_trace;
-	unsigned long	m_tickcount;
 public:
 	VA		*m_tb;
 	typedef	uint32_t	BUSW;
@@ -78,32 +77,18 @@ public:
 	}
 
 	virtual	~AXI_TB(void) {
-		// if (m_trace) {
-			// m_trace->close();
-			// delete m_trace;
-		// }
-		// delete m_core;
-		// m_core  = NULL;
-		// m_trace = NULL;
+		delete m_tb;
 	}
 
 	virtual	void	opentrace(const char *vcdname) {
-		// m_trace = new VerilatedVcdC;
-		// m_core->trace(m_trace, 99);
-		// m_trace->open(vcdname);
 		m_tb->opentrace(vcdname);
 	}
 
 	virtual	void	closetrace(void) {
 		m_tb->closetrace();
-		// if (m_trace) {
-		//	m_trace->close();
-		//	m_trace = NULL;
-		//}
 	}
 
 	virtual	void	close(void) {
-		// TESTB<VA>::closetrace();
 		m_tb->close();
 	}
 
@@ -116,27 +101,13 @@ public:
 	}
 
 #define	TICK	m_tb->tick
-	/*
-	virtual	void	tick(void) {
-		m_tickcount++
-
-		eval();
-		if (m_trace) m_trace->dump(10*m_tickcount-2);
-		m_core->S_AXI_ACLK = 1;
-		eval();
-		if (m_trace) m_trace->dump(10*m_tickcount);
-		m_core->S_AXI_ACLK = 0;
-		eval();
-		if (m_trace) {
-			m_trace->dump(10*m_tickcount+5);
-			m_trace->flush();
-		}
+	void	tick(void) {
+		m_tb->tick_clk();
 #ifdef	INTERRUPTWIRE
-		if (TESTB<VA>::m_core->INTERRUPTWIRE)
+		if (m_tb->m_core->INTERRUPTWIRE)
 			m_interrupt = true;
 #endif
 	}
-	*/
 
 	virtual	void	reset(void) {
 		// m_tb->m_core->S_AXI_ARESETN = 0;
@@ -146,13 +117,14 @@ public:
 		m_tb->m_core->S_AXI_ARVALID = 0;
 
 		for(int k=0; k<16; k++)
-			TICK();
+			tick();
 
 		m_tb->m_core->i_reset = 0;
+		tick();
 	}
 
 	unsigned long	tickcount(void) {
-		return m_tickcount;
+		return m_tb->m_time_ps / 10000l;
 	}
 
 	void	idle(const unsigned counts = 1) {
@@ -162,7 +134,7 @@ public:
 		m_tb->m_core->S_AXI_ARVALID = 0;
 		m_tb->m_core->S_AXI_RREADY  = 0;
 		for(unsigned k=0; k<counts; k++) {
-			this->tick();
+			tick();
 			assert(!m_tb->m_core->S_AXI_RVALID);
 			assert(!m_tb->m_core->S_AXI_BVALID);
 		}
@@ -178,23 +150,32 @@ public:
 		m_tb->m_core->S_AXI_RREADY  = 1;
 
 		while(!m_tb->m_core->S_AXI_ARREADY)
-			TICK();
+			tick();
 
-		TICK();
+		tick();
 
 		m_tb->m_core->S_AXI_ARVALID = 0;
 
-		while(!m_tb->m_core->S_AXI_RVALID || !m_tb->m_core->S_AXI_RREADY)
-			TICK();
+		while(!m_tb->m_core->S_AXI_RVALID) // || !RVALID
+			tick();
 
 		result = m_tb->m_core->S_AXI_RDATA;
 		if (m_tb->m_core->S_AXI_RRESP & 2)
 			m_buserr = true;
 		assert(m_tb->m_core->S_AXI_RRESP == 0);
 
-		TICK();
-		// printf("AXI-READM -> 0x%08x\n", result);
+		tick();
 
+		return result;
+	}
+
+	uint64_t read64(BUSW a) {
+		uint64_t	result;
+		int32_t		buf[2];
+
+		readv(a, 2, buf);
+		result = buf[1];
+		result = (result << 32) | (uint64_t)buf[0];
 		return result;
 	}
 
@@ -215,7 +196,7 @@ public:
 			m_tb->m_core->S_AXI_ARVALID = 1;
 			s = ((m_tb->m_core->S_AXI_ARVALID)
 				&&(m_tb->m_core->S_AXI_ARREADY==0))?0:1;
-			TICK();
+			tick();
 			m_tb->m_core->S_AXI_ARADDR += (inc&(s^1))?4:0;
 			cnt += (s^1);
 			if (m_tb->m_core->S_AXI_RVALID)
@@ -228,25 +209,25 @@ public:
 		m_tb->m_core->S_AXI_ARVALID = 0;
 
 		while(rdidx < len) {
-			TICK();
+			tick();
 			if ((m_tb->m_core->S_AXI_RVALID)&&(m_tb->m_core->S_AXI_RREADY))
 				buf[rdidx++] = m_tb->m_core->S_AXI_RDATA;
 			if (m_tb->m_core->S_AXI_RVALID && m_tb->m_core->S_AXI_RRESP != 0)
 				m_buserr = true;
 		}
 
-		TICK();
+		tick();
 		m_tb->m_core->S_AXI_RREADY = 0;
 		assert(!m_tb->m_core->S_AXI_BVALID);
 		assert(!m_tb->m_core->S_AXI_RVALID);
 	}
 
 	void	readi(const BUSW a, const int len, BUSW *buf) {
-		return readv(a, len, buf, 1);
+		readv(a, len, buf, 1);
 	}
 
 	void	readz(const BUSW a, const int len, BUSW *buf) {
-		return readv(a, len, buf, 0);
+		readv(a, len, buf, 0);
 	}
 
 	void	writeio(const BUSW a, const BUSW v) {
@@ -265,7 +246,7 @@ public:
 			int	awready = m_tb->m_core->S_AXI_AWREADY;
 			int	wready = m_tb->m_core->S_AXI_WREADY;
 
-			TICK();
+			tick();
 
 			if (awready)
 				m_tb->m_core->S_AXI_AWVALID = 0;
@@ -276,15 +257,23 @@ public:
 		m_tb->m_core->S_AXI_BREADY = 1;
 
 		while(!m_tb->m_core->S_AXI_BVALID)
-			TICK();
+			tick();
 
 		if (m_tb->m_core->S_AXI_BRESP & 2)
 			m_buserr = true;
-		TICK();
+		tick();
+	}
+
+	void	write64(const BUSW a, const uint64_t v) {
+		uint32_t	buf[2];
+		// printf("AXI-WRITE64(%08x) <= %016lx\n", a, v);
+		buf[0] = (uint32_t)v;
+		buf[1] = (uint32_t)(v >> 32);
+		writei(a, 2, buf);
 	}
 
 	void	writev(const BUSW a, const int ln, const BUSW *buf, const int inc=1) {
-		unsigned nacks = 0;
+		unsigned nacks = 0, awcnt = 0, wcnt = 0;
 
 		// printf("AXI-WRITEM(%08x, %d, ...)\n", a, ln);
 		m_tb->m_core->S_AXI_AWVALID = 1;
@@ -295,50 +284,41 @@ public:
 		m_tb->m_core->S_AXI_BREADY = 1;
 		m_tb->m_core->S_AXI_RREADY = 0;
 
-		for(int sm_tbcnt=0; sm_tbcnt<ln; sm_tbcnt++) {
-			// m_core->i_wb_addr= a+sm_tbcnt;
-			m_tb->m_core->S_AXI_WDATA = buf[sm_tbcnt];
+		do {
+			int	awready, wready;
 
-			m_tb->m_core->S_AXI_AWVALID = 1;
-			m_tb->m_core->S_AXI_WVALID  = 1;
+			m_tb->m_core->S_AXI_WDATA   = buf[wcnt];
 
-			while((m_tb->m_core->S_AXI_AWVALID
-				&& !m_tb->m_core->S_AXI_AWREADY)
-				||(m_tb->m_core->S_AXI_WVALID
-					&& !m_tb->m_core->S_AXI_WREADY)) {
-				bool	awready, wready;
+			m_tb->m_core->S_AXI_AWVALID = (awcnt < (unsigned)ln);
+			m_tb->m_core->S_AXI_WVALID  = (wcnt < (unsigned)ln);
 
-				awready = m_tb->m_core->S_AXI_AWREADY;
-				wready = m_tb->m_core->S_AXI_WREADY;
+			awready = m_tb->m_core->S_AXI_AWREADY;
+			wready  = m_tb->m_core->S_AXI_WREADY;
 
-				TICK();
-				if (awready)
-					m_tb->m_core->S_AXI_AWVALID = 0;
-				if (wready)
-					m_tb->m_core->S_AXI_WVALID = 0;
+			tick();
+			if (m_tb->m_core->S_AXI_AWVALID && awready) {
+				awcnt++;
+				// Update the address
+				m_tb->m_core->S_AXI_AWADDR += (inc)?4:0;
+			}
 
-				if (m_tb->m_core->S_AXI_BVALID) {
-					nacks++;
-					if (m_tb->m_core->S_AXI_BRESP & 2)
-						m_buserr = true;
-				}
-			} TICK();
-
-			m_tb->m_core->S_AXI_AWVALID = 0;
-			m_tb->m_core->S_AXI_WVALID = 0;
+			if (m_tb->m_core->S_AXI_WVALID && wready)
+				wcnt++;
 
 			if (m_tb->m_core->S_AXI_BVALID) {
 				nacks++;
+
+				// Check for any bus errors
 				if (m_tb->m_core->S_AXI_BRESP & 2)
 					m_buserr = true;
 			}
 
-			// Now update the address
-			m_tb->m_core->S_AXI_AWADDR += (inc)?4:0;
-		}
+		} while((awcnt<(unsigned)ln)||(wcnt<(unsigned)ln));
 
+		m_tb->m_core->S_AXI_AWVALID = 0;
+		m_tb->m_core->S_AXI_WVALID  = 0;
 		while(nacks < (unsigned)ln) {
-			TICK();
+			tick();
 			if (m_tb->m_core->S_AXI_BVALID) {
 				nacks++;
 				if (m_tb->m_core->S_AXI_BRESP & 2)
@@ -346,7 +326,7 @@ public:
 			}
 		}
 
-		TICK();
+		tick();
 
 		// Release the bus
 		m_tb->m_core->S_AXI_BREADY = 0;
@@ -354,6 +334,8 @@ public:
 
 		assert(!m_tb->m_core->S_AXI_BVALID);
 		assert(!m_tb->m_core->S_AXI_RVALID);
+		assert(!m_tb->m_core->S_AXI_AWVALID);
+		assert(!m_tb->m_core->S_AXI_WVALID);
 	}
 
 	void	writei(const BUSW a, const int ln, const BUSW *buf) {
@@ -403,7 +385,7 @@ public:
 #ifdef	INTERRUPTWIRE
 			if (poll()) return; else
 #endif
-			TICK();
+			tick();
 	}
 
 	void	clear(void) {
@@ -415,7 +397,7 @@ public:
 	void	wait(void) {
 #ifdef	INTERRUPTWIRE
 		while(!poll())
-			TICK();
+			tick();
 #else
 		assert(("No interrupt defined",0));
 #endif

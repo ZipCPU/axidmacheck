@@ -15,7 +15,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (C) 2017-2019, Gisselquist Technology, LLC
+// Copyright (C) 2020, Gisselquist Technology, LLC
 //
 // This program is free software (firmware): you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as published
@@ -182,8 +182,8 @@ public:
 		if (m_trace && !m_paused_trace) m_trace->dump(m_time_ps+2500);
 
 		// Advance the one simulation clock, clk
-		m_core->i_clk = 1;
 		m_time_ps+= 5000;
+		m_core->i_clk = 1;
 		eval();
 		// If we are keeping a trace, dump the current state to that
 		// trace now

@@ -14,31 +14,29 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (C) 2015-2019, Gisselquist Technology, LLC
+// Copyright (C) 2020, Gisselquist Technology, LLC
 //
-// This file is part of the AutoFPGA peripheral demonstration project.
+// This program is free software (firmware): you can redistribute it and/or
+// modify it under the terms of  the GNU General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or (at
+// your option) any later version.
 //
-// The AutoFPGA peripheral demonstration project is free software (firmware):
-// you can redistribute it and/or modify it under the terms of the GNU Lesser
-// General Public License as published by the Free Software Foundation, either
-// version 3 of the License, or (at your option) any later version.
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+// FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+// for more details.
 //
-// The AutoFPGA peripheral demonstration project is distributed in the hope
-// that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-// warranty of MERCHANTIBILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program.  (It's in the $(ROOT)/doc directory.  Run make
-// with no target there if the PDF file isn't present.)  If not, see
+// You should have received a copy of the GNU General Public License along
+// with this program.  (It's in the 1000 4 20 24 27 30 46 113 128 129 999 1000ROOT)/doc directory.  Run make with no
+// target there if the PDF file isn't present.)  If not, see
 // <http://www.gnu.org/licenses/> for a copy.
 //
-// License:	LGPL, v3, as defined and found on www.gnu.org,
-//		http://www.gnu.org/licenses/lgpl.html
+// License:	GPL, v3, as defined and found on www.gnu.org,
+//		http://www.gnu.org/licenses/gpl.html
 //
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
 //
-`define DATESTAMP 32'h20200311
-`define BUILDTIME 32'h00104008
+`define DATESTAMP 32'h20200327
+`define BUILDTIME 32'h00110315

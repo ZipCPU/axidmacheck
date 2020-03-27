@@ -15,7 +15,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (C) 2017-2019, Gisselquist Technology, LLC
+// Copyright (C) 2020, Gisselquist Technology, LLC
 //
 // This program is free software (firmware): you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as published
@@ -55,20 +55,27 @@
 //
 // Register address definitions, from @REGS.#d
 //
-#define	R_AXIDMACTRL        	0x00000000	// 00000000, wbregs names: AXIDMACTRL
-#define	R_AXIDMASRC         	0x00000004	// 00000000, wbregs names: AXIDMASRC
-#define	R_AXIDMADST         	0x00000008	// 00000000, wbregs names: AXIDMADST
-#define	R_AXIDMALEN         	0x0000000c	// 00000000, wbregs names: AXIDMALEN
+#define	R_STREAMSINK_BEATS  	0x00000000	// 00000000, wbregs names: 
+#define	R_STREAMSINK_PACKETS	0x00000004	// 00000000, wbregs names: 
+#define	R_STREAMSINK_CLOCKS 	0x00000008	// 00000000, wbregs names: 
+#define	R_AXIDMACTRL        	0x00000020	// 00000020, wbregs names: AXIDMACTRL
+#define	R_AXIDMASRCLO       	0x00000028	// 00000020, wbregs names: AXIDMASRCLO
+#define	R_AXIDMASRCHI       	0x0000002c	// 00000020, wbregs names: AXIDMASRCHI
+#define	R_AXIDMADSTLO       	0x00000030	// 00000020, wbregs names: AXIDMADSTLO
+#define	R_AXIDMADSTHI       	0x00000034	// 00000020, wbregs names: AXIDMADSTHI
+#define	R_AXIDMALENLO       	0x00000038	// 00000020, wbregs names: AXIDMALENLO
+#define	R_AXIDMALENHI       	0x0000003c	// 00000020, wbregs names: AXIDMALENHI
 // AXI MM2S registers
-#define	R_MM2SCTRL          	0x00000010	// 00000010, wbregs names: MM2SCTRL
-#define	R_MM2SADDR          	0x00000014	// 00000010, wbregs names: MM2SADDR
-#define	R_MM2SLEN           	0x00000018	// 00000010, wbregs names: MM2SLEN
-#define	R_S2MMCTRL          	0x00000020	// 00000020, wbregs names: S2MMCTRL
-#define	R_S2MMADDR          	0x00000024	// 00000020, wbregs names: S2MMADDR
-#define	R_S2MMLEN           	0x00000028	// 00000020, wbregs names: S2MMLEN
-#define	R_STREAMSINK_BEATS  	0x00000030	// 00000030, wbregs names: 
-#define	R_STREAMSINK_PACKETS	0x00000034	// 00000030, wbregs names: 
-#define	R_STREAMSINK_CLOCKS 	0x00000038	// 00000030, wbregs names: 
+#define	R_MM2SCTRL          	0x00000040	// 00000040, wbregs names: MM2SCTRL
+#define	R_MM2SADDRLO        	0x00000048	// 00000040, wbregs names: MM2SADDRLO
+#define	R_MM2SADDRHI        	0x0000004c	// 00000040, wbregs names: MM2SADDRHI
+#define	R_MM2SLENLO         	0x00000058	// 00000040, wbregs names: MM2SLENLO
+#define	R_MM2SLENHI         	0x0000005c	// 00000040, wbregs names: MM2SLENHI
+#define	R_S2MMCTRL          	0x00000060	// 00000060, wbregs names: S2MMCTRL
+#define	R_S2MMADDRLO        	0x00000070	// 00000060, wbregs names: S2MMADDRLO
+#define	R_S2MMADDRHI        	0x00000074	// 00000060, wbregs names: S2MMADDRHI
+#define	R_S2MMLENLO         	0x00000078	// 00000060, wbregs names: S2MMLENLO
+#define	R_S2MMLENHI         	0x0000007c	// 00000060, wbregs names: S2MMLENHI
 #define	R_AXIRAM            	0x01000000	// 01000000, wbregs names: AXIRAM, RAM
 
 

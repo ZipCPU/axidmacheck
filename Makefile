@@ -140,7 +140,7 @@ sim: rtl check-gpp subs
 #
 .PHONY: sw
 sw: check-gpp subs
-	+@$(SUBMAKE) sw
+#	+@$(SUBMAKE) sw
 
 .PHONY: test
 test: sim sw
@@ -171,4 +171,4 @@ clean:
 	+$(SUBMAKE) autodata clean
 	+$(SUBMAKE) sim       clean
 	+$(SUBMAKE) rtl       clean
-	+$(SUBMAKE) sw        clean
+#	+$(SUBMAKE) sw        clean

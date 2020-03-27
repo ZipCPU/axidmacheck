@@ -16,7 +16,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (C) 2017-2019, Gisselquist Technology, LLC
+// Copyright (C) 2020, Gisselquist Technology, LLC
 //
 // This program is free software (firmware): you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as published
@@ -196,7 +196,7 @@ module	main(i_clk, i_reset,
 	//
 	wire		axi_vibus_awvalid;
 	wire		axi_vibus_awready;
-	wire	[1:0]	axi_vibus_awid;
+	wire	[2:0]	axi_vibus_awid;
 	wire	[24:0]	axi_vibus_awaddr;
 	wire	[7:0]	axi_vibus_awlen;
 	wire	[2:0]	axi_vibus_awsize;
@@ -216,11 +216,11 @@ module	main(i_clk, i_reset,
 
 	wire		axi_vibus_bvalid;
 	wire		axi_vibus_bready;
-	wire	[1:0]	axi_vibus_bid;
+	wire	[2:0]	axi_vibus_bid;
 	wire	[1:0]	axi_vibus_bresp;
 	wire		axi_vibus_arvalid;
 	wire		axi_vibus_arready;
-	wire	[1:0]	axi_vibus_arid;
+	wire	[2:0]	axi_vibus_arid;
 	wire	[24:0]	axi_vibus_araddr;
 	wire	[7:0]	axi_vibus_arlen;
 	wire	[2:0]	axi_vibus_arsize;
@@ -232,7 +232,7 @@ module	main(i_clk, i_reset,
 	//
 	wire		axi_vibus_rvalid;
 	wire		axi_vibus_rready;
-	wire	[1:0]	axi_vibus_rid;
+	wire	[2:0]	axi_vibus_rid;
 	wire	[31:0]	axi_vibus_rdata;
 
 	wire		axi_vibus_rlast;
@@ -243,7 +243,7 @@ module	main(i_clk, i_reset,
 	//
 	wire		axi_s2mm_awvalid;
 	wire		axi_s2mm_awready;
-	wire	[1:0]	axi_s2mm_awid;
+	wire	[2:0]	axi_s2mm_awid;
 	wire	[24:0]	axi_s2mm_awaddr;
 	wire	[7:0]	axi_s2mm_awlen;
 	wire	[2:0]	axi_s2mm_awsize;
@@ -263,11 +263,11 @@ module	main(i_clk, i_reset,
 
 	wire		axi_s2mm_bvalid;
 	wire		axi_s2mm_bready;
-	wire	[1:0]	axi_s2mm_bid;
+	wire	[2:0]	axi_s2mm_bid;
 	wire	[1:0]	axi_s2mm_bresp;
 	wire		axi_s2mm_arvalid;
 	wire		axi_s2mm_arready;
-	wire	[1:0]	axi_s2mm_arid;
+	wire	[2:0]	axi_s2mm_arid;
 	wire	[24:0]	axi_s2mm_araddr;
 	wire	[7:0]	axi_s2mm_arlen;
 	wire	[2:0]	axi_s2mm_arsize;
@@ -279,7 +279,7 @@ module	main(i_clk, i_reset,
 	//
 	wire		axi_s2mm_rvalid;
 	wire		axi_s2mm_rready;
-	wire	[1:0]	axi_s2mm_rid;
+	wire	[2:0]	axi_s2mm_rid;
 	wire	[31:0]	axi_s2mm_rdata;
 
 	wire		axi_s2mm_rlast;
@@ -290,7 +290,7 @@ module	main(i_clk, i_reset,
 	//
 	wire		axi_mm2s_awvalid;
 	wire		axi_mm2s_awready;
-	wire	[1:0]	axi_mm2s_awid;
+	wire	[2:0]	axi_mm2s_awid;
 	wire	[24:0]	axi_mm2s_awaddr;
 	wire	[7:0]	axi_mm2s_awlen;
 	wire	[2:0]	axi_mm2s_awsize;
@@ -310,11 +310,11 @@ module	main(i_clk, i_reset,
 
 	wire		axi_mm2s_bvalid;
 	wire		axi_mm2s_bready;
-	wire	[1:0]	axi_mm2s_bid;
+	wire	[2:0]	axi_mm2s_bid;
 	wire	[1:0]	axi_mm2s_bresp;
 	wire		axi_mm2s_arvalid;
 	wire		axi_mm2s_arready;
-	wire	[1:0]	axi_mm2s_arid;
+	wire	[2:0]	axi_mm2s_arid;
 	wire	[24:0]	axi_mm2s_araddr;
 	wire	[7:0]	axi_mm2s_arlen;
 	wire	[2:0]	axi_mm2s_arsize;
@@ -326,7 +326,7 @@ module	main(i_clk, i_reset,
 	//
 	wire		axi_mm2s_rvalid;
 	wire		axi_mm2s_rready;
-	wire	[1:0]	axi_mm2s_rid;
+	wire	[2:0]	axi_mm2s_rid;
 	wire	[31:0]	axi_mm2s_rdata;
 
 	wire		axi_mm2s_rlast;
@@ -337,7 +337,7 @@ module	main(i_clk, i_reset,
 	//
 	wire		axi_dma_awvalid;
 	wire		axi_dma_awready;
-	wire	[1:0]	axi_dma_awid;
+	wire	[2:0]	axi_dma_awid;
 	wire	[24:0]	axi_dma_awaddr;
 	wire	[7:0]	axi_dma_awlen;
 	wire	[2:0]	axi_dma_awsize;
@@ -357,11 +357,11 @@ module	main(i_clk, i_reset,
 
 	wire		axi_dma_bvalid;
 	wire		axi_dma_bready;
-	wire	[1:0]	axi_dma_bid;
+	wire	[2:0]	axi_dma_bid;
 	wire	[1:0]	axi_dma_bresp;
 	wire		axi_dma_arvalid;
 	wire		axi_dma_arready;
-	wire	[1:0]	axi_dma_arid;
+	wire	[2:0]	axi_dma_arid;
 	wire	[24:0]	axi_dma_araddr;
 	wire	[7:0]	axi_dma_arlen;
 	wire	[2:0]	axi_dma_arsize;
@@ -373,7 +373,7 @@ module	main(i_clk, i_reset,
 	//
 	wire		axi_dma_rvalid;
 	wire		axi_dma_rready;
-	wire	[1:0]	axi_dma_rid;
+	wire	[2:0]	axi_dma_rid;
 	wire	[31:0]	axi_dma_rdata;
 
 	wire		axi_dma_rlast;
@@ -390,7 +390,7 @@ module	main(i_clk, i_reset,
 	//
 	wire		axi_controlbus_awvalid;
 	wire		axi_controlbus_awready;
-	wire	[1:0]	axi_controlbus_awid;
+	wire	[2:0]	axi_controlbus_awid;
 	wire	[24:0]	axi_controlbus_awaddr;
 	wire	[7:0]	axi_controlbus_awlen;
 	wire	[2:0]	axi_controlbus_awsize;
@@ -410,11 +410,11 @@ module	main(i_clk, i_reset,
 
 	wire		axi_controlbus_bvalid;
 	wire		axi_controlbus_bready;
-	wire	[1:0]	axi_controlbus_bid;
+	wire	[2:0]	axi_controlbus_bid;
 	wire	[1:0]	axi_controlbus_bresp;
 	wire		axi_controlbus_arvalid;
 	wire		axi_controlbus_arready;
-	wire	[1:0]	axi_controlbus_arid;
+	wire	[2:0]	axi_controlbus_arid;
 	wire	[24:0]	axi_controlbus_araddr;
 	wire	[7:0]	axi_controlbus_arlen;
 	wire	[2:0]	axi_controlbus_arsize;
@@ -426,7 +426,7 @@ module	main(i_clk, i_reset,
 	//
 	wire		axi_controlbus_rvalid;
 	wire		axi_controlbus_rready;
-	wire	[1:0]	axi_controlbus_rid;
+	wire	[2:0]	axi_controlbus_rid;
 	wire	[31:0]	axi_controlbus_rdata;
 
 	wire		axi_controlbus_rlast;
@@ -437,7 +437,7 @@ module	main(i_clk, i_reset,
 	//
 	wire		axi_axiram_awvalid;
 	wire		axi_axiram_awready;
-	wire	[1:0]	axi_axiram_awid;
+	wire	[2:0]	axi_axiram_awid;
 	wire	[24:0]	axi_axiram_awaddr;
 	wire	[7:0]	axi_axiram_awlen;
 	wire	[2:0]	axi_axiram_awsize;
@@ -457,11 +457,11 @@ module	main(i_clk, i_reset,
 
 	wire		axi_axiram_bvalid;
 	wire		axi_axiram_bready;
-	wire	[1:0]	axi_axiram_bid;
+	wire	[2:0]	axi_axiram_bid;
 	wire	[1:0]	axi_axiram_bresp;
 	wire		axi_axiram_arvalid;
 	wire		axi_axiram_arready;
-	wire	[1:0]	axi_axiram_arid;
+	wire	[2:0]	axi_axiram_arid;
 	wire	[24:0]	axi_axiram_araddr;
 	wire	[7:0]	axi_axiram_arlen;
 	wire	[2:0]	axi_axiram_arsize;
@@ -473,7 +473,7 @@ module	main(i_clk, i_reset,
 	//
 	wire		axi_axiram_rvalid;
 	wire		axi_axiram_rready;
-	wire	[1:0]	axi_axiram_rid;
+	wire	[2:0]	axi_axiram_rid;
 	wire	[31:0]	axi_axiram_rdata;
 
 	wire		axi_axiram_rlast;
@@ -493,7 +493,7 @@ module	main(i_clk, i_reset,
 	wire		axil_controlbus_awvalid, axil_controlbus_wvalid,
 			axil_controlbus_arvalid,
 			axil_controlbus_bready, axil_controlbus_rready;
-	wire	[5:0]	axil_controlbus_araddr, axil_controlbus_awaddr;
+	wire	[6:0]	axil_controlbus_araddr, axil_controlbus_awaddr;
 	wire	[2:0]	axil_controlbus_arprot, axil_controlbus_awprot;
 	wire	[31:0]	axil_controlbus_wdata;
 	wire	[3:0]	axil_controlbus_wstrb;
@@ -505,6 +505,25 @@ module	main(i_clk, i_reset,
 
 	// Bus axil is all DOUBLE slaves
 	//
+	//	// AXI-lite slave definitions for bus axil,
+	// component streamsink, with prefix axil_streamsink
+	//
+	// Verilator lint_off UNUSED
+	wire		axil_streamsink_awready, axil_streamsink_wready,
+			axil_streamsink_arready;
+	wire		axil_streamsink_bvalid, axil_streamsink_rvalid;
+	wire	[1:0]	axil_streamsink_bresp, axil_streamsink_rresp;
+	wire	[31:0]	axil_streamsink_rdata;
+
+	wire		axil_streamsink_awvalid, axil_streamsink_wvalid,
+			axil_streamsink_arvalid,
+			axil_streamsink_bready, axil_streamsink_rready;
+	wire	[6:0]	axil_streamsink_araddr, axil_streamsink_awaddr;
+	wire	[2:0]	axil_streamsink_arprot, axil_streamsink_awprot;
+	wire	[31:0]	axil_streamsink_wdata;
+	wire	[3:0]	axil_streamsink_wstrb;
+
+	// Verilator lint_on  UNUSED
 	//	// AXI-lite slave definitions for bus axil,
 	// component dma, with prefix axil_dma
 	//
@@ -518,7 +537,7 @@ module	main(i_clk, i_reset,
 	wire		axil_dma_awvalid, axil_dma_wvalid,
 			axil_dma_arvalid,
 			axil_dma_bready, axil_dma_rready;
-	wire	[5:0]	axil_dma_araddr, axil_dma_awaddr;
+	wire	[6:0]	axil_dma_araddr, axil_dma_awaddr;
 	wire	[2:0]	axil_dma_arprot, axil_dma_awprot;
 	wire	[31:0]	axil_dma_wdata;
 	wire	[3:0]	axil_dma_wstrb;
@@ -537,7 +556,7 @@ module	main(i_clk, i_reset,
 	wire		axil_mm2s_awvalid, axil_mm2s_wvalid,
 			axil_mm2s_arvalid,
 			axil_mm2s_bready, axil_mm2s_rready;
-	wire	[5:0]	axil_mm2s_araddr, axil_mm2s_awaddr;
+	wire	[6:0]	axil_mm2s_araddr, axil_mm2s_awaddr;
 	wire	[2:0]	axil_mm2s_arprot, axil_mm2s_awprot;
 	wire	[31:0]	axil_mm2s_wdata;
 	wire	[3:0]	axil_mm2s_wstrb;
@@ -556,29 +575,10 @@ module	main(i_clk, i_reset,
 	wire		axil_s2mm_awvalid, axil_s2mm_wvalid,
 			axil_s2mm_arvalid,
 			axil_s2mm_bready, axil_s2mm_rready;
-	wire	[5:0]	axil_s2mm_araddr, axil_s2mm_awaddr;
+	wire	[6:0]	axil_s2mm_araddr, axil_s2mm_awaddr;
 	wire	[2:0]	axil_s2mm_arprot, axil_s2mm_awprot;
 	wire	[31:0]	axil_s2mm_wdata;
 	wire	[3:0]	axil_s2mm_wstrb;
-
-	// Verilator lint_on  UNUSED
-	//	// AXI-lite slave definitions for bus axil,
-	// component streamsink, with prefix axil_streamsink
-	//
-	// Verilator lint_off UNUSED
-	wire		axil_streamsink_awready, axil_streamsink_wready,
-			axil_streamsink_arready;
-	wire		axil_streamsink_bvalid, axil_streamsink_rvalid;
-	wire	[1:0]	axil_streamsink_bresp, axil_streamsink_rresp;
-	wire	[31:0]	axil_streamsink_rdata;
-
-	wire		axil_streamsink_awvalid, axil_streamsink_wvalid,
-			axil_streamsink_arvalid,
-			axil_streamsink_bready, axil_streamsink_rready;
-	wire	[5:0]	axil_streamsink_araddr, axil_streamsink_awaddr;
-	wire	[2:0]	axil_streamsink_arprot, axil_streamsink_awprot;
-	wire	[31:0]	axil_streamsink_wdata;
-	wire	[3:0]	axil_streamsink_wstrb;
 
 	// Verilator lint_on  UNUSED
 
@@ -603,6 +603,7 @@ module	main(i_clk, i_reset,
 	axixbar #(
 		.C_AXI_ADDR_WIDTH(25),
 		.C_AXI_DATA_WIDTH(32),
+		.C_AXI_ID_WIDTH(3),
 		.NM(4), .NS(2),
 		.SLAVE_ADDR({
 			// Address width    = 25
@@ -1022,34 +1023,35 @@ module	main(i_clk, i_reset,
 	// Some extra wires to capture combined values--values
 	// that will be the same across all slaves of the
 	// class
-	wire [5:0]	axil_diow_awaddr;
+	wire [6:0]	axil_diow_awaddr;
 	wire [2:0]	axil_diow_awprot;
 	wire [31:0]	axil_diow_wdata;
 	wire [3:0]	axil_diow_wstrb;
-	wire [5:0]	axil_diow_araddr;
+	wire [6:0]	axil_diow_araddr;
 	wire [2:0]	axil_diow_arprot;
 
 	axildouble #(
-		.C_AXI_ADDR_WIDTH(6),
+		.C_AXI_ADDR_WIDTH(7),
 		.C_AXI_DATA_WIDTH(32),
 		.NS(4),
+		.OPT_LOWPOWER(1'b1),
 		.SLAVE_ADDR({
-			// Address width    = 6
+			// Address width    = 7
 			// Address LSBs     = 0
 			// Slave name width = 10
-			{ 6'h30 }, // streamsink: 0x30
-			{ 6'h20 }, //       s2mm: 0x20
-			{ 6'h10 }, //       mm2s: 0x10
-			{ 6'h00 }  //        dma: 0x00
+			{ 7'h60 }, //       s2mm: 0x60
+			{ 7'h40 }, //       mm2s: 0x40
+			{ 7'h20 }, //        dma: 0x20
+			{ 7'h00 }  // streamsink: 0x00
 		}),
 		.SLAVE_MASK({
-			// Address width    = 6
+			// Address width    = 7
 			// Address LSBs     = 0
 			// Slave name width = 10
-			{ 6'h30 }, // streamsink
-			{ 6'h30 }, //       s2mm
-			{ 6'h30 }, //       mm2s
-			{ 6'h30 }  //        dma
+			{ 7'h60 }, //       s2mm
+			{ 7'h60 }, //       mm2s
+			{ 7'h60 }, //        dma
+			{ 7'h60 }  // streamsink
 		})
 	) axil_axildouble(
 		.S_AXI_ACLK(i_clk),
@@ -1057,7 +1059,7 @@ module	main(i_clk, i_reset,
 		//
 		.S_AXI_AWVALID(axil_controlbus_awvalid),
 		.S_AXI_AWREADY(axil_controlbus_awready),
-		.S_AXI_AWADDR( axil_controlbus_awaddr[5:0]),
+		.S_AXI_AWADDR( axil_controlbus_awaddr[6:0]),
 		.S_AXI_AWPROT( axil_controlbus_awprot),
 		//
 		.S_AXI_WVALID( axil_controlbus_wvalid),
@@ -1072,7 +1074,7 @@ module	main(i_clk, i_reset,
 		// Read connections
 		.S_AXI_ARVALID(axil_controlbus_arvalid),
 		.S_AXI_ARREADY(axil_controlbus_arready),
-		.S_AXI_ARADDR( axil_controlbus_araddr[5:0]),
+		.S_AXI_ARADDR( axil_controlbus_araddr[6:0]),
 		.S_AXI_ARPROT( axil_controlbus_arprot),
 		//
 		.S_AXI_RVALID( axil_controlbus_rvalid),
@@ -1083,10 +1085,10 @@ module	main(i_clk, i_reset,
 		// Connections to slaves
 		//
 		.M_AXI_AWVALID({
-			axil_streamsink_awvalid,
 			axil_s2mm_awvalid,
 			axil_mm2s_awvalid,
-			axil_dma_awvalid
+			axil_dma_awvalid,
+			axil_streamsink_awvalid
 		}),
 		.M_AXI_AWADDR(axil_diow_awaddr),
 		.M_AXI_AWPROT(axil_diow_awprot),
@@ -1095,78 +1097,78 @@ module	main(i_clk, i_reset,
 		//
 		//
 		.M_AXI_BRESP({
-			axil_streamsink_bresp,
 			axil_s2mm_bresp,
 			axil_mm2s_bresp,
-			axil_dma_bresp
+			axil_dma_bresp,
+			axil_streamsink_bresp
 		}),
 		// Read connections
 		.M_AXI_ARVALID({
-			axil_streamsink_arvalid,
 			axil_s2mm_arvalid,
 			axil_mm2s_arvalid,
-			axil_dma_arvalid
+			axil_dma_arvalid,
+			axil_streamsink_arvalid
 		}),
 		.M_AXI_ARADDR(axil_diow_araddr),
 		.M_AXI_ARPROT(axil_diow_arprot),
 		//
 		.M_AXI_RDATA({
-			axil_streamsink_rdata,
 			axil_s2mm_rdata,
 			axil_mm2s_rdata,
-			axil_dma_rdata
+			axil_dma_rdata,
+			axil_streamsink_rdata
 		}),
 		.M_AXI_RRESP({
-			axil_streamsink_rresp,
 			axil_s2mm_rresp,
 			axil_mm2s_rresp,
-			axil_dma_rresp
+			axil_dma_rresp,
+			axil_streamsink_rresp
 		})
 		);
 
 	//
 	// Now connecting the extra slaves wires to the AXILDOUBLE controller
 	//
-	// streamsink
-	assign axil_streamsink_awaddr = axil_diow_awaddr[6-1:0];
-	assign axil_streamsink_awprot = axil_diow_awprot;
-	assign axil_streamsink_wvalid = axil_streamsink_awvalid;
-	assign axil_streamsink_wdata = axil_diow_wdata;
-	assign axil_streamsink_wstrb = axil_diow_wstrb;
-	assign axil_streamsink_bready = 1'b1;
-	assign axil_streamsink_araddr = axil_diow_araddr[6-1:0];
-	assign axil_streamsink_arprot = axil_diow_arprot;
-	assign axil_streamsink_rready = 1'b1;
 	// s2mm
-	assign axil_s2mm_awaddr = axil_diow_awaddr[6-1:0];
+	assign axil_s2mm_awaddr = axil_diow_awaddr;
 	assign axil_s2mm_awprot = axil_diow_awprot;
 	assign axil_s2mm_wvalid = axil_s2mm_awvalid;
 	assign axil_s2mm_wdata = axil_diow_wdata;
 	assign axil_s2mm_wstrb = axil_diow_wstrb;
 	assign axil_s2mm_bready = 1'b1;
-	assign axil_s2mm_araddr = axil_diow_araddr[6-1:0];
+	assign axil_s2mm_araddr = axil_diow_araddr;
 	assign axil_s2mm_arprot = axil_diow_arprot;
 	assign axil_s2mm_rready = 1'b1;
 	// mm2s
-	assign axil_mm2s_awaddr = axil_diow_awaddr[6-1:0];
+	assign axil_mm2s_awaddr = axil_diow_awaddr;
 	assign axil_mm2s_awprot = axil_diow_awprot;
 	assign axil_mm2s_wvalid = axil_mm2s_awvalid;
 	assign axil_mm2s_wdata = axil_diow_wdata;
 	assign axil_mm2s_wstrb = axil_diow_wstrb;
 	assign axil_mm2s_bready = 1'b1;
-	assign axil_mm2s_araddr = axil_diow_araddr[6-1:0];
+	assign axil_mm2s_araddr = axil_diow_araddr;
 	assign axil_mm2s_arprot = axil_diow_arprot;
 	assign axil_mm2s_rready = 1'b1;
 	// dma
-	assign axil_dma_awaddr = axil_diow_awaddr[6-1:0];
+	assign axil_dma_awaddr = axil_diow_awaddr;
 	assign axil_dma_awprot = axil_diow_awprot;
 	assign axil_dma_wvalid = axil_dma_awvalid;
 	assign axil_dma_wdata = axil_diow_wdata;
 	assign axil_dma_wstrb = axil_diow_wstrb;
 	assign axil_dma_bready = 1'b1;
-	assign axil_dma_araddr = axil_diow_araddr[6-1:0];
+	assign axil_dma_araddr = axil_diow_araddr;
 	assign axil_dma_arprot = axil_diow_arprot;
 	assign axil_dma_rready = 1'b1;
+	// streamsink
+	assign axil_streamsink_awaddr = axil_diow_awaddr;
+	assign axil_streamsink_awprot = axil_diow_awprot;
+	assign axil_streamsink_wvalid = axil_streamsink_awvalid;
+	assign axil_streamsink_wdata = axil_diow_wdata;
+	assign axil_streamsink_wstrb = axil_diow_wstrb;
+	assign axil_streamsink_bready = 1'b1;
+	assign axil_streamsink_araddr = axil_diow_araddr;
+	assign axil_streamsink_arprot = axil_diow_arprot;
+	assign axil_streamsink_rready = 1'b1;
 	//
 	// Declare the interrupt busses
 	//
@@ -1201,7 +1203,9 @@ module	main(i_clk, i_reset,
 	axilite2axi #(
 		.C_AXI_ADDR_WIDTH(25),
 		.C_AXI_DATA_WIDTH(32),
-		.C_AXI_ID_WIDTH(2)
+		.C_AXI_ID_WIDTH(3),
+		.C_AXI_WRITE_ID(3'b100),
+		.C_AXI_READ_ID(3'b101)
 	) vibusi (
 		.ACLK(i_clk),
 		.ARESETN(!i_reset),
@@ -1293,9 +1297,9 @@ module	main(i_clk, i_reset,
 	if (!streamsrc_tvalid || streamsrc_tready)
 		streamsrc_tdata <= streamsrc_counter;
 	axi2axilite #(
-		.C_AXI_ADDR_WIDTH(6),
+		.C_AXI_ADDR_WIDTH(7),
 		.C_AXI_DATA_WIDTH(32),
-		.C_AXI_ID_WIDTH(2)
+		.C_AXI_ID_WIDTH(3)
 	) controlbusi (
 		.S_AXI_ACLK(i_clk),
 		.S_AXI_ARESETN(!i_reset),
@@ -1304,7 +1308,7 @@ module	main(i_clk, i_reset,
 		.S_AXI_AWVALID(axi_controlbus_awvalid),
 		.S_AXI_AWREADY(axi_controlbus_awready),
 		.S_AXI_AWID(   axi_controlbus_awid),
-		.S_AXI_AWADDR( axi_controlbus_awaddr[6-1:0]),
+		.S_AXI_AWADDR( axi_controlbus_awaddr[7-1:0]),
 		.S_AXI_AWLEN(  axi_controlbus_awlen),
 		.S_AXI_AWSIZE( axi_controlbus_awsize),
 		.S_AXI_AWBURST(axi_controlbus_awburst),
@@ -1327,7 +1331,7 @@ module	main(i_clk, i_reset,
 		.S_AXI_ARVALID(axi_controlbus_arvalid),
 		.S_AXI_ARREADY(axi_controlbus_arready),
 		.S_AXI_ARID(   axi_controlbus_arid),
-		.S_AXI_ARADDR( axi_controlbus_araddr[6-1:0]),
+		.S_AXI_ARADDR( axi_controlbus_araddr[7-1:0]),
 		.S_AXI_ARLEN(  axi_controlbus_arlen),
 		.S_AXI_ARSIZE( axi_controlbus_arsize),
 		.S_AXI_ARBURST(axi_controlbus_arburst),
@@ -1346,7 +1350,7 @@ module	main(i_clk, i_reset,
 		//
 		.M_AXI_AWVALID(axil_controlbus_awvalid),
 		.M_AXI_AWREADY(axil_controlbus_awready),
-		.M_AXI_AWADDR( axil_controlbus_awaddr[6-1:0]),
+		.M_AXI_AWADDR( axil_controlbus_awaddr[7-1:0]),
 		.M_AXI_AWPROT( axil_controlbus_awprot),
 //
 		.M_AXI_WVALID(axil_controlbus_wvalid),
@@ -1360,7 +1364,7 @@ module	main(i_clk, i_reset,
 		// Read connections
 		.M_AXI_ARVALID(axil_controlbus_arvalid),
 		.M_AXI_ARREADY(axil_controlbus_arready),
-		.M_AXI_ARADDR( axil_controlbus_araddr[6-1:0]),
+		.M_AXI_ARADDR( axil_controlbus_araddr[7-1:0]),
 		.M_AXI_ARPROT( axil_controlbus_arprot),
 //
 		.M_AXI_RVALID(axil_controlbus_rvalid),
@@ -1371,7 +1375,8 @@ module	main(i_clk, i_reset,
 	axis2mm #(
 		.C_AXI_ADDR_WIDTH(25),
 		.C_AXI_DATA_WIDTH(32),
-		.C_AXI_ID_WIDTH(2)
+		.C_AXI_ID_WIDTH(3),
+		.AXI_ID(3'b001)
 	) s2mmi (
 		.S_AXI_ACLK(i_clk),
 		.S_AXI_ARESETN(!i_reset),
@@ -1385,7 +1390,7 @@ module	main(i_clk, i_reset,
 		//
 		.S_AXIL_AWVALID(axil_s2mm_awvalid),
 		.S_AXIL_AWREADY(axil_s2mm_awready),
-		.S_AXIL_AWADDR( axil_s2mm_awaddr[4-1:0]),
+		.S_AXIL_AWADDR( axil_s2mm_awaddr[5-1:0]),
 		.S_AXIL_AWPROT( axil_s2mm_awprot),
 //
 		.S_AXIL_WVALID(axil_s2mm_wvalid),
@@ -1399,7 +1404,7 @@ module	main(i_clk, i_reset,
 		// Read connections
 		.S_AXIL_ARVALID(axil_s2mm_arvalid),
 		.S_AXIL_ARREADY(axil_s2mm_arready),
-		.S_AXIL_ARADDR( axil_s2mm_araddr[4-1:0]),
+		.S_AXIL_ARADDR( axil_s2mm_araddr[5-1:0]),
 		.S_AXIL_ARPROT( axil_s2mm_arprot),
 //
 		.S_AXIL_RVALID(axil_s2mm_rvalid),
@@ -1450,7 +1455,8 @@ module	main(i_clk, i_reset,
 	aximm2s #(
 		.C_AXI_ADDR_WIDTH(25),
 		.C_AXI_DATA_WIDTH(32),
-		.C_AXI_ID_WIDTH(2)
+		.C_AXI_ID_WIDTH(3),
+		.AXI_ID(3'b00)
 	) mm2si (
 		.S_AXI_ACLK(i_clk),
 		.S_AXI_ARESETN(!i_reset),
@@ -1462,7 +1468,7 @@ module	main(i_clk, i_reset,
 		//
 		.S_AXIL_AWVALID(axil_mm2s_awvalid),
 		.S_AXIL_AWREADY(axil_mm2s_awready),
-		.S_AXIL_AWADDR( axil_mm2s_awaddr[4-1:0]),
+		.S_AXIL_AWADDR( axil_mm2s_awaddr[5-1:0]),
 		.S_AXIL_AWPROT( axil_mm2s_awprot),
 //
 		.S_AXIL_WVALID(axil_mm2s_wvalid),
@@ -1476,7 +1482,7 @@ module	main(i_clk, i_reset,
 		// Read connections
 		.S_AXIL_ARVALID(axil_mm2s_arvalid),
 		.S_AXIL_ARREADY(axil_mm2s_arready),
-		.S_AXIL_ARADDR( axil_mm2s_araddr[4-1:0]),
+		.S_AXIL_ARADDR( axil_mm2s_araddr[5-1:0]),
 		.S_AXIL_ARPROT( axil_mm2s_arprot),
 //
 		.S_AXIL_RVALID(axil_mm2s_rvalid),
@@ -1523,7 +1529,8 @@ module	main(i_clk, i_reset,
 	assign	axi_mm2s_bready  = 1;
 
 	streamcounter #(
-		.C_AXIS_DATA_WIDTH(32)
+		.C_AXIS_DATA_WIDTH(32),
+		.OPT_LOWPOWER(1'b1)
 	) streamsinki (
 		.S_AXI_ACLK(i_clk),
 		.S_AXI_ARESETN(!i_reset),
@@ -1563,7 +1570,7 @@ module	main(i_clk, i_reset,
 	demofull #(
 		.C_S_AXI_ADDR_WIDTH(24),
 		.C_S_AXI_DATA_WIDTH(32),
-		.C_S_AXI_ID_WIDTH(2)
+		.C_S_AXI_ID_WIDTH(3)
 	) axirami (
 		.S_AXI_ACLK(i_clk),
 		.S_AXI_ARESETN(!i_reset),
@@ -1636,14 +1643,16 @@ module	main(i_clk, i_reset,
 	axidma #(
 		.C_AXI_ADDR_WIDTH(25),
 		.C_AXI_DATA_WIDTH(32),
-		.C_AXI_ID_WIDTH(2)
+		.C_AXI_ID_WIDTH(3),
+		.AXI_READ_ID(3'b010),
+		.AXI_WRITE_ID(3'b011),
 	) dmai (
 		.S_AXI_ACLK(i_clk),
 		.S_AXI_ARESETN(!i_reset),
 		//
 		.S_AXIL_AWVALID(axil_dma_awvalid),
 		.S_AXIL_AWREADY(axil_dma_awready),
-		.S_AXIL_AWADDR( axil_dma_awaddr[4-1:0]),
+		.S_AXIL_AWADDR( axil_dma_awaddr[5-1:0]),
 		.S_AXIL_AWPROT( axil_dma_awprot),
 //
 		.S_AXIL_WVALID(axil_dma_wvalid),
@@ -1657,7 +1666,7 @@ module	main(i_clk, i_reset,
 		// Read connections
 		.S_AXIL_ARVALID(axil_dma_arvalid),
 		.S_AXIL_ARREADY(axil_dma_arready),
-		.S_AXIL_ARADDR( axil_dma_araddr[4-1:0]),
+		.S_AXIL_ARADDR( axil_dma_araddr[5-1:0]),
 		.S_AXIL_ARPROT( axil_dma_arprot),
 //
 		.S_AXIL_RVALID(axil_dma_rvalid),

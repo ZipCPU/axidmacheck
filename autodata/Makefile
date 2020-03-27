@@ -50,7 +50,7 @@ all:	data
 DATA := global.txt axibus.txt axiram.txt axidma.txt aximm2s.txt axis2mm.txt \
 	controlbus.txt streamsink.txt streamsrc.txt vibus.txt
 
-AUTOFPGA?= $(shell which autofpga)
+AUTOFPGA?=$(shell which autofpga)
 
 .PHONY: data
 data: $(DATA)

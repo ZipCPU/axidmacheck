@@ -93,7 +93,9 @@
 	axilite2axi #(
 		.C_AXI_ADDR_WIDTH(@$(MASTER.BUS.AWID)),
 		.C_AXI_DATA_WIDTH(@$(MASTER.BUS.WIDTH)),
-		.C_AXI_ID_WIDTH(@$(MASTER.BUS.IDWIDTH))
+		.C_AXI_ID_WIDTH(@$(MASTER.BUS.IDWIDTH)),
+		.C_AXI_WRITE_ID(3'b100),
+		.C_AXI_READ_ID(3'b101)
 	) @$(PREFIX)i (
 		.ACLK(i_clk),
 		.ARESETN(!i_reset),
