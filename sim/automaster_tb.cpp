@@ -14,7 +14,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (C) 2017-2019, Gisselquist Technology, LLC
+// Copyright (C) 2020, Gisselquist Technology, LLC
 //
 // This program is free software (firmware): you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as published
@@ -53,6 +53,35 @@
 #include "main_tb.cpp"
 #include "axi_tb.h"
 
+#define	TBRAM	m_tb->m_core->AXIRAM
+
+#define	MM2S_START_ADDR		0x24
+#define	MM2S_LENGTH		32768 // 262144
+#define	MM2S_START_ADDRW	(MM2S_START_ADDR/4)
+#define	MM2S_LENGTHW		(MM2S_LENGTH/4)
+#define	MM2S_START_CMD		0xc0000000
+#define	MM2S_ABORT_CMD		0x6d000000
+#define	MM2S_CONTINUOUS		0x10000000
+
+#define	S2MM_START_ADDR		0x30
+#define	S2MM_LENGTH		32768 // 262144
+#define	S2MM_START_ADDRW	(MM2S_START_ADDR/4)
+#define	S2MM_LENGTHW		(MM2S_LENGTH/4)
+#define	S2MM_START_CMD		0xc0000000
+#define	S2MM_ABORT_CMD		0x26000000
+
+#define	DMA_START_CMD		0x00000011
+#define	DMA_BUSY_BIT		0x00000001
+// Extra realignment read (only)
+// #define	DMA_SRC_ADDR		0x00000203
+// #define	DMA_DST_ADDR		0x00008201
+// #define	DMA_LENGTH		0x00000401
+//
+// Extra realignment write
+#define	DMA_SRC_ADDR		0x00000201
+#define	DMA_DST_ADDR		0x00008202
+#define	DMA_LENGTH		0x00000403
+
 void	usage(void) {
 	fprintf(stderr, "USAGE: main_tb <options>\n");
 	fprintf(stderr,
@@ -63,14 +92,13 @@ void	usage(void) {
 );
 }
 
-#define	TBRAM	m_tb->m_core->AXIRAM
-
 int	main(int argc, char **argv) {
 	const	char *trace_file = NULL; // "trace.vcd";
 	bool	debug_flag = false;
 	bool	fail = false;
 	Verilated::commandArgs(argc, argv);
 	AXI_TB<MAINTB>	*tb = new AXI_TB<MAINTB>;
+	unsigned long	start_counts;
 
 	for(int argn=1; argn < argc; argn++) {
 		if (argv[argn][0] == '-') for(int j=1;
@@ -107,20 +135,14 @@ int	main(int argc, char **argv) {
 	//
 	// Test the AXIMM2S
 	//
-#define	MM2S_START_ADDR	0x24
-#define	MM2S_LENGTH	262144
-
-#define	MM2S_START_ADDRW	(MM2S_START_ADDR/4)
-#define	MM2S_LENGTHW		(MM2S_LENGTH/4)
-
 	memset(tb->TBRAM, -1, RAMSIZE);
 	for(int k=0; k<MM2S_LENGTHW; k++)
 		tb->TBRAM[k+MM2S_START_ADDRW] = k;
-	tb->writeio(R_MM2SADDR, MM2S_START_ADDR + R_AXIRAM);
-	tb->writeio(R_MM2SLEN,  MM2S_LENGTH);
+	tb->write64(R_MM2SADDRLO, (uint64_t)MM2S_START_ADDR + R_AXIRAM);
+	tb->write64(R_MM2SLENLO,  (uint64_t)MM2S_LENGTH);
 	tb->writeio(R_STREAMSINK_BEATS, 0);
-#define	MM2S_START	0xc0000000
-	tb->writeio(R_MM2SCTRL, MM2S_START);
+	start_counts = tb->tickcount();
+	tb->writeio(R_MM2SCTRL, MM2S_START_CMD);
 	while((tb->readio(R_MM2SCTRL) & 0x80000000)==0)
 		;
 	while(tb->readio(R_MM2SCTRL) & 0x80000000)
@@ -128,20 +150,93 @@ int	main(int argc, char **argv) {
 	printf("AXIMM2S Check:\n");
 	printf("\tBEATS:  0x%08x\n", tb->readio(R_STREAMSINK_BEATS));
 	printf("\tCLOCKS: 0x%08x\n", tb->readio(R_STREAMSINK_CLOCKS));
+	printf("\tCOUNTS: 0x%08lx\n", tb->tickcount()-start_counts);
+
+	// Try aborting an AXIMM2S transaction
+	memset(tb->TBRAM, -1, RAMSIZE);
+	for(int k=0; k<MM2S_LENGTHW; k++)
+		tb->TBRAM[k+MM2S_START_ADDRW] = k;
+	tb->write64(R_MM2SADDRLO, (uint64_t)MM2S_START_ADDR + R_AXIRAM);
+	tb->write64(R_MM2SLENLO,  (uint64_t)MM2S_LENGTH);
+	tb->writeio(R_STREAMSINK_BEATS, 0);
+	start_counts = tb->tickcount();
+	tb->writeio(R_MM2SCTRL, MM2S_START_CMD);
+	while((tb->readio(R_MM2SCTRL) & 0x80000000)==0)
+		;
+	tb->idle(425);
+	tb->writeio(R_MM2SCTRL, MM2S_ABORT_CMD);
+
+	while(tb->readio(R_MM2SCTRL) & 0x80000000)
+		;
+	printf("AXIMM2S (abort) Check:\n");
+	printf("\tBEATS:  0x%08x\n", tb->readio(R_STREAMSINK_BEATS));
+	printf("\tCLOCKS: 0x%08x\n", tb->readio(R_STREAMSINK_CLOCKS));
+	printf("\tCOUNTS: 0x%08lx\n", tb->tickcount()-start_counts);
+
+	// Try an unaligned AXIMM2S transaction
+	memset(tb->TBRAM, -1, RAMSIZE);
+	for(int k=0; k<MM2S_LENGTHW; k++)
+		tb->TBRAM[k+MM2S_START_ADDRW] = k;
+	tb->write64(R_MM2SADDRLO, (uint64_t)MM2S_START_ADDR + R_AXIRAM + 3);
+	if ((tb->readio(R_MM2SADDRLO) & 0x03)==3) {
+		tb->write64(R_MM2SLENLO,  (uint64_t)MM2S_LENGTH);
+		tb->writeio(R_STREAMSINK_BEATS, 0);
+		start_counts = tb->tickcount();
+		tb->writeio(R_MM2SCTRL, MM2S_START_CMD);
+		while((tb->readio(R_MM2SCTRL) & 0x80000000)==0)
+			;
+		while(tb->readio(R_MM2SCTRL) & 0x80000000)
+			;
+		printf("AXIMM2S (unaligned) Check:\n");
+		printf("\tBEATS:  0x%08x\n", tb->readio(R_STREAMSINK_BEATS));
+		printf("\tCLOCKS: 0x%08x\n", tb->readio(R_STREAMSINK_CLOCKS));
+		printf("\tCOUNTS: 0x%08lx\n", tb->tickcount()-start_counts);
+	} else
+		printf("AXIMM2S (unaligned) Check: No unaligned support (0x%08x)\n", tb->readio(R_MM2SADDRLO));
+
+	// Try a continuous transaction
+	memset(tb->TBRAM, -1, RAMSIZE);
+	for(int k=0; k<MM2S_LENGTHW; k++)
+		tb->TBRAM[k+MM2S_START_ADDRW] = k;
+	tb->write64(R_MM2SADDRLO, (uint64_t)MM2S_START_ADDR + R_AXIRAM);
+	tb->write64(R_MM2SLENLO, (uint64_t) MM2S_LENGTH);
+	tb->writeio(R_STREAMSINK_BEATS, 0);
+	start_counts = tb->tickcount();
+	tb->writeio(R_MM2SCTRL, MM2S_START_CMD | MM2S_CONTINUOUS);
+	while((tb->readio(R_MM2SCTRL) & 0x80000000)==0)
+		;
+	while(tb->readio(R_MM2SCTRL) & 0x80000000)
+		;
+	printf("AXIMM2S (continuous) Midway:\n");
+	printf("\tBEATS:  0x%08x\n", tb->readio(R_STREAMSINK_BEATS));
+	printf("\tCLOCKS: 0x%08x\n", tb->readio(R_STREAMSINK_CLOCKS));
+	printf("\tCOUNTS: 0x%08lx\n", tb->tickcount()-start_counts);
+	for(int k=0; k<MM2S_LENGTHW; k++)
+		tb->TBRAM[k+MM2S_START_ADDRW] = k + 0x100;
+	tb->idle(425);
+	tb->write64(R_MM2SADDRLO, (uint64_t)MM2S_START_ADDR + R_AXIRAM);
+	tb->write64(R_MM2SLENLO, (uint64_t)MM2S_LENGTH);
+	// tb->writeio(R_STREAMSINK_BEATS, 0);
+	tb->writeio(R_MM2SCTRL, MM2S_START_CMD | MM2S_CONTINUOUS);
+	while((tb->readio(R_MM2SCTRL) & 0xc0000000)==0)
+		;
+	while(tb->readio(R_MM2SCTRL) & 0x80000000)
+		;
+	printf("AXIMM2S (continuous) Midway:\n");
+	printf("\tSTATUS: 0x%08x\n", tb->readio(R_MM2SCTRL));
+	printf("\tBEATS:  0x%08x\n", tb->readio(R_STREAMSINK_BEATS));
+	printf("\tCLOCKS: 0x%08x\n", tb->readio(R_STREAMSINK_CLOCKS));
+	printf("\tCOUNTS: 0x%08lx\n", tb->tickcount()-start_counts);
+
+
 
 	//
 	// Test the AXIS2MM
 	//
-#define	S2MM_START_ADDR	0x30
-#define	S2MM_LENGTH	262144
-
-#define	S2MM_START_ADDRW	(MM2S_START_ADDR/4)
-#define	S2MM_LENGTHW		(MM2S_LENGTH/4)
-#define	S2MM_START_CMD		0xc0000000
-
 	memset(tb->TBRAM, -1, RAMSIZE);
-	tb->writeio(R_S2MMADDR, S2MM_START_ADDR + R_AXIRAM);
-	tb->writeio(R_S2MMLEN,  S2MM_LENGTH);
+	tb->write64(R_S2MMADDRLO, (uint64_t)S2MM_START_ADDR + R_AXIRAM);
+	tb->write64(R_S2MMLENLO,  (uint64_t)S2MM_LENGTH);
+	start_counts = tb->tickcount();
 	tb->writeio(R_S2MMCTRL, S2MM_START_CMD);
 	while((tb->readio(R_S2MMCTRL) & 0x80000000)==0)
 		;
@@ -150,6 +245,8 @@ int	main(int argc, char **argv) {
 	printf("AXIS2MM Check:\n");
 	// printf("\tBEATS:  0x%08x\n", tb->readio(R_STREAMSINK_BEATS));
 	// printf("\tCLOCKS: 0x%08x\n", tb->readio(R_STREAMSINK_CLOCKS));
+	printf("\tCOUNTS: 0x%08lx\n", tb->tickcount()-start_counts);
+	printf("\tERR-CODE: %d\n", (tb->readio(R_S2MMCTRL)>>23)&0x07);
 	for(unsigned k=0; k<0x30>>2; k++)
 		if (tb->TBRAM[k] != (unsigned)(-1)) {
 			printf("Pre-corruption: AXIRAM[%d] = 0x%08x\n", k, tb->TBRAM[k]);
@@ -161,9 +258,67 @@ int	main(int argc, char **argv) {
 			fail = true;
 		}
 
-//	while(!tb->done())
-//		tb->tick();
+	// Try it again--this time aborting the transaction midway
+	start_counts = tb->tickcount();
+	memset(tb->TBRAM, -1, RAMSIZE);
+	tb->write64(R_S2MMADDRLO, (uint64_t)S2MM_START_ADDR + R_AXIRAM);
+	tb->write64(R_S2MMLENLO,  (uint64_t)S2MM_LENGTH);
+	start_counts = tb->tickcount();
+	tb->writeio(R_S2MMCTRL, S2MM_START_CMD);
+	while((tb->readio(R_S2MMCTRL) & 0x80000000)==0)
+		;
+	tb->idle(425);
+	tb->writeio(R_S2MMCTRL, S2MM_ABORT_CMD);
 
+	while(tb->readio(R_S2MMCTRL) & 0x80000000)
+		;
+	printf("AXIS2MM (abort) Check:\n");
+	printf("\tCOUNTS: 0x%08lx\n", tb->tickcount()-start_counts);
+	printf("\tERR-CODE: %d\n", (tb->readio(R_S2MMCTRL)>>23)&0x07);
+
+	// Try it again--this time writing to non-existant memory
+/*
+ * Doesn't work: all addresses are mapped
+	start_counts = tb->tickcount();
+	memset(tb->TBRAM, -1, RAMSIZE);
+	tb->writeio(R_S2MMADDR, R_AXIRAM /2);
+	tb->writeio(R_S2MMLEN,  S2MM_LENGTH);
+	start_counts = tb->tickcount();
+	tb->writeio(R_S2MMCTRL, S2MM_START_CMD);
+	while((tb->readio(R_S2MMCTRL) & 0x80000000)==0)
+		;
+	while(tb->readio(R_S2MMCTRL) & 0x80000000)
+		;
+	printf("AXIS2MM (err) Check:\n");
+	printf("\tCOUNTS: 0x%08lx\n", tb->tickcount()-start_counts);
+	printf("\tERR-CODE: %d\n", (tb->readio(R_S2MMCTRL)>>23)&0x07);
+*/
+
+
+	//
+	// Test the AXIDMA
+	//
+	printf("Running AXI DMA test\n");
+	memset(tb->TBRAM, -1, RAMSIZE);
+	tb->write64(R_AXIDMASRCLO,  (uint64_t)DMA_SRC_ADDR + R_AXIRAM);
+	tb->write64(R_AXIDMADSTLO,  (uint64_t)DMA_DST_ADDR + R_AXIRAM);
+	tb->write64(R_AXIDMALENLO,  (uint64_t)DMA_LENGTH);
+	tb->writeio(R_AXIDMACTRL, DMA_START_CMD);
+	while((tb->readio(R_AXIDMACTRL) & DMA_BUSY_BIT)==0)
+		;
+	printf("Test has begin\n");
+	while(tb->readio(R_AXIDMACTRL) & DMA_BUSY_BIT) {
+		{
+			static int throttle = 0;
+			if (throttle++ > 2000)
+				printf("TICKCOUNT = %ld\n", tb->tickcount());
+		}
+		if (tb->tickcount() >= 400000)
+			return EXIT_FAILURE;
+	}
+	printf("AXIDMA Check:\n");
+
+	VerilatedCov::write("logs/coverage.dat");
 	tb->close();
 	delete tb;
 
