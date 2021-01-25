@@ -11,7 +11,7 @@
 ##
 ################################################################################
 ##
-## Copyright (C) 2020, Gisselquist Technology, LLC
+## Copyright (C) 2020-2021, Gisselquist Technology, LLC
 ##
 ## This program is free software (firmware): you can redistribute it and/or
 ## modify it under the terms of  the GNU General Public License as published
@@ -56,10 +56,10 @@
 		.S_AXI_ACLK(@$(SLAVE.BUS.CLOCK.WIRE)),
 		.S_AXI_ARESETN(@$(SLAVE.BUS.RESET)),
 		//
-		.S_AXIS_TVALID(@$(STREAM)_tvalid),
-		.S_AXIS_TREADY(@$(STREAM)_tready),
-		.S_AXIS_TDATA(@$(STREAM)_tdata),
-		.S_AXIS_TLAST(@$(STREAM)_tlast),
+		.M_AXIS_TVALID(@$(STREAM)_tvalid),
+		.M_AXIS_TREADY(@$(STREAM)_tready),
+		.M_AXIS_TDATA(@$(STREAM)_tdata),
+		.M_AXIS_TLAST(@$(STREAM)_tlast),
 		@$(SLAVE.ANSIPORTLIST),
 		@$(MASTER.ANSIPORTLIST),
 		.o_int(@$(PREFIX)_int)

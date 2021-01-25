@@ -16,7 +16,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (C) 2020, Gisselquist Technology, LLC
+// Copyright (C) 2020-2021, Gisselquist Technology, LLC
 //
 // This program is free software (firmware): you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as published
@@ -150,9 +150,9 @@ module	main(i_clk, i_reset,
 	// These declarations come from the various components values
 	// given under the @INT.<interrupt name>.WIRE key.
 	//
-	wire	s2mm_int;	// s2mm.INT.DMA.WIRE
-	wire	mm2s_int;	// mm2s.INT.DMA.WIRE
 	wire	dma_int;	// dma.INT.DMA.WIRE
+	wire	mm2s_int;	// mm2s.INT.DMA.WIRE
+	wire	s2mm_int;	// s2mm.INT.DMA.WIRE
 
 
 	//
@@ -161,13 +161,12 @@ module	main(i_clk, i_reset,
 	// These declarations come from the @MAIN.DEFNS keys found in the
 	// various components comprising the design.
 	//
+	wire	streamsink_tvalid, streamsink_tready, streamsink_tlast;
+	wire	[31:0]	streamsink_tdata;
 	reg	streamsrc_tvalid, streamsrc_tlast;
 	wire	streamsrc_tready;
 	reg	[31:0]	streamsrc_tdata;
 	reg	[31:0]	streamsrc_counter;
-	wire	axi_s2mm_wuser;
-	wire	streamsink_tvalid, streamsink_tready, streamsink_tlast;
-	wire	[31:0]	streamsink_tdata;
 	wire	axiram_we, axiram_rd;
 	wire	[32-1:0]	axiram_wdata;
 	wire	[32/8-1:0]	axiram_wstrb;
@@ -176,6 +175,7 @@ module	main(i_clk, i_reset,
 	reg	[32-1:0]	axiram_mem [0:(4194304-1)];
 	integer	axiram_ik;
 
+	wire	axi_s2mm_wuser;
 
 
 	//
@@ -239,52 +239,52 @@ module	main(i_clk, i_reset,
 
 	wire	[1:0]	axi_vibus_rresp;
 	//	// AXI4 slave definitions for bus axi,
-	// slave s2mm, with prefix axi_s2mm
+	// slave dma, with prefix axi_dma
 	//
-	wire		axi_s2mm_awvalid;
-	wire		axi_s2mm_awready;
-	wire	[2:0]	axi_s2mm_awid;
-	wire	[24:0]	axi_s2mm_awaddr;
-	wire	[7:0]	axi_s2mm_awlen;
-	wire	[2:0]	axi_s2mm_awsize;
-	wire	[1:0]	axi_s2mm_awburst;
-	wire		axi_s2mm_awlock;
-	wire	[3:0]	axi_s2mm_awcache;
-	wire	[2:0]	axi_s2mm_awprot;
-	wire	[3:0]	axi_s2mm_awqos;
+	wire		axi_dma_awvalid;
+	wire		axi_dma_awready;
+	wire	[2:0]	axi_dma_awid;
+	wire	[24:0]	axi_dma_awaddr;
+	wire	[7:0]	axi_dma_awlen;
+	wire	[2:0]	axi_dma_awsize;
+	wire	[1:0]	axi_dma_awburst;
+	wire		axi_dma_awlock;
+	wire	[3:0]	axi_dma_awcache;
+	wire	[2:0]	axi_dma_awprot;
+	wire	[3:0]	axi_dma_awqos;
 	//
-	wire		axi_s2mm_wvalid;
-	wire		axi_s2mm_wready;
-	wire	[31:0]	axi_s2mm_wdata;
+	wire		axi_dma_wvalid;
+	wire		axi_dma_wready;
+	wire	[31:0]	axi_dma_wdata;
 
-	wire	[3:0]	axi_s2mm_wstrb;
+	wire	[3:0]	axi_dma_wstrb;
 
-	wire		axi_s2mm_wlast;
+	wire		axi_dma_wlast;
 
-	wire		axi_s2mm_bvalid;
-	wire		axi_s2mm_bready;
-	wire	[2:0]	axi_s2mm_bid;
-	wire	[1:0]	axi_s2mm_bresp;
-	wire		axi_s2mm_arvalid;
-	wire		axi_s2mm_arready;
-	wire	[2:0]	axi_s2mm_arid;
-	wire	[24:0]	axi_s2mm_araddr;
-	wire	[7:0]	axi_s2mm_arlen;
-	wire	[2:0]	axi_s2mm_arsize;
-	wire	[1:0]	axi_s2mm_arburst;
-	wire		axi_s2mm_arlock;
-	wire	[3:0]	axi_s2mm_arcache;
-	wire	[2:0]	axi_s2mm_arprot;
-	wire	[3:0]	axi_s2mm_arqos;
+	wire		axi_dma_bvalid;
+	wire		axi_dma_bready;
+	wire	[2:0]	axi_dma_bid;
+	wire	[1:0]	axi_dma_bresp;
+	wire		axi_dma_arvalid;
+	wire		axi_dma_arready;
+	wire	[2:0]	axi_dma_arid;
+	wire	[24:0]	axi_dma_araddr;
+	wire	[7:0]	axi_dma_arlen;
+	wire	[2:0]	axi_dma_arsize;
+	wire	[1:0]	axi_dma_arburst;
+	wire		axi_dma_arlock;
+	wire	[3:0]	axi_dma_arcache;
+	wire	[2:0]	axi_dma_arprot;
+	wire	[3:0]	axi_dma_arqos;
 	//
-	wire		axi_s2mm_rvalid;
-	wire		axi_s2mm_rready;
-	wire	[2:0]	axi_s2mm_rid;
-	wire	[31:0]	axi_s2mm_rdata;
+	wire		axi_dma_rvalid;
+	wire		axi_dma_rready;
+	wire	[2:0]	axi_dma_rid;
+	wire	[31:0]	axi_dma_rdata;
 
-	wire		axi_s2mm_rlast;
+	wire		axi_dma_rlast;
 
-	wire	[1:0]	axi_s2mm_rresp;
+	wire	[1:0]	axi_dma_rresp;
 	//	// AXI4 slave definitions for bus axi,
 	// slave mm2s, with prefix axi_mm2s
 	//
@@ -333,52 +333,52 @@ module	main(i_clk, i_reset,
 
 	wire	[1:0]	axi_mm2s_rresp;
 	//	// AXI4 slave definitions for bus axi,
-	// slave dma, with prefix axi_dma
+	// slave s2mm, with prefix axi_s2mm
 	//
-	wire		axi_dma_awvalid;
-	wire		axi_dma_awready;
-	wire	[2:0]	axi_dma_awid;
-	wire	[24:0]	axi_dma_awaddr;
-	wire	[7:0]	axi_dma_awlen;
-	wire	[2:0]	axi_dma_awsize;
-	wire	[1:0]	axi_dma_awburst;
-	wire		axi_dma_awlock;
-	wire	[3:0]	axi_dma_awcache;
-	wire	[2:0]	axi_dma_awprot;
-	wire	[3:0]	axi_dma_awqos;
+	wire		axi_s2mm_awvalid;
+	wire		axi_s2mm_awready;
+	wire	[2:0]	axi_s2mm_awid;
+	wire	[24:0]	axi_s2mm_awaddr;
+	wire	[7:0]	axi_s2mm_awlen;
+	wire	[2:0]	axi_s2mm_awsize;
+	wire	[1:0]	axi_s2mm_awburst;
+	wire		axi_s2mm_awlock;
+	wire	[3:0]	axi_s2mm_awcache;
+	wire	[2:0]	axi_s2mm_awprot;
+	wire	[3:0]	axi_s2mm_awqos;
 	//
-	wire		axi_dma_wvalid;
-	wire		axi_dma_wready;
-	wire	[31:0]	axi_dma_wdata;
+	wire		axi_s2mm_wvalid;
+	wire		axi_s2mm_wready;
+	wire	[31:0]	axi_s2mm_wdata;
 
-	wire	[3:0]	axi_dma_wstrb;
+	wire	[3:0]	axi_s2mm_wstrb;
 
-	wire		axi_dma_wlast;
+	wire		axi_s2mm_wlast;
 
-	wire		axi_dma_bvalid;
-	wire		axi_dma_bready;
-	wire	[2:0]	axi_dma_bid;
-	wire	[1:0]	axi_dma_bresp;
-	wire		axi_dma_arvalid;
-	wire		axi_dma_arready;
-	wire	[2:0]	axi_dma_arid;
-	wire	[24:0]	axi_dma_araddr;
-	wire	[7:0]	axi_dma_arlen;
-	wire	[2:0]	axi_dma_arsize;
-	wire	[1:0]	axi_dma_arburst;
-	wire		axi_dma_arlock;
-	wire	[3:0]	axi_dma_arcache;
-	wire	[2:0]	axi_dma_arprot;
-	wire	[3:0]	axi_dma_arqos;
+	wire		axi_s2mm_bvalid;
+	wire		axi_s2mm_bready;
+	wire	[2:0]	axi_s2mm_bid;
+	wire	[1:0]	axi_s2mm_bresp;
+	wire		axi_s2mm_arvalid;
+	wire		axi_s2mm_arready;
+	wire	[2:0]	axi_s2mm_arid;
+	wire	[24:0]	axi_s2mm_araddr;
+	wire	[7:0]	axi_s2mm_arlen;
+	wire	[2:0]	axi_s2mm_arsize;
+	wire	[1:0]	axi_s2mm_arburst;
+	wire		axi_s2mm_arlock;
+	wire	[3:0]	axi_s2mm_arcache;
+	wire	[2:0]	axi_s2mm_arprot;
+	wire	[3:0]	axi_s2mm_arqos;
 	//
-	wire		axi_dma_rvalid;
-	wire		axi_dma_rready;
-	wire	[2:0]	axi_dma_rid;
-	wire	[31:0]	axi_dma_rdata;
+	wire		axi_s2mm_rvalid;
+	wire		axi_s2mm_rready;
+	wire	[2:0]	axi_s2mm_rid;
+	wire	[31:0]	axi_s2mm_rdata;
 
-	wire		axi_dma_rlast;
+	wire		axi_s2mm_rlast;
 
-	wire	[1:0]	axi_dma_rresp;
+	wire	[1:0]	axi_s2mm_rresp;
 
 	// Bus axi has no SINGLE slaves
 	//
@@ -625,230 +625,230 @@ module	main(i_clk, i_reset,
 		.S_AXI_ARESETN(!i_reset),
 		//
 		.S_AXI_AWVALID({
-			axi_dma_awvalid,
-			axi_mm2s_awvalid,
 			axi_s2mm_awvalid,
+			axi_mm2s_awvalid,
+			axi_dma_awvalid,
 			axi_vibus_awvalid
 		}),
 		.S_AXI_AWREADY({
-			axi_dma_awready,
-			axi_mm2s_awready,
 			axi_s2mm_awready,
+			axi_mm2s_awready,
+			axi_dma_awready,
 			axi_vibus_awready
 		}),
 		.S_AXI_AWID({
-			axi_dma_awid,
-			axi_mm2s_awid,
 			axi_s2mm_awid,
+			axi_mm2s_awid,
+			axi_dma_awid,
 			axi_vibus_awid
 		}),
 		.S_AXI_AWADDR({
-			axi_dma_awaddr,
-			axi_mm2s_awaddr,
 			axi_s2mm_awaddr,
+			axi_mm2s_awaddr,
+			axi_dma_awaddr,
 			axi_vibus_awaddr
 		}),
 		.S_AXI_AWLEN({
-			axi_dma_awlen,
-			axi_mm2s_awlen,
 			axi_s2mm_awlen,
+			axi_mm2s_awlen,
+			axi_dma_awlen,
 			axi_vibus_awlen
 		}),
 		.S_AXI_AWSIZE({
-			axi_dma_awsize,
-			axi_mm2s_awsize,
 			axi_s2mm_awsize,
+			axi_mm2s_awsize,
+			axi_dma_awsize,
 			axi_vibus_awsize
 		}),
 		.S_AXI_AWBURST({
-			axi_dma_awburst,
-			axi_mm2s_awburst,
 			axi_s2mm_awburst,
+			axi_mm2s_awburst,
+			axi_dma_awburst,
 			axi_vibus_awburst
 		}),
 		.S_AXI_AWLOCK({
-			axi_dma_awlock,
-			axi_mm2s_awlock,
 			axi_s2mm_awlock,
+			axi_mm2s_awlock,
+			axi_dma_awlock,
 			axi_vibus_awlock
 		}),
 		.S_AXI_AWCACHE({
-			axi_dma_awcache,
-			axi_mm2s_awcache,
 			axi_s2mm_awcache,
+			axi_mm2s_awcache,
+			axi_dma_awcache,
 			axi_vibus_awcache
 		}),
 		.S_AXI_AWPROT({
-			axi_dma_awprot,
-			axi_mm2s_awprot,
 			axi_s2mm_awprot,
+			axi_mm2s_awprot,
+			axi_dma_awprot,
 			axi_vibus_awprot
 		}),
 		.S_AXI_AWQOS({
-			axi_dma_awqos,
-			axi_mm2s_awqos,
 			axi_s2mm_awqos,
+			axi_mm2s_awqos,
+			axi_dma_awqos,
 			axi_vibus_awqos
 		}),
 		//
 		.S_AXI_WVALID({
-			axi_dma_wvalid,
-			axi_mm2s_wvalid,
 			axi_s2mm_wvalid,
+			axi_mm2s_wvalid,
+			axi_dma_wvalid,
 			axi_vibus_wvalid
 		}),
 		.S_AXI_WREADY({
-			axi_dma_wready,
-			axi_mm2s_wready,
 			axi_s2mm_wready,
+			axi_mm2s_wready,
+			axi_dma_wready,
 			axi_vibus_wready
 		}),
 		.S_AXI_WDATA({
-			axi_dma_wdata,
-			axi_mm2s_wdata,
 			axi_s2mm_wdata,
+			axi_mm2s_wdata,
+			axi_dma_wdata,
 			axi_vibus_wdata
 		}),
 		.S_AXI_WSTRB({
-			axi_dma_wstrb,
-			axi_mm2s_wstrb,
 			axi_s2mm_wstrb,
+			axi_mm2s_wstrb,
+			axi_dma_wstrb,
 			axi_vibus_wstrb
 		}),
 		.S_AXI_WLAST({
-			axi_dma_wlast,
-			axi_mm2s_wlast,
 			axi_s2mm_wlast,
+			axi_mm2s_wlast,
+			axi_dma_wlast,
 			axi_vibus_wlast
 		}),
 		//
 		.S_AXI_BVALID({
-			axi_dma_bvalid,
-			axi_mm2s_bvalid,
 			axi_s2mm_bvalid,
+			axi_mm2s_bvalid,
+			axi_dma_bvalid,
 			axi_vibus_bvalid
 		}),
 		.S_AXI_BREADY({
-			axi_dma_bready,
-			axi_mm2s_bready,
 			axi_s2mm_bready,
+			axi_mm2s_bready,
+			axi_dma_bready,
 			axi_vibus_bready
 		}),
 		.S_AXI_BID({
-			axi_dma_bid,
-			axi_mm2s_bid,
 			axi_s2mm_bid,
+			axi_mm2s_bid,
+			axi_dma_bid,
 			axi_vibus_bid
 		}),
 		.S_AXI_BRESP({
-			axi_dma_bresp,
-			axi_mm2s_bresp,
 			axi_s2mm_bresp,
+			axi_mm2s_bresp,
+			axi_dma_bresp,
 			axi_vibus_bresp
 		}),
 		//
 		// Read connections
 		.S_AXI_ARVALID({
-			axi_dma_arvalid,
-			axi_mm2s_arvalid,
 			axi_s2mm_arvalid,
+			axi_mm2s_arvalid,
+			axi_dma_arvalid,
 			axi_vibus_arvalid
 		}),
 		.S_AXI_ARREADY({
-			axi_dma_arready,
-			axi_mm2s_arready,
 			axi_s2mm_arready,
+			axi_mm2s_arready,
+			axi_dma_arready,
 			axi_vibus_arready
 		}),
 		.S_AXI_ARID({
-			axi_dma_arid,
-			axi_mm2s_arid,
 			axi_s2mm_arid,
+			axi_mm2s_arid,
+			axi_dma_arid,
 			axi_vibus_arid
 		}),
 		.S_AXI_ARADDR({
-			axi_dma_araddr,
-			axi_mm2s_araddr,
 			axi_s2mm_araddr,
+			axi_mm2s_araddr,
+			axi_dma_araddr,
 			axi_vibus_araddr
 		}),
 		.S_AXI_ARLEN({
-			axi_dma_arlen,
-			axi_mm2s_arlen,
 			axi_s2mm_arlen,
+			axi_mm2s_arlen,
+			axi_dma_arlen,
 			axi_vibus_arlen
 		}),
 		.S_AXI_ARSIZE({
-			axi_dma_arsize,
-			axi_mm2s_arsize,
 			axi_s2mm_arsize,
+			axi_mm2s_arsize,
+			axi_dma_arsize,
 			axi_vibus_arsize
 		}),
 		.S_AXI_ARBURST({
-			axi_dma_arburst,
-			axi_mm2s_arburst,
 			axi_s2mm_arburst,
+			axi_mm2s_arburst,
+			axi_dma_arburst,
 			axi_vibus_arburst
 		}),
 		.S_AXI_ARLOCK({
-			axi_dma_arlock,
-			axi_mm2s_arlock,
 			axi_s2mm_arlock,
+			axi_mm2s_arlock,
+			axi_dma_arlock,
 			axi_vibus_arlock
 		}),
 		.S_AXI_ARCACHE({
-			axi_dma_arcache,
-			axi_mm2s_arcache,
 			axi_s2mm_arcache,
+			axi_mm2s_arcache,
+			axi_dma_arcache,
 			axi_vibus_arcache
 		}),
 		.S_AXI_ARPROT({
-			axi_dma_arprot,
-			axi_mm2s_arprot,
 			axi_s2mm_arprot,
+			axi_mm2s_arprot,
+			axi_dma_arprot,
 			axi_vibus_arprot
 		}),
 		.S_AXI_ARQOS({
-			axi_dma_arqos,
-			axi_mm2s_arqos,
 			axi_s2mm_arqos,
+			axi_mm2s_arqos,
+			axi_dma_arqos,
 			axi_vibus_arqos
 		}),
 		//
 		.S_AXI_RVALID({
-			axi_dma_rvalid,
-			axi_mm2s_rvalid,
 			axi_s2mm_rvalid,
+			axi_mm2s_rvalid,
+			axi_dma_rvalid,
 			axi_vibus_rvalid
 		}),
 		.S_AXI_RREADY({
-			axi_dma_rready,
-			axi_mm2s_rready,
 			axi_s2mm_rready,
+			axi_mm2s_rready,
+			axi_dma_rready,
 			axi_vibus_rready
 		}),
 		.S_AXI_RID({
-			axi_dma_rid,
-			axi_mm2s_rid,
 			axi_s2mm_rid,
+			axi_mm2s_rid,
+			axi_dma_rid,
 			axi_vibus_rid
 		}),
 		.S_AXI_RDATA({
-			axi_dma_rdata,
-			axi_mm2s_rdata,
 			axi_s2mm_rdata,
+			axi_mm2s_rdata,
+			axi_dma_rdata,
 			axi_vibus_rdata
 		}),
 		.S_AXI_RLAST({
-			axi_dma_rlast,
-			axi_mm2s_rlast,
 			axi_s2mm_rlast,
+			axi_mm2s_rlast,
+			axi_dma_rlast,
 			axi_vibus_rlast
 		}),
 		.S_AXI_RRESP({
-			axi_dma_rresp,
-			axi_mm2s_rresp,
 			axi_s2mm_rresp,
+			axi_mm2s_rresp,
+			axi_dma_rresp,
 			axi_vibus_rresp
 		}),
 		//
@@ -1277,25 +1277,45 @@ module	main(i_clk, i_reset,
 		.M_AXI_RLAST( axi_vibus_rlast),
 		.M_AXI_RRESP( axi_vibus_rresp)
 	);
-	always @(posedge i_clk)
-	if (i_reset)
-		streamsrc_tvalid <= 0;
-	else
-		streamsrc_tvalid <= 1;
+	streamcounter #(
+		.C_AXIS_DATA_WIDTH(32),
+		.OPT_LOWPOWER(1'b1)
+	) streamsinki (
+		.S_AXI_ACLK(i_clk),
+		.S_AXI_ARESETN(!i_reset),
+		//
+		.S_AXIS_TVALID(streamsink_tvalid),
+		.S_AXIS_TREADY(streamsink_tready),
+		.S_AXIS_TDATA(streamsink_tdata),
+		.S_AXIS_TLAST(streamsink_tlast),
+		//
+		//
+		.S_AXI_AWVALID(axil_streamsink_awvalid),
+		.S_AXI_AWREADY(axil_streamsink_awready),
+		.S_AXI_AWADDR( axil_streamsink_awaddr[4-1:0]),
+		.S_AXI_AWPROT( axil_streamsink_awprot),
+//
+		.S_AXI_WVALID(axil_streamsink_wvalid),
+		.S_AXI_WREADY(axil_streamsink_wready),
+		.S_AXI_WDATA( axil_streamsink_wdata),
+		.S_AXI_WSTRB( axil_streamsink_wstrb),
+//
+		.S_AXI_BVALID(axil_streamsink_bvalid),
+		.S_AXI_BREADY(axil_streamsink_bready),
+		.S_AXI_BRESP( axil_streamsink_bresp),
+		// Read connections
+		.S_AXI_ARVALID(axil_streamsink_arvalid),
+		.S_AXI_ARREADY(axil_streamsink_arready),
+		.S_AXI_ARADDR( axil_streamsink_araddr[4-1:0]),
+		.S_AXI_ARPROT( axil_streamsink_arprot),
+//
+		.S_AXI_RVALID(axil_streamsink_rvalid),
+		.S_AXI_RREADY(axil_streamsink_rready),
+		.S_AXI_RDATA( axil_streamsink_rdata),
+		.S_AXI_RRESP( axil_streamsink_rresp)
+	);
 
-	always @(*)
-		streamsrc_tlast = 1;
 
-	initial	streamsrc_counter = 0;
-	always @(posedge i_clk)
-	if (i_reset)
-		streamsrc_counter <= 0;
-	else
-		streamsrc_counter <= streamsrc_counter + 1;
-
-	always @(posedge i_clk)
-	if (!streamsrc_tvalid || streamsrc_tready)
-		streamsrc_tdata <= streamsrc_counter;
 	axi2axilite #(
 		.C_AXI_ADDR_WIDTH(7),
 		.C_AXI_DATA_WIDTH(32),
@@ -1372,201 +1392,25 @@ module	main(i_clk, i_reset,
 		.M_AXI_RDATA( axil_controlbus_rdata),
 		.M_AXI_RRESP( axil_controlbus_rresp)
 	);
-	axis2mm #(
-		.C_AXI_ADDR_WIDTH(25),
-		.C_AXI_DATA_WIDTH(32),
-		.C_AXI_ID_WIDTH(3),
-		.AXI_ID(3'b001)
-	) s2mmi (
-		.S_AXI_ACLK(i_clk),
-		.S_AXI_ARESETN(!i_reset),
-		//
-		.S_AXIS_TVALID(streamsrc_tvalid),
-		.S_AXIS_TREADY(streamsrc_tready),
-		.S_AXIS_TDATA( streamsrc_tdata),
-		.S_AXIS_TLAST( streamsrc_tlast),
-		.S_AXIS_TUSER(1'b0),	// TUSER
-		//
-		//
-		.S_AXIL_AWVALID(axil_s2mm_awvalid),
-		.S_AXIL_AWREADY(axil_s2mm_awready),
-		.S_AXIL_AWADDR( axil_s2mm_awaddr[5-1:0]),
-		.S_AXIL_AWPROT( axil_s2mm_awprot),
-//
-		.S_AXIL_WVALID(axil_s2mm_wvalid),
-		.S_AXIL_WREADY(axil_s2mm_wready),
-		.S_AXIL_WDATA( axil_s2mm_wdata),
-		.S_AXIL_WSTRB( axil_s2mm_wstrb),
-//
-		.S_AXIL_BVALID(axil_s2mm_bvalid),
-		.S_AXIL_BREADY(axil_s2mm_bready),
-		.S_AXIL_BRESP( axil_s2mm_bresp),
-		// Read connections
-		.S_AXIL_ARVALID(axil_s2mm_arvalid),
-		.S_AXIL_ARREADY(axil_s2mm_arready),
-		.S_AXIL_ARADDR( axil_s2mm_araddr[5-1:0]),
-		.S_AXIL_ARPROT( axil_s2mm_arprot),
-//
-		.S_AXIL_RVALID(axil_s2mm_rvalid),
-		.S_AXIL_RREADY(axil_s2mm_rready),
-		.S_AXIL_RDATA( axil_s2mm_rdata),
-		.S_AXIL_RRESP( axil_s2mm_rresp),
-		//
-		.M_AXI_AWVALID(axi_s2mm_awvalid),
-		.M_AXI_AWREADY(axi_s2mm_awready),
-		.M_AXI_AWID(   axi_s2mm_awid),
-		.M_AXI_AWADDR( axi_s2mm_awaddr[25-1:0]),
-		.M_AXI_AWLEN(  axi_s2mm_awlen),
-		.M_AXI_AWSIZE( axi_s2mm_awsize),
-		.M_AXI_AWBURST(axi_s2mm_awburst),
-		.M_AXI_AWLOCK( axi_s2mm_awlock),
-		.M_AXI_AWCACHE(axi_s2mm_awcache),
-		.M_AXI_AWPROT( axi_s2mm_awprot),
-		.M_AXI_AWQOS(  axi_s2mm_awqos),
-//
-		.M_AXI_WVALID(axi_s2mm_wvalid),
-		.M_AXI_WREADY(axi_s2mm_wready),
-		.M_AXI_WDATA( axi_s2mm_wdata),
-		.M_AXI_WSTRB( axi_s2mm_wstrb),
-		.M_AXI_WLAST( axi_s2mm_wlast),
-//
-		.M_AXI_BVALID(axi_s2mm_bvalid),
-		.M_AXI_BREADY(axi_s2mm_bready),
-		.M_AXI_BID(   axi_s2mm_bid),
-		.M_AXI_BRESP( axi_s2mm_bresp),
-		.M_AXI_WUSER(axi_s2mm_wuser),
-		.o_int(s2mm_int)
-	);
+	always @(posedge i_clk)
+	if (i_reset)
+		streamsrc_tvalid <= 0;
+	else
+		streamsrc_tvalid <= 1;
 
-	assign	axi_s2mm_arvalid = 0;
-	assign	axi_s2mm_arid    = 0;
-	assign	axi_s2mm_araddr  = 0;
-	assign	axi_s2mm_arlen   = 0;
-	assign	axi_s2mm_arsize  = 0;
-	assign	axi_s2mm_arburst = 0;
-	assign	axi_s2mm_arlock  = 0;
-	assign	axi_s2mm_arcache = 0;
-	assign	axi_s2mm_arprot  = 0;
-	assign	axi_s2mm_arqos   = 0;
-	//
-	assign	axi_s2mm_rready  = 0;
+	always @(*)
+		streamsrc_tlast = 1;
 
+	initial	streamsrc_counter = 0;
+	always @(posedge i_clk)
+	if (i_reset)
+		streamsrc_counter <= 0;
+	else
+		streamsrc_counter <= streamsrc_counter + 1;
 
-	aximm2s #(
-		.C_AXI_ADDR_WIDTH(25),
-		.C_AXI_DATA_WIDTH(32),
-		.C_AXI_ID_WIDTH(3),
-		.AXI_ID(3'b00)
-	) mm2si (
-		.S_AXI_ACLK(i_clk),
-		.S_AXI_ARESETN(!i_reset),
-		//
-		.S_AXIS_TVALID(streamsink_tvalid),
-		.S_AXIS_TREADY(streamsink_tready),
-		.S_AXIS_TDATA(streamsink_tdata),
-		.S_AXIS_TLAST(streamsink_tlast),
-		//
-		.S_AXIL_AWVALID(axil_mm2s_awvalid),
-		.S_AXIL_AWREADY(axil_mm2s_awready),
-		.S_AXIL_AWADDR( axil_mm2s_awaddr[5-1:0]),
-		.S_AXIL_AWPROT( axil_mm2s_awprot),
-//
-		.S_AXIL_WVALID(axil_mm2s_wvalid),
-		.S_AXIL_WREADY(axil_mm2s_wready),
-		.S_AXIL_WDATA( axil_mm2s_wdata),
-		.S_AXIL_WSTRB( axil_mm2s_wstrb),
-//
-		.S_AXIL_BVALID(axil_mm2s_bvalid),
-		.S_AXIL_BREADY(axil_mm2s_bready),
-		.S_AXIL_BRESP( axil_mm2s_bresp),
-		// Read connections
-		.S_AXIL_ARVALID(axil_mm2s_arvalid),
-		.S_AXIL_ARREADY(axil_mm2s_arready),
-		.S_AXIL_ARADDR( axil_mm2s_araddr[5-1:0]),
-		.S_AXIL_ARPROT( axil_mm2s_arprot),
-//
-		.S_AXIL_RVALID(axil_mm2s_rvalid),
-		.S_AXIL_RREADY(axil_mm2s_rready),
-		.S_AXIL_RDATA( axil_mm2s_rdata),
-		.S_AXIL_RRESP( axil_mm2s_rresp),
-				.M_AXI_ARVALID(axi_mm2s_arvalid),
-		.M_AXI_ARREADY(axi_mm2s_arready),
-		.M_AXI_ARID(   axi_mm2s_arid),
-		.M_AXI_ARADDR( axi_mm2s_araddr[25-1:0]),
-		.M_AXI_ARLEN(  axi_mm2s_arlen),
-		.M_AXI_ARSIZE( axi_mm2s_arsize),
-		.M_AXI_ARBURST(axi_mm2s_arburst),
-		.M_AXI_ARLOCK( axi_mm2s_arlock),
-		.M_AXI_ARCACHE(axi_mm2s_arcache),
-		.M_AXI_ARPROT( axi_mm2s_arprot),
-		.M_AXI_ARQOS(  axi_mm2s_arqos),
-//
-		.M_AXI_RVALID(axi_mm2s_rvalid),
-		.M_AXI_RREADY(axi_mm2s_rready),
-		.M_AXI_RID(   axi_mm2s_rid),
-		.M_AXI_RDATA( axi_mm2s_rdata),
-		.M_AXI_RLAST( axi_mm2s_rlast),
-		.M_AXI_RRESP( axi_mm2s_rresp),
-		.o_int(mm2s_int)
-	);
-
-	assign	axi_mm2s_awvalid = 0;
-	assign	axi_mm2s_awid    = 0;
-	assign	axi_mm2s_awaddr  = 0;
-	assign	axi_mm2s_awlen   = 0;
-	assign	axi_mm2s_awsize  = 0;
-	assign	axi_mm2s_awburst = 0;
-	assign	axi_mm2s_awlock  = 0;
-	assign	axi_mm2s_awcache = 0;
-	assign	axi_mm2s_awprot  = 0;
-	assign	axi_mm2s_awqos   = 0;
-	//
-	assign	axi_mm2s_wvalid  = 0;
-	assign	axi_mm2s_wdata   = 0;
-	assign	axi_mm2s_wstrb   = 0;
-	assign	axi_mm2s_wlast   = 0;
-	//
-	assign	axi_mm2s_bready  = 1;
-
-	streamcounter #(
-		.C_AXIS_DATA_WIDTH(32),
-		.OPT_LOWPOWER(1'b1)
-	) streamsinki (
-		.S_AXI_ACLK(i_clk),
-		.S_AXI_ARESETN(!i_reset),
-		//
-		.S_AXIS_TVALID(streamsink_tvalid),
-		.S_AXIS_TREADY(streamsink_tready),
-		.S_AXIS_TDATA(streamsink_tdata),
-		.S_AXIS_TLAST(streamsink_tlast),
-		//
-		//
-		.S_AXI_AWVALID(axil_streamsink_awvalid),
-		.S_AXI_AWREADY(axil_streamsink_awready),
-		.S_AXI_AWADDR( axil_streamsink_awaddr[4-1:0]),
-		.S_AXI_AWPROT( axil_streamsink_awprot),
-//
-		.S_AXI_WVALID(axil_streamsink_wvalid),
-		.S_AXI_WREADY(axil_streamsink_wready),
-		.S_AXI_WDATA( axil_streamsink_wdata),
-		.S_AXI_WSTRB( axil_streamsink_wstrb),
-//
-		.S_AXI_BVALID(axil_streamsink_bvalid),
-		.S_AXI_BREADY(axil_streamsink_bready),
-		.S_AXI_BRESP( axil_streamsink_bresp),
-		// Read connections
-		.S_AXI_ARVALID(axil_streamsink_arvalid),
-		.S_AXI_ARREADY(axil_streamsink_arready),
-		.S_AXI_ARADDR( axil_streamsink_araddr[4-1:0]),
-		.S_AXI_ARPROT( axil_streamsink_arprot),
-//
-		.S_AXI_RVALID(axil_streamsink_rvalid),
-		.S_AXI_RREADY(axil_streamsink_rready),
-		.S_AXI_RDATA( axil_streamsink_rdata),
-		.S_AXI_RRESP( axil_streamsink_rresp)
-	);
-
-
+	always @(posedge i_clk)
+	if (!streamsrc_tvalid || streamsrc_tready)
+		streamsrc_tdata <= streamsrc_counter;
 	demofull #(
 		.C_S_AXI_ADDR_WIDTH(24),
 		.C_S_AXI_DATA_WIDTH(32),
@@ -1717,6 +1561,162 @@ module	main(i_clk, i_reset,
 		.M_AXI_RRESP( axi_dma_rresp),
 		.o_int(dma_int)
 	);
+
+
+	aximm2s #(
+		.C_AXI_ADDR_WIDTH(25),
+		.C_AXI_DATA_WIDTH(32),
+		.C_AXI_ID_WIDTH(3),
+		.AXI_ID(3'b00)
+	) mm2si (
+		.S_AXI_ACLK(i_clk),
+		.S_AXI_ARESETN(!i_reset),
+		//
+		.M_AXIS_TVALID(streamsink_tvalid),
+		.M_AXIS_TREADY(streamsink_tready),
+		.M_AXIS_TDATA(streamsink_tdata),
+		.M_AXIS_TLAST(streamsink_tlast),
+		//
+		.S_AXIL_AWVALID(axil_mm2s_awvalid),
+		.S_AXIL_AWREADY(axil_mm2s_awready),
+		.S_AXIL_AWADDR( axil_mm2s_awaddr[5-1:0]),
+		.S_AXIL_AWPROT( axil_mm2s_awprot),
+//
+		.S_AXIL_WVALID(axil_mm2s_wvalid),
+		.S_AXIL_WREADY(axil_mm2s_wready),
+		.S_AXIL_WDATA( axil_mm2s_wdata),
+		.S_AXIL_WSTRB( axil_mm2s_wstrb),
+//
+		.S_AXIL_BVALID(axil_mm2s_bvalid),
+		.S_AXIL_BREADY(axil_mm2s_bready),
+		.S_AXIL_BRESP( axil_mm2s_bresp),
+		// Read connections
+		.S_AXIL_ARVALID(axil_mm2s_arvalid),
+		.S_AXIL_ARREADY(axil_mm2s_arready),
+		.S_AXIL_ARADDR( axil_mm2s_araddr[5-1:0]),
+		.S_AXIL_ARPROT( axil_mm2s_arprot),
+//
+		.S_AXIL_RVALID(axil_mm2s_rvalid),
+		.S_AXIL_RREADY(axil_mm2s_rready),
+		.S_AXIL_RDATA( axil_mm2s_rdata),
+		.S_AXIL_RRESP( axil_mm2s_rresp),
+				.M_AXI_ARVALID(axi_mm2s_arvalid),
+		.M_AXI_ARREADY(axi_mm2s_arready),
+		.M_AXI_ARID(   axi_mm2s_arid),
+		.M_AXI_ARADDR( axi_mm2s_araddr[25-1:0]),
+		.M_AXI_ARLEN(  axi_mm2s_arlen),
+		.M_AXI_ARSIZE( axi_mm2s_arsize),
+		.M_AXI_ARBURST(axi_mm2s_arburst),
+		.M_AXI_ARLOCK( axi_mm2s_arlock),
+		.M_AXI_ARCACHE(axi_mm2s_arcache),
+		.M_AXI_ARPROT( axi_mm2s_arprot),
+		.M_AXI_ARQOS(  axi_mm2s_arqos),
+//
+		.M_AXI_RVALID(axi_mm2s_rvalid),
+		.M_AXI_RREADY(axi_mm2s_rready),
+		.M_AXI_RID(   axi_mm2s_rid),
+		.M_AXI_RDATA( axi_mm2s_rdata),
+		.M_AXI_RLAST( axi_mm2s_rlast),
+		.M_AXI_RRESP( axi_mm2s_rresp),
+		.o_int(mm2s_int)
+	);
+
+	assign	axi_mm2s_awvalid = 0;
+	assign	axi_mm2s_awid    = 0;
+	assign	axi_mm2s_awaddr  = 0;
+	assign	axi_mm2s_awlen   = 0;
+	assign	axi_mm2s_awsize  = 0;
+	assign	axi_mm2s_awburst = 0;
+	assign	axi_mm2s_awlock  = 0;
+	assign	axi_mm2s_awcache = 0;
+	assign	axi_mm2s_awprot  = 0;
+	assign	axi_mm2s_awqos   = 0;
+	//
+	assign	axi_mm2s_wvalid  = 0;
+	assign	axi_mm2s_wdata   = 0;
+	assign	axi_mm2s_wstrb   = 0;
+	assign	axi_mm2s_wlast   = 0;
+	//
+	assign	axi_mm2s_bready  = 1;
+
+	axis2mm #(
+		.C_AXI_ADDR_WIDTH(25),
+		.C_AXI_DATA_WIDTH(32),
+		.C_AXI_ID_WIDTH(3),
+		.AXI_ID(3'b001)
+	) s2mmi (
+		.S_AXI_ACLK(i_clk),
+		.S_AXI_ARESETN(!i_reset),
+		//
+		.S_AXIS_TVALID(streamsrc_tvalid),
+		.S_AXIS_TREADY(streamsrc_tready),
+		.S_AXIS_TDATA( streamsrc_tdata),
+		.S_AXIS_TLAST( streamsrc_tlast),
+		.S_AXIS_TUSER(1'b0),	// TUSER
+		//
+		//
+		.S_AXIL_AWVALID(axil_s2mm_awvalid),
+		.S_AXIL_AWREADY(axil_s2mm_awready),
+		.S_AXIL_AWADDR( axil_s2mm_awaddr[5-1:0]),
+		.S_AXIL_AWPROT( axil_s2mm_awprot),
+//
+		.S_AXIL_WVALID(axil_s2mm_wvalid),
+		.S_AXIL_WREADY(axil_s2mm_wready),
+		.S_AXIL_WDATA( axil_s2mm_wdata),
+		.S_AXIL_WSTRB( axil_s2mm_wstrb),
+//
+		.S_AXIL_BVALID(axil_s2mm_bvalid),
+		.S_AXIL_BREADY(axil_s2mm_bready),
+		.S_AXIL_BRESP( axil_s2mm_bresp),
+		// Read connections
+		.S_AXIL_ARVALID(axil_s2mm_arvalid),
+		.S_AXIL_ARREADY(axil_s2mm_arready),
+		.S_AXIL_ARADDR( axil_s2mm_araddr[5-1:0]),
+		.S_AXIL_ARPROT( axil_s2mm_arprot),
+//
+		.S_AXIL_RVALID(axil_s2mm_rvalid),
+		.S_AXIL_RREADY(axil_s2mm_rready),
+		.S_AXIL_RDATA( axil_s2mm_rdata),
+		.S_AXIL_RRESP( axil_s2mm_rresp),
+		//
+		.M_AXI_AWVALID(axi_s2mm_awvalid),
+		.M_AXI_AWREADY(axi_s2mm_awready),
+		.M_AXI_AWID(   axi_s2mm_awid),
+		.M_AXI_AWADDR( axi_s2mm_awaddr[25-1:0]),
+		.M_AXI_AWLEN(  axi_s2mm_awlen),
+		.M_AXI_AWSIZE( axi_s2mm_awsize),
+		.M_AXI_AWBURST(axi_s2mm_awburst),
+		.M_AXI_AWLOCK( axi_s2mm_awlock),
+		.M_AXI_AWCACHE(axi_s2mm_awcache),
+		.M_AXI_AWPROT( axi_s2mm_awprot),
+		.M_AXI_AWQOS(  axi_s2mm_awqos),
+//
+		.M_AXI_WVALID(axi_s2mm_wvalid),
+		.M_AXI_WREADY(axi_s2mm_wready),
+		.M_AXI_WDATA( axi_s2mm_wdata),
+		.M_AXI_WSTRB( axi_s2mm_wstrb),
+		.M_AXI_WLAST( axi_s2mm_wlast),
+//
+		.M_AXI_BVALID(axi_s2mm_bvalid),
+		.M_AXI_BREADY(axi_s2mm_bready),
+		.M_AXI_BID(   axi_s2mm_bid),
+		.M_AXI_BRESP( axi_s2mm_bresp),
+		.M_AXI_WUSER(axi_s2mm_wuser),
+		.o_int(s2mm_int)
+	);
+
+	assign	axi_s2mm_arvalid = 0;
+	assign	axi_s2mm_arid    = 0;
+	assign	axi_s2mm_araddr  = 0;
+	assign	axi_s2mm_arlen   = 0;
+	assign	axi_s2mm_arsize  = 0;
+	assign	axi_s2mm_arburst = 0;
+	assign	axi_s2mm_arlock  = 0;
+	assign	axi_s2mm_arcache = 0;
+	assign	axi_s2mm_arprot  = 0;
+	assign	axi_s2mm_arqos   = 0;
+	//
+	assign	axi_s2mm_rready  = 0;
 
 
 

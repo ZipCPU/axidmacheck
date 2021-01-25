@@ -15,7 +15,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (C) 2020, Gisselquist Technology, LLC
+// Copyright (C) 2020-2021, Gisselquist Technology, LLC
 //
 // This program is free software (firmware): you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as published
@@ -46,6 +46,9 @@
 #include "regdefs.h"
 
 const	REGNAME	raw_bregs[] = {
+	{ R_STREAMSINK_BEATS  ,	"BEATS"      	},
+	{ R_STREAMSINK_PACKETS,	"PACKETS"    	},
+	{ R_STREAMSINK_CLOCKS ,	"CLOCKS"     	},
 	{ R_AXIDMACTRL        ,	"AXIDMACTRL" 	},
 	{ R_AXIDMASRCLO       ,	"AXIDMASRCLO"	},
 	{ R_AXIDMASRCHI       ,	"AXIDMASRCHI"	},

@@ -15,7 +15,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (C) 2020, Gisselquist Technology, LLC
+// Copyright (C) 2020-2021, Gisselquist Technology, LLC
 //
 // This program is free software (firmware): you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as published
@@ -55,9 +55,9 @@
 //
 // Register address definitions, from @REGS.#d
 //
-#define	R_STREAMSINK_BEATS  	0x00000000	// 00000000, wbregs names: 
-#define	R_STREAMSINK_PACKETS	0x00000004	// 00000000, wbregs names: 
-#define	R_STREAMSINK_CLOCKS 	0x00000008	// 00000000, wbregs names: 
+#define	R_STREAMSINK_BEATS  	0x00000000	// 00000000, wbregs names: BEATS
+#define	R_STREAMSINK_PACKETS	0x00000004	// 00000000, wbregs names: PACKETS
+#define	R_STREAMSINK_CLOCKS 	0x00000008	// 00000000, wbregs names: CLOCKS
 #define	R_AXIDMACTRL        	0x00000020	// 00000020, wbregs names: AXIDMACTRL
 #define	R_AXIDMASRCLO       	0x00000028	// 00000020, wbregs names: AXIDMASRCLO
 #define	R_AXIDMASRCHI       	0x0000002c	// 00000020, wbregs names: AXIDMASRCHI

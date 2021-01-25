@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
 // Filename:	axi_tb.cpp
-//
+// {{{
 // Project:	AXI DMA Check: A utility to measure AXI DMA speeds
 //
 // Purpose:	To provide a fairly generic interface wrapper to an AXI bus,
@@ -11,9 +11,9 @@
 //		Gisselquist Technology, LLC
 //
 ////////////////////////////////////////////////////////////////////////////////
-//
-// Copyright (C) 2020, Gisselquist Technology, LLC
-//
+// }}}
+// Copyright (C) 2020-2021, Gisselquist Technology, LLC
+// {{{
 // This program is free software (firmware): you can redistribute it and/or
 // modify it under the terms of  the GNU General Public License as published
 // by the Free Software Foundation, either version 3 of the License, or (at
@@ -28,14 +28,15 @@
 // with this program.  (It's in the $(ROOT)/doc directory.  Run make with no
 // target there if the PDF file isn't present.)  If not, see
 // <http://www.gnu.org/licenses/> for a copy.
-//
+// }}}
 // License:	GPL, v3, as defined and found on www.gnu.org,
+// {{{
 //		http://www.gnu.org/licenses/gpl.html
 //
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
-//
+// }}}
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -44,22 +45,27 @@
 #include "testb.h"
 #include "devbus.h"
 
+//
+// Number of clocks before deciding a peripheral is broken
 const int	BOMBCOUNT = 32;
 
-template <class VA>	class	AXI_TB : public DEVBUS {
+template <class TB>	class	AXI_TB : public DEVBUS {
+	// {{{
 	bool	m_buserr;
 #ifdef	INTERRUPTWIRE
 	bool	m_interrupt;
 #endif
 	VerilatedVcdC	*m_trace;
 public:
-	VA		*m_tb;
+	TB		*m_tb;
 	typedef	uint32_t	BUSW;
 	
 	bool	m_bomb;
 
+	// AXI_TB() constructor
+	// {{{
 	AXI_TB(void) {
-		m_tb = new VA;
+		m_tb = new TB;
 		Verilated::traceEverOn(true);
 
 		m_bomb = false;
@@ -75,31 +81,53 @@ public:
 		m_interrupt = false;
 #endif
 	}
+	// }}}
+
+	// AXI_TB deconstructor
+	// {{{
 
 	virtual	~AXI_TB(void) {
 		delete m_tb;
 	}
+	// }}}
 
+	// opentrace()
+	// {{{
 	virtual	void	opentrace(const char *vcdname) {
 		m_tb->opentrace(vcdname);
 	}
+	// }}}
 
+	// closetrace()
+	// {{{
 	virtual	void	closetrace(void) {
 		m_tb->closetrace();
 	}
+	// }}}
 
+	// close()
+	// {{{
 	virtual	void	close(void) {
 		m_tb->close();
 	}
+	// }}}
 
+	// kill()
+	// {{{
 	virtual	void	kill(void) {
 		close();
 	}
+	// }}}
 
+	// eval()
+	// {{{
 	virtual	void	eval(void) {
 		m_tb->m_core->eval();
 	}
+	// }}}
 
+	// tick()
+	// {{{
 #define	TICK	m_tb->tick
 	void	tick(void) {
 		m_tb->tick_clk();
@@ -108,7 +136,10 @@ public:
 			m_interrupt = true;
 #endif
 	}
+	// }}}
 
+	// reset()
+	// {{{
 	virtual	void	reset(void) {
 		// m_tb->m_core->S_AXI_ARESETN = 0;
 		m_tb->m_core->i_reset = 1;
@@ -122,11 +153,17 @@ public:
 		m_tb->m_core->i_reset = 0;
 		tick();
 	}
+	// }}}
 
+	// tickcount()
+	// {{{
 	unsigned long	tickcount(void) {
 		return m_tb->m_time_ps / 10000l;
 	}
+	// }}}
 
+	// idle() -- pass a tick w/o doing anything
+	// {{{
 	void	idle(const unsigned counts = 1) {
 		m_tb->m_core->S_AXI_AWVALID = 0;
 		m_tb->m_core->S_AXI_WVALID  = 0;
@@ -139,7 +176,16 @@ public:
 			assert(!m_tb->m_core->S_AXI_BVALID);
 		}
 	}
+	// }}}
 
+	////////////////////////////////////////////////////////////////////////
+	//
+	// Routines to read from the bus
+	// {{{
+	////////////////////////////////////////////////////////////////////////
+	//
+	// readio()
+	// {{{
 	BUSW readio(BUSW a) {
 		BUSW		result;
 
@@ -168,7 +214,10 @@ public:
 
 		return result;
 	}
+	// }}}
 
+	// read64()
+	// {{{
 	uint64_t read64(BUSW a) {
 		uint64_t	result;
 		int32_t		buf[2];
@@ -178,7 +227,10 @@ public:
 		result = (result << 32) | (uint64_t)buf[0];
 		return result;
 	}
+	// }}}
 
+	// readv()
+	// {{{
 	void	readv(const BUSW a, int len, BUSW *buf, const int inc=1) {
 		int		cnt, rdidx;
 
@@ -221,15 +273,30 @@ public:
 		assert(!m_tb->m_core->S_AXI_BVALID);
 		assert(!m_tb->m_core->S_AXI_RVALID);
 	}
+	// }}}
 
+	// readi()
+	// {{{
 	void	readi(const BUSW a, const int len, BUSW *buf) {
 		readv(a, len, buf, 1);
 	}
+	// }}}
 
+	// readz()
+	// {{{
 	void	readz(const BUSW a, const int len, BUSW *buf) {
 		readv(a, len, buf, 0);
 	}
-
+	// }}}
+	// }}}
+	////////////////////////////////////////////////////////////////////////
+	//
+	// Routines to write to the bus
+	// {{{
+	////////////////////////////////////////////////////////////////////////
+	//
+	// writeio()
+	// {{{
 	void	writeio(const BUSW a, const BUSW v) {
 		// printf("AXI-WRITEM(%08x) <= %08x\n", a, v);
 		m_tb->m_core->S_AXI_ARVALID = 0;
@@ -263,7 +330,10 @@ public:
 			m_buserr = true;
 		tick();
 	}
+	// }}}
 
+	// write64()
+	// {{{
 	void	write64(const BUSW a, const uint64_t v) {
 		uint32_t	buf[2];
 		// printf("AXI-WRITE64(%08x) <= %016lx\n", a, v);
@@ -271,7 +341,10 @@ public:
 		buf[1] = (uint32_t)(v >> 32);
 		writei(a, 2, buf);
 	}
+	// }}}
 
+	// writev()
+	// {{{
 	void	writev(const BUSW a, const int ln, const BUSW *buf, const int inc=1) {
 		unsigned nacks = 0, awcnt = 0, wcnt = 0;
 
@@ -337,21 +410,36 @@ public:
 		assert(!m_tb->m_core->S_AXI_AWVALID);
 		assert(!m_tb->m_core->S_AXI_WVALID);
 	}
+	// }}}
 
+	// writei()
+	// {{{
 	void	writei(const BUSW a, const int ln, const BUSW *buf) {
 		writev(a, ln, buf, 1);
 	}
+	// }}}
 
+	// writez()
+	// {{{
 	void	writez(const BUSW a, const int ln, const BUSW *buf) {
 		writev(a, ln, buf, 0);
 	}
-
-
+	// }}}
+	// }}}
+	////////////////////////////////////////////////////////////////////////
+	//
+	// Interrupt / error processing
+	// {{{
+	////////////////////////////////////////////////////////////////////////
+	//
+	//
 	bool	bombed(void) const { return m_bomb; }
 
 	// bool	debug(void) const	{ return m_debug; }
 	// bool	debug(bool nxtv)	{ return m_debug = nxtv; }
 
+	// poll()
+	// {{{
 	bool	poll(void) {
 #ifdef	INTERRUPTWIRE
 		return (m_interrupt)||(m_tb->m_core->INTERRUPTWIRE != 0);
@@ -359,7 +447,10 @@ public:
 		return false;
 #endif
 	}
+	// }}}
 
+	// bus_err()
+	// {{{
 	bool	bus_err(void) const {
 #ifdef	AXIERR
 		return m_buserr;
@@ -367,13 +458,19 @@ public:
 		return false;
 #endif
 	}
+	// }}}
 
+	// reset_err()
+	// {{{
 	void	reset_err(void) {
 #ifdef	AXIERR
 		m_buserr = false;;
 #endif
 	}
+	// }}}
 
+	// usleep()
+	// {{{
 	void	usleep(unsigned msec) {
 #ifdef	CLKRATEHZ
 		unsigned count = CLKRATEHZ / 1000 * msec;
@@ -387,13 +484,19 @@ public:
 #endif
 			tick();
 	}
+	// }}}
 
+	// clear()
+	// {{{
 	void	clear(void) {
 #ifdef	INTERRUPTWIRE
 		m_interrupt = false;
 #endif
 	}
+	// }}}
 
+	// wait()
+	// {{{
 	void	wait(void) {
 #ifdef	INTERRUPTWIRE
 		while(!poll())
@@ -402,5 +505,8 @@ public:
 		assert(("No interrupt defined",0));
 #endif
 	}
+	// }}}
+	// }}}
+// }}}
 };
 

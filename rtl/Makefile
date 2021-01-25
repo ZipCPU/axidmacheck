@@ -1,7 +1,7 @@
 ################################################################################
 ##
 ## Filename: 	rtl/Makefile
-##
+## {{{
 ## Project:	AXI DMA Check: A utility to measure AXI DMA speeds
 ##
 ## Purpose:	This Makefile guides the translation of the project RTL files
@@ -13,9 +13,9 @@
 ##		Gisselquist Technology, LLC
 ##
 ################################################################################
-##
-## Copyright (C) 2020, Gisselquist Technology, LLC
-##
+## }}}
+## Copyright (C) 2020-2021, Gisselquist Technology, LLC
+## {{{
 ## This program is free software (firmware): you can redistribute it and/or
 ## modify it under the terms of the GNU General Public License as published
 ## by the Free Software Foundation, either version 3 of the License, or (at
@@ -37,14 +37,15 @@
 ##
 ################################################################################
 ##
-##
+## }}}
 # all, the first target, becomes the default target
 all:
 #
 # Make sure we delete any partial products in case anything goes wrong
 .DELETE_ON_ERROR:
 #
-#
+# Verilator defines
+## {{{
 # Verilator places everything into obj_dir by default.  By creating a variable
 # with this name, we can adjust it and everything will adjust as appropriate
 VDIRFB  := obj_dir
@@ -65,7 +66,8 @@ VERILATOR := verilator
 #	--coverage	Generate coverage measures
 #	-cc	Create C++ output files (in $(VDIRFB)
 #
-VFLAGS= -Wall --MMD -trace $(AUTOVDIRS) -y ../wb2axip/rtl --Mdir $(VDIRFB) --coverage -cc
+VFLAGS= -Wall --MMD -trace -Wno-TIMESCALEMOD $(AUTOVDIRS) -y ../wb2axip/rtl --Mdir $(VDIRFB) --coverage -cc
+## }}}
 
 #
 # Now that all of our defines are out of the way, we'll specify two default
@@ -75,7 +77,8 @@ VFLAGS= -Wall --MMD -trace $(AUTOVDIRS) -y ../wb2axip/rtl --Mdir $(VDIRFB) --cov
 all: verilate library design.h
 
 
-#
+# Run Verilator
+## {{{
 # The "verilate" target doesn't produce any files.  Just insist instead
 # that the Vmain.h file exist
 .PHONY: verilate
@@ -85,6 +88,7 @@ verilate: $(VDIRFB)/Vmain.h
 # Run Verilator on our RTL code
 $(VDIRFB)/Vmain.h:
 	$(VERILATOR) $(VFLAGS) main.v
+## }}}
 
 #
 # The actual call will need to look like $(SUBMAKE) <directory> <target>
@@ -99,6 +103,8 @@ SUBMAKE := $(MAKE) --no-print-directory -C
 library: $(VDIRFB)/Vmain.h
 	$(SUBMAKE) $(VDIRFB)/ -f Vmain.mk
 
+## design.h
+## {{{
 design.h: main.v builddate.v
 	@echo "Building design.h"
 	@echo "// " > $@
@@ -119,15 +125,17 @@ design.h: main.v builddate.v
 		| sed -e ' s/32.h/0x/' >> $@
 	@echo >> $@
 	@echo "#endif // DESIGN_H" >> $@
+## }}}
 
-
-#
-# Clean up any make by products, so we can start from scratch if we need to
 .PHONY: clean
+## {{{
+# Clean up any make by products, so we can start from scratch if we need to
 clean:
 	rm -rf $(VDIRFB)/
+## }}}
 
-#
+# Dependency handling
+## {{{
 # Note and incorporate any dependency information, so that we'll know when/if
 # we need to rebuild.
 DEPS := $(wildcard $(VDIRFB)/*.d)
@@ -136,3 +144,4 @@ ifneq ($(DEPS),)
 include $(DEPS)
 endif
 include make.inc
+## }}}
