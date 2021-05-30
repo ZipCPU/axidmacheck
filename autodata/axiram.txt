@@ -41,6 +41,7 @@
 @$NADDR=(1<<@$(LGRAM))/4
 @SLAVE.BUS=axi
 @SLAVE.TYPE=OTHER
+@CLOCK=clk
 @MAIN.DEFNS=
 	wire	@$(PREFIX)_we, @$(PREFIX)_rd;
 	wire	[@$(SLAVE.BUS.WIDTH)-1:0]	@$(PREFIX)_wdata;
@@ -52,11 +53,14 @@
 
 @MAIN.INSERT=
 	demofull #(
+		// {{{
 		.C_S_AXI_ADDR_WIDTH(@$LGRAM),
 		.C_S_AXI_DATA_WIDTH(@$(SLAVE.BUS.WIDTH)),
 		.C_S_AXI_ID_WIDTH(@$(SLAVE.BUS.IDWIDTH))
+		// }}}
 	) @$(PREFIX)i (
-		.S_AXI_ACLK(@$(SLAVE.BUS.CLOCK.WIRE)),
+		// {{{
+		.S_AXI_ACLK(i_clk),
 		.S_AXI_ARESETN(@$(SLAVE.BUS.RESET)),
 		//
 		.o_we(@$(PREFIX)_we),
@@ -68,6 +72,7 @@
 		.i_rdata(@$(PREFIX)_rdata),
 		//
 		@$(SLAVE.ANSIPORTLIST)
+		// }}}
 	);
 
 	always @(posedge i_clk)

@@ -3,6 +3,7 @@ toplevel.v
 testb.h
 main_tb.cpp
 testb.h
+iscachable.v
 autofpga.dbg
 rtl.make.inc
 board.h

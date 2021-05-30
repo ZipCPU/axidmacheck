@@ -49,7 +49,8 @@ all:	data
 # main project files.
 #
 DATA := global.txt axibus.txt axiram.txt axidma.txt aximm2s.txt axis2mm.txt \
-	controlbus.txt streamsink.txt streamsrc.txt vibus.txt
+	controlbus.txt streamsink.txt streamsrc.txt vibus.txt		\
+	zipaxi.txt busconsole.txt
 
 AUTOFPGA?=$(shell which autofpga)
 

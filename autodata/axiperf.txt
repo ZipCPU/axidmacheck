@@ -1,0 +1,145 @@
+################################################################################
+##
+## Filename: 	autodata/axiperf.txt
+##
+## Project:	AXI DMA Check: A utility to measure AXI DMA speeds
+##
+## Purpose:	
+##
+## Creator:	Dan Gisselquist, Ph.D.
+##		Gisselquist Technology, LLC
+##
+################################################################################
+##
+## Copyright (C) 2020-2021, Gisselquist Technology, LLC
+##
+## This program is free software (firmware): you can redistribute it and/or
+## modify it under the terms of  the GNU General Public License as published
+## by the Free Software Foundation, either version 3 of the License, or (at
+## your option) any later version.
+##
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+## FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+## for more details.
+##
+## You should have received a copy of the GNU General Public License along
+## with this program.  (It's in the $(ROOT)/doc directory.  Run make with no
+## target there if the PDF file isn't present.)  If not, see
+## <http://www.gnu.org/licenses/> for a copy.
+##
+## License:	GPL, v3, as defined and found on www.gnu.org,
+##		http://www.gnu.org/licenses/gpl.html
+##
+##
+################################################################################
+##
+##
+@PREFIX=axiperf
+@DEVID=AXIPERF
+##
+@NADDR=32
+@SLAVE.TYPE=DOUBLE
+@SLAVE.BUS=axil
+##
+        parameter       C_AXIL_ADDR_WIDTH = 7,
+                localparam      C_AXIL_DATA_WIDTH = 32,
+                parameter       C_AXI_DATA_WIDTH = 32,
+                parameter       C_AXI_ADDR_WIDTH = 32,
+                parameter       C_AXI_ID_WIDTH = 4,
+                parameter [0:0] OPT_SKIDBUFFER = 1'b0,
+                parameter [0:0] OPT_LOWPOWER = 0,
+                parameter       LGCNT = 32,
+                localparam      ADDRLSB = $clog2(C_AXI_DATA_WIDTH)-3
+@MAIN.INCLUDE=
+	axiperf #(
+		.C_AXIL_ADDR_WIDTH(@$(AWID)),
+		.C_AXI_ADDR_WIDTH(@$(target.AWID)),
+		.C_AXI_DATA_WIDTH(@$(target.BUS.WIDTH)),
+		.C_AXI_ID_WIDTH(@$(BUS.IDWIDTH))
+	) @$(PREFIX)i(
+		.S_AXI_ACLK(@$(BUS.CLOCK.WIRE)),
+		.S_AXI_ARESETN(@$(BUS.RESET)),
+		//
+		@$(SLAVE.ANSIPORTLIST),
+		//
+		.M_AXI_AWVALID(@$(target.BUS.PREFIX)_awvalid),
+		.M_AXI_AWREADY(@$(target.BUS.PREFIX)_awready),
+		.M_AXI_AWID(   @$(target.BUS.PREFIX)_awid),
+		.M_AXI_AWADDR( @$(target.BUS.PREFIX)_awaddr[@$(target.AWID)-1:0]),
+		.M_AXI_AWLEN(  @$(target.BUS.PREFIX)_awlen),
+		.M_AXI_AWSIZE( @$(target.BUS.PREFIX)_awsize),
+		.M_AXI_AWBURST(@$(target.BUS.PREFIX)_awburst),
+		.M_AXI_AWLOCK( @$(target.BUS.PREFIX)_awlock),
+		.M_AXI_AWCACHE(@$(target.BUS.PREFIX)_awcache),
+		.M_AXI_AWPROT( @$(target.BUS.PREFIX)_awprot),
+		.M_AXI_AWQOS(  @$(target.BUS.PREFIX)_awqos),
+                //
+                //
+		.M_AXI_WVALID(@$(target.BUS.PREFIX)_wvalid),
+		.M_AXI_WREADY(@$(target.BUS.PREFIX)_wready),
+		.M_AXI_WDATA( @$(target.BUS.PREFIX)_wdata),
+		.M_AXI_WSTRB( @$(target.BUS.PREFIX)_wstrb),
+		.M_AXI_WLAST( @$(target.BUS.PREFIX)_wlast),
+		//
+		.M_AXI_BVALID(@$(target.BUS.PREFIX)_bvalid),
+		.M_AXI_BREADY(@$(target.BUS.PREFIX)_bready),
+		.M_AXI_BID(   @$(target.BUS.PREFIX)_bid),
+		.M_AXI_BRESP( @$(target.BUS.PREFIX)_bresp),
+		//
+		.M_AXI_ARVALID(@$(target.BUS.PREFIX)_arvalid),
+		.M_AXI_ARREADY(@$(target.BUS.PREFIX)_arready),
+		.M_AXI_ARID(   @$(target.BUS.PREFIX)_arid),
+		.M_AXI_ARADDR( @$(target.BUS.PREFIX)_araddr[@$(target.AWID)-1:0]),
+		.M_AXI_ARLEN(  @$(target.BUS.PREFIX)_arlen),
+		.M_AXI_ARSIZE( @$(target.BUS.PREFIX)_arsize),
+		.M_AXI_ARBURST(@$(target.BUS.PREFIX)_arburst),
+		.M_AXI_ARLOCK( @$(target.BUS.PREFIX)_arlock),
+		.M_AXI_ARCACHE(@$(target.BUS.PREFIX)_arcache),
+		.M_AXI_ARPROT( @$(target.BUS.PREFIX)_arprot),
+		.M_AXI_ARQOS(  @$(target.BUS.PREFIX)_arqos),
+                //
+		.M_AXI_RVALID(@$(target.BUS.PREFIX)_rvalid),
+		.M_AXI_RREADY(@$(target.BUS.PREFIX)_rready),
+		.M_AXI_RID(   @$(target.BUS.PREFIX)_rrid),
+		.M_AXI_RDATA( @$(target.BUS.PREFIX)_rdata),
+		.M_AXI_RLAST( @$(target.BUS.PREFIX)_rlast),
+		.M_AXI_RRESP( @$(target.BUS.PREFIX)_rresp)
+	);
+@REGS.NOTE=
+//
+// AXI Performance monitor for @$(DEVID)
+//
+@REGS.N=32
+@REGS.0=0   R_@$(DEVID)ACTIVE    @$(DEVID)ACTIVE
+@REGS.1=1   R_@$(DEVID)BURSTSZ   @$(DEVID)BURSTSZ
+@REGS.2=2   R_@$(DEVID)WRIDLES   @$(DEVID)WRIDLES
+@REGS.3=3   R_@$(DEVID)AWRBURSTS @$(DEVID)AWRBURSTS
+@REGS.4=4   R_@$(DEVID)WRBEATS   @$(DEVID)WRBEATS
+@REGS.5=5   R_@$(DEVID)AWBYTES   @$(DEVID)AWBYTES
+@REGS.6=6   R_@$(DEVID)WBYTES    @$(DEVID)WBYTES
+@REGS.7=7   R_@$(DEVID)WRSLOWD   @$(DEVID)WRSLOWD
+@REGS.8=8   R_@$(DEVID)WRSTALLS  @$(DEVID)WRSTALLS
+@REGS.9=9   R_@$(DEVID)WRADDRLAG @$(DEVID)WRADDRLAG
+@REGS.10=10 R_@$(DEVID)WRDATALAG @$(DEVID)WRDATALAG
+@REGS.11=11 R_@$(DEVID)WRBEATSD  @$(DEVID)WRBEATSD
+@REGS.12=12 R_@$(DEVID)AWBURSTB  @$(DEVID)AWBURSTB
+@REGS.13=13 R_@$(DEVID)AWADDRST  @$(DEVID)AWADDRST
+@REGS.14=14 R_@$(DEVID)AWWSTALL  @$(DEVID)AWWSTALL
+@REGS.15=15 R_@$(DEVID)AWWSLOW   @$(DEVID)AWWSLOW
+@REGS.16=16 R_@$(DEVID)AWWNODATA @$(DEVID)AWWNODATA
+@REGS.17=17 R_@$(DEVID)AWWBEATS  @$(DEVID)AWWBEATS
+@REGS.18=18 R_@$(DEVID)WRBLAGS   @$(DEVID)WRBLAGS
+@REGS.19=19 R_@$(DEVID)WRBSTALL  @$(DEVID)WRBSTALL
+##
+##
+@REGS.22=24 R_@$(DEVID)RDIDLES    @$(DEVID)RDIDLES
+@REGS.23=25 R_@$(DEVID)RDMAXB     @$(DEVID)RDMAXB
+@REGS.24=25 R_@$(DEVID)RDBURSTS   @$(DEVID)RDBURSTS
+@REGS.25=25 R_@$(DEVID)RDBEATS    @$(DEVID)RDBEATS
+@REGS.26=25 R_@$(DEVID)RDBYTES    @$(DEVID)RDBYTES
+@REGS.27=25 R_@$(DEVID)RDARSTALLS @$(DEVID)RDARSTALLS
+@REGS.28=25 R_@$(DEVID)RDRSTALLS  @$(DEVID)RDRSTALLS
+@REGS.29=25 R_@$(DEVID)RDLAG      @$(DEVID)RDLAG
+@REGS.30=25 R_@$(DEVID)RDSLOW     @$(DEVID)RDSLOW
+@REGS.31=25 R_@$(DEVID)CONTROL    @$(DEVID)CONTROL 
