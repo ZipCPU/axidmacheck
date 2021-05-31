@@ -64,7 +64,7 @@ module	zipaxi #(
 		parameter	DATA_ID = 0,
 		localparam	ADDRESS_WIDTH = C_AXI_ADDR_WIDTH,
 		localparam	AXILSB = $clog2(C_AXI_DATA_WIDTH/8),
-		parameter [C_AXI_ADDR_WIDTH-1:0] RESET_ADDRESS=32'h010_0000,
+		parameter [C_AXI_ADDR_WIDTH-1:0] RESET_ADDRESS=0,
 		parameter [0:0]	START_HALTED = 1'b0,
 `ifdef	OPT_MULTIPLY
 		parameter	IMPLEMENT_MPY = `OPT_MULTIPLY,
@@ -312,7 +312,8 @@ module	zipaxi #(
 	// {{{
 	wire		clear_dcache, mem_ce, bus_lock;
 	wire	[2:0]	mem_op;
-	wire	[31:0]	mem_cpu_addr, mem_lock_pc;
+	wire	[31:0]	mem_cpu_addr;
+	wire	[AW+1:0]	mem_lock_pc;
 	wire	[31:0]	mem_wdata;
 	wire	[4:0]	mem_reg;
 	wire		mem_busy, mem_rdbusy, mem_pipe_stalled, mem_valid,
@@ -785,6 +786,7 @@ module	zipaxi #(
 
 		axiicache #(
 			// {{{
+			.C_AXI_ID_WIDTH(C_AXI_ID_WIDTH),
 			.C_AXI_ADDR_WIDTH(C_AXI_ADDR_WIDTH),
 			.C_AXI_DATA_WIDTH(C_AXI_DATA_WIDTH),
 			.AXI_ID(INSN_ID),
@@ -947,7 +949,7 @@ module	zipaxi #(
 			.i_pipe_stb(mem_ce),
 			.i_lock(bus_lock),
 			.i_op(mem_op),
-			.i_addr(mem_cpu_addr),
+			.i_addr(mem_cpu_addr[AW+1:0]),
 			.i_data(mem_wdata),
 			.i_oreg(mem_reg),
 			.o_busy(mem_busy),

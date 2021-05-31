@@ -471,111 +471,120 @@ module	axilperiphs #(
 
 	generate if (OPT_COUNTERS)
 	begin : ACCOUNTING_COUNTERS
+		// {{{
+		reg	[31:0]	r_mtask, r_mopstall, r_mpfstall, r_micount;
+		reg	[31:0]	r_utask, r_uopstall, r_upfstall, r_uicount;
 
-		initial	{ mtask, mopstall, mpfstall, micount } = 0;
+		initial	{ r_mtask, r_mopstall, r_mpfstall, r_micount } = 0;
 		always @(posedge S_AXI_ACLK)
 		if (i_cpu_reset)
-			{ mtask, mopstall, mpfstall, micount } <= 0;
+			{ r_mtask, r_mopstall, r_mpfstall, r_micount } <= 0;
 		else begin
 			if (!i_cpu_halted)
-				mtask <= mtask + 1;
+				r_mtask <= r_mtask + 1;
 			if (i_cpu_opstall)
-				mopstall <= mopstall + 1;
+				r_mopstall <= mopstall + 1;
 			if (i_cpu_pfstall)
-				mpfstall <= mpfstall + 1;
+				r_mpfstall <= r_mpfstall + 1;
 			if (i_cpu_icount)
-				micount <= micount + 1;
+				r_micount <= r_micount + 1;
 
 			if (axil_write_ready)
 			case(awskd_addr)
 			ADR_MCLOCKS: begin
 				// {{{
-				if(wskd_strb[0]) mtask[ 7: 0]<=wskd_data[ 7: 0];
-				if(wskd_strb[1]) mtask[15: 8]<=wskd_data[15: 8];
-				if(wskd_strb[2]) mtask[23:16]<=wskd_data[23:16];
-				if(wskd_strb[3]) mtask[31:24]<=wskd_data[31:24];
+				if(wskd_strb[0]) r_mtask[ 7: 0]<=wskd_data[ 7: 0];
+				if(wskd_strb[1]) r_mtask[15: 8]<=wskd_data[15: 8];
+				if(wskd_strb[2]) r_mtask[23:16]<=wskd_data[23:16];
+				if(wskd_strb[3]) r_mtask[31:24]<=wskd_data[31:24];
 				end
 				// }}}
 			ADR_MOPSTALL: begin
 				// {{{
-				if(wskd_strb[0]) mopstall[ 7: 0]<=wskd_data[ 7: 0];
-				if(wskd_strb[1]) mopstall[15: 8]<=wskd_data[15: 8];
-				if(wskd_strb[2]) mopstall[23:16]<=wskd_data[23:16];
-				if(wskd_strb[3]) mopstall[31:24]<=wskd_data[31:24];
+				if(wskd_strb[0]) r_mopstall[ 7: 0]<=wskd_data[ 7: 0];
+				if(wskd_strb[1]) r_mopstall[15: 8]<=wskd_data[15: 8];
+				if(wskd_strb[2]) r_mopstall[23:16]<=wskd_data[23:16];
+				if(wskd_strb[3]) r_mopstall[31:24]<=wskd_data[31:24];
 				end
 				// }}}
 			ADR_MPFSTALL: begin
 				// {{{
-				if(wskd_strb[0]) mpfstall[ 7: 0]<=wskd_data[ 7: 0];
-				if(wskd_strb[1]) mpfstall[15: 8]<=wskd_data[15: 8];
-				if(wskd_strb[2]) mpfstall[23:16]<=wskd_data[23:16];
-				if(wskd_strb[3]) mpfstall[31:24]<=wskd_data[31:24];
+				if(wskd_strb[0]) r_mpfstall[ 7: 0]<=wskd_data[ 7: 0];
+				if(wskd_strb[1]) r_mpfstall[15: 8]<=wskd_data[15: 8];
+				if(wskd_strb[2]) r_mpfstall[23:16]<=wskd_data[23:16];
+				if(wskd_strb[3]) r_mpfstall[31:24]<=wskd_data[31:24];
 				end
 				// }}}
 			ADR_MICOUNT: begin
 				// {{{
-				if(wskd_strb[0]) micount[ 7: 0]<=wskd_data[ 7: 0];
-				if(wskd_strb[1]) micount[15: 8]<=wskd_data[15: 8];
-				if(wskd_strb[2]) micount[23:16]<=wskd_data[23:16];
-				if(wskd_strb[3]) micount[31:24]<=wskd_data[31:24];
+				if(wskd_strb[0]) r_micount[ 7: 0]<=wskd_data[ 7: 0];
+				if(wskd_strb[1]) r_micount[15: 8]<=wskd_data[15: 8];
+				if(wskd_strb[2]) r_micount[23:16]<=wskd_data[23:16];
+				if(wskd_strb[3]) r_micount[31:24]<=wskd_data[31:24];
 				end
 				// }}}
 			default: begin end
 			endcase
 		end
 
-		initial	{ utask, uopstall, upfstall, uicount } = 0;
+		initial	{ r_utask, r_uopstall, r_upfstall, r_uicount } = 0;
 		always @(posedge S_AXI_ACLK)
 		if (i_cpu_reset)
-			{ utask, uopstall, upfstall, uicount } <= 0;
+			{ r_utask, r_uopstall, r_upfstall, r_uicount } <= 0;
 		else begin
 			if (!i_cpu_halted && i_cpu_gie)
-				utask <= utask + 1;
+				r_utask <= r_utask + 1;
 			if (i_cpu_opstall && i_cpu_gie)
-				uopstall <= uopstall + 1;
+				r_uopstall <= r_uopstall + 1;
 			if (i_cpu_pfstall && i_cpu_gie)
-				upfstall <= upfstall + 1;
+				r_upfstall <= r_upfstall + 1;
 			if (i_cpu_icount && i_cpu_gie)
-				uicount <= uicount + 1;
+				r_uicount <= r_uicount + 1;
 
 			if (axil_write_ready)
 			case(awskd_addr)
 			ADR_UCLOCKS: begin
 				// {{{
-				if(wskd_strb[0]) utask[ 7: 0]<=wskd_data[ 7: 0];
-				if(wskd_strb[1]) utask[15: 8]<=wskd_data[15: 8];
-				if(wskd_strb[2]) utask[23:16]<=wskd_data[23:16];
-				if(wskd_strb[3]) utask[31:24]<=wskd_data[31:24];
+				if(wskd_strb[0]) r_utask[ 7: 0]<=wskd_data[ 7: 0];
+				if(wskd_strb[1]) r_utask[15: 8]<=wskd_data[15: 8];
+				if(wskd_strb[2]) r_utask[23:16]<=wskd_data[23:16];
+				if(wskd_strb[3]) r_utask[31:24]<=wskd_data[31:24];
 				end
 				// }}}
 			ADR_UOPSTALL: begin
 				// {{{
-				if(wskd_strb[0]) uopstall[ 7: 0]<=wskd_data[ 7: 0];
-				if(wskd_strb[1]) uopstall[15: 8]<=wskd_data[15: 8];
-				if(wskd_strb[2]) uopstall[23:16]<=wskd_data[23:16];
-				if(wskd_strb[3]) uopstall[31:24]<=wskd_data[31:24];
+				if(wskd_strb[0]) r_uopstall[ 7: 0]<=wskd_data[ 7: 0];
+				if(wskd_strb[1]) r_uopstall[15: 8]<=wskd_data[15: 8];
+				if(wskd_strb[2]) r_uopstall[23:16]<=wskd_data[23:16];
+				if(wskd_strb[3]) r_uopstall[31:24]<=wskd_data[31:24];
 				end
 				// }}}
 			ADR_UPFSTALL: begin
 				// {{{
-				if(wskd_strb[0]) upfstall[ 7: 0]<=wskd_data[ 7: 0];
-				if(wskd_strb[1]) upfstall[15: 8]<=wskd_data[15: 8];
-				if(wskd_strb[2]) upfstall[23:16]<=wskd_data[23:16];
-				if(wskd_strb[3]) upfstall[31:24]<=wskd_data[31:24];
+				if(wskd_strb[0]) r_upfstall[ 7: 0]<=wskd_data[ 7: 0];
+				if(wskd_strb[1]) r_upfstall[15: 8]<=wskd_data[15: 8];
+				if(wskd_strb[2]) r_upfstall[23:16]<=wskd_data[23:16];
+				if(wskd_strb[3]) r_upfstall[31:24]<=wskd_data[31:24];
 				end
 				// }}}
 			ADR_UICOUNT: begin
 				// {{{
-				if(wskd_strb[0]) uicount[ 7: 0]<=wskd_data[ 7: 0];
-				if(wskd_strb[1]) uicount[15: 8]<=wskd_data[15: 8];
-				if(wskd_strb[2]) uicount[23:16]<=wskd_data[23:16];
-				if(wskd_strb[3]) uicount[31:24]<=wskd_data[31:24];
+				if(wskd_strb[0]) r_uicount[ 7: 0]<=wskd_data[ 7: 0];
+				if(wskd_strb[1]) r_uicount[15: 8]<=wskd_data[15: 8];
+				if(wskd_strb[2]) r_uicount[23:16]<=wskd_data[23:16];
+				if(wskd_strb[3]) r_uicount[31:24]<=wskd_data[31:24];
 				end
 				// }}}
 			default: begin end
 			endcase
 		end
 
+		assign	{ mtask, mopstall, mpfstall, micount } = 
+				{ r_mtask, r_mopstall, r_mpfstall, r_micount };
+		assign	{ utask, uopstall, upfstall, uicount } = 
+				{ r_utask, r_uopstall, r_upfstall, r_uicount };
+
+		// }}}
 	end else begin : NO_ACCOUNTING
 	
 		assign	{ mtask, mopstall, mpfstall, micount } = 0;

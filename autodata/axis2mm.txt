@@ -1,7 +1,7 @@
 ################################################################################
 ##
 ## Filename: 	autodata/axis2mm.txt
-##
+## {{{
 ## Project:	AXI DMA Check: A utility to measure AXI DMA speeds
 ##
 ## Purpose:	
@@ -10,11 +10,11 @@
 ##		Gisselquist Technology, LLC
 ##
 ################################################################################
-##
+## }}}
 ## Copyright (C) 2020-2021, Gisselquist Technology, LLC
-##
+## {{{
 ## This program is free software (firmware): you can redistribute it and/or
-## modify it under the terms of  the GNU General Public License as published
+## modify it under the terms of the GNU General Public License as published
 ## by the Free Software Foundation, either version 3 of the License, or (at
 ## your option) any later version.
 ##
@@ -27,14 +27,15 @@
 ## with this program.  (It's in the $(ROOT)/doc directory.  Run make with no
 ## target there if the PDF file isn't present.)  If not, see
 ## <http://www.gnu.org/licenses/> for a copy.
-##
+## }}}
 ## License:	GPL, v3, as defined and found on www.gnu.org,
+## {{{
 ##		http://www.gnu.org/licenses/gpl.html
 ##
 ##
 ################################################################################
 ##
-##
+## }}}
 @PREFIX=s2mm
 @DEVID=S2MM
 @NADDR=8
@@ -49,12 +50,20 @@
 @MAIN.DEFNS=
 	wire	@$(MASTER.PREFIX)_wuser;
 @MAIN.INSERT=
+	////////////////////////////////////////////////////////////////////////
+	//
+	// AXI S2MM
+	// {{{
+	//
 	axis2mm #(
+		// {{{
 		.C_AXI_ADDR_WIDTH(@$(MASTER.BUS.AWID)),
 		.C_AXI_DATA_WIDTH(@$(MASTER.BUS.WIDTH)),
 		.C_AXI_ID_WIDTH(@$(MASTER.BUS.IDWIDTH)),
 		.AXI_ID(3'b001)
+		// }}}
 	) @$(PREFIX)i (
+		// {{{
 		.S_AXI_ACLK(@$(SLAVE.BUS.CLOCK.WIRE)),
 		.S_AXI_ARESETN(@$(SLAVE.BUS.RESET)),
 		//
@@ -68,6 +77,7 @@
 		@$(MASTER.ANSIPORTLIST),
 		.M_AXI_WUSER(@$(MASTER.PREFIX)_wuser),
 		.o_int(@$(PREFIX)_int)
+		// }}}
 	);
 
 	assign	@$(MASTER.PREFIX)_arvalid = 0;
@@ -83,10 +93,24 @@
 	//
 	assign	@$(MASTER.PREFIX)_rready  = 0;
 
-
+	// }}}
 @REGS.N=5
 @REGS.0=0 R_@$(DEVID)CTRL @$(DEVID)CTRL
 @REGS.1=4 R_@$(DEVID)ADDRLO @$(DEVID)ADDRLO
 @REGS.2=5 R_@$(DEVID)ADDRHI @$(DEVID)ADDRHI
 @REGS.3=6 R_@$(DEVID)LENLO  @$(DEVID)LENLO
 @REGS.4=7 R_@$(DEVID)LENHI  @$(DEVID)LENHI
+##
+@BDEF.DEFN=
+typedef	struct	@$(DEVID)_S {
+	unsigned	a_control;
+	unsigned	a_unused1[3];
+	unsigned	*a_dest;
+	unsigned	a_unused2;
+	unsigned	a_len;
+	unsigned	a_unused3;
+} @$(DEVID);
+
+@BDEF.IOTYPE=@$(DEVID)
+@BDEF.OSDEF=_BOARD_HAS_@$(DEVID)
+@BDEF.OSVAL=static volatile @$(DEVID) const * _@$(PREFIX)=((@$(BDEF.IOTYPE) *)@$[0x%08x](REGBASE));

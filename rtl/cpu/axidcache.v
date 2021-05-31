@@ -318,7 +318,16 @@ module	axidcache #(
 		w_tag = (r_check) ? r_itag : r_rtag;
 
 	// Cachability checking
-	iscachable chkaddress(i_addr[AW-1:2], address_is_cachable);
+	// {{{
+	// Note that the correct address width must be built-in to the
+	// iscachable routine.  It is *not* parameterizable.  iscachable must
+	// be rewritten if the address width changes because, of necessity, that
+	// also means the address map is changing and therefore what is and
+	// isn't cachable.  etc.
+	iscachable chkaddress(
+		i_addr[AW-1:0], address_is_cachable
+	);
+	// }}}
 
 	initial	r_rd_pending = 0;
 	initial	r_cache_miss = 0;

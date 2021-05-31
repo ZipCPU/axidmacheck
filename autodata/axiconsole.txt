@@ -20,7 +20,7 @@
 ## Copyright (C) 2017-2021, Gisselquist Technology, LLC
 ## {{{
 ## This program is free software (firmware): you can redistribute it and/or
-## modify it under the terms of  the GNU General Public License as published
+## modify it under the terms of the GNU General Public License as published
 ## by the Free Software Foundation, either version 3 of the License, or (at
 ## your option) any later version.
 ##
@@ -51,7 +51,7 @@
 @BUS.CLOCK=clk
 @BUS.WIDTH=32
 @BUS.TYPE=axi
-@BUS.IDWIDTH=2
+@BUS.IDWIDTH=3
 @BUS.RESET=!i_reset
 @$BAUDRATE=1000000
 @CLOCK.NAME=clk
@@ -218,3 +218,59 @@ typedef struct  CONSOLE_S {
 @RTL.MAKE.GROUP= CONSOLE
 @RTL.MAKE.SUBD=wbuart
 @RTL.MAKE.FILES= txuartlite.v rxuartlite.v ufifo.v
+##
+################################################################################
+##
+@PREFIX=crossbus
+@MASTER.BUS=axi
+@MASTER.TYPE=SUBBUS
+@SLAVE.BUS=wbu
+@SLAVE.TYPE=OTHER
+@SLAVE.IDWIDTH=@$(MASTER.BUS.IDWIDTH)
+@MAIN.INSERT=
+	////////////////////////////////////////////////////////////////////////
+	//
+	// Connect the @$(MASTER.BUS.NAME) bus to the @$(SLAVE.BUS.NAME) bus
+	// {{{
+	assign	@$(MASTER.PREFIX)_awvalid  = @$(SLAVE.PREFIX)_awvalid;
+	assign	@$(SLAVE.PREFIX)_awready = @$(MASTER.PREFIX)_awready;
+	assign	@$(MASTER.PREFIX)_awid     = @$(SLAVE.PREFIX)_awid;
+	assign	@$(MASTER.PREFIX)_awaddr   = @$(SLAVE.PREFIX)_awaddr[@$(MASTER.BUS.AWID)-1:0];
+	assign	@$(MASTER.PREFIX)_awlen    = @$(SLAVE.PREFIX)_awlen;
+	assign	@$(MASTER.PREFIX)_awsize   = @$(SLAVE.PREFIX)_awsize;
+	assign	@$(MASTER.PREFIX)_awburst  = @$(SLAVE.PREFIX)_awburst;
+	assign	@$(MASTER.PREFIX)_awlock   = @$(SLAVE.PREFIX)_awlock;
+	assign	@$(MASTER.PREFIX)_awcache  = @$(SLAVE.PREFIX)_awcache;
+	assign	@$(MASTER.PREFIX)_awprot   = @$(SLAVE.PREFIX)_awprot;
+	assign	@$(MASTER.PREFIX)_awqos    = @$(SLAVE.PREFIX)_awqos;
+
+	assign	@$(MASTER.PREFIX)_wvalid  = @$(SLAVE.PREFIX)_wvalid;
+	assign	@$(SLAVE.PREFIX)_wready = @$(MASTER.PREFIX)_wready;
+	assign	@$(MASTER.PREFIX)_wdata   = @$(SLAVE.PREFIX)_wdata;
+	assign	@$(MASTER.PREFIX)_wstrb   = @$(SLAVE.PREFIX)_wstrb;
+	assign	@$(MASTER.PREFIX)_wlast   = @$(SLAVE.PREFIX)_wlast;
+
+	assign	@$(SLAVE.PREFIX)_bvalid = @$(MASTER.PREFIX)_bvalid;
+	assign	@$(MASTER.PREFIX)_bready  = @$(SLAVE.PREFIX)_bready;
+	assign	@$(SLAVE.PREFIX)_bid    = @$(MASTER.PREFIX)_bid;
+	assign	@$(SLAVE.PREFIX)_bresp = @$(MASTER.PREFIX)_bresp;
+
+	assign	@$(MASTER.PREFIX)_arvalid  = @$(SLAVE.PREFIX)_arvalid;
+	assign	@$(SLAVE.PREFIX)_arready = @$(MASTER.PREFIX)_arready;
+	assign	@$(MASTER.PREFIX)_arid     = @$(SLAVE.PREFIX)_arid;
+	assign	@$(MASTER.PREFIX)_araddr   = @$(SLAVE.PREFIX)_araddr[@$(MASTER.BUS.AWID)-1:0];
+	assign	@$(MASTER.PREFIX)_arlen    = @$(SLAVE.PREFIX)_arlen;
+	assign	@$(MASTER.PREFIX)_arsize   = @$(SLAVE.PREFIX)_arsize;
+	assign	@$(MASTER.PREFIX)_arburst  = @$(SLAVE.PREFIX)_arburst;
+	assign	@$(MASTER.PREFIX)_arlock   = @$(SLAVE.PREFIX)_arlock;
+	assign	@$(MASTER.PREFIX)_arcache  = @$(SLAVE.PREFIX)_arcache;
+	assign	@$(MASTER.PREFIX)_arprot   = @$(SLAVE.PREFIX)_arprot;
+	assign	@$(MASTER.PREFIX)_arqos    = @$(SLAVE.PREFIX)_arqos;
+
+	assign	@$(SLAVE.PREFIX)_rvalid = @$(MASTER.PREFIX)_rvalid;
+	assign	@$(MASTER.PREFIX)_rready  = @$(SLAVE.PREFIX)_rready;
+	assign	@$(SLAVE.PREFIX)_rid    = @$(MASTER.PREFIX)_rid;
+	assign	@$(SLAVE.PREFIX)_rdata  = @$(MASTER.PREFIX)_rdata;
+	assign	@$(SLAVE.PREFIX)_rlast  = @$(MASTER.PREFIX)_rlast;
+	assign	@$(SLAVE.PREFIX)_rresp  = @$(MASTER.PREFIX)_rresp;
+	// }}}

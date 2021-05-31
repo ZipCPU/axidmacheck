@@ -145,7 +145,7 @@ module	axilconsole #(
 	reg		rx_uart_reset;
 	//
 	wire		rx_empty_n, rx_fifo_err;
-	wire	[7:0]	rxf_axil_data;
+	wire	[6:0]	rxf_axil_data;
 	wire	[15:0]	rxf_status;
 	reg		rxf_axil_read;
 	reg		r_rx_perr, r_rx_ferr;
@@ -157,7 +157,7 @@ module	axilconsole #(
 	wire	[7:0]	tx_data;
 	wire	[15:0]	txf_status;
 	reg		txf_axil_write, tx_uart_reset;
-	reg	[7:0]	txf_axil_data;
+	reg	[6:0]	txf_axil_data;
 	wire	[31:0]	axil_tx_data;
 	wire	[31:0]	axil_fifo_data;
 	//
@@ -394,7 +394,7 @@ module	axilconsole #(
 	begin
 		txf_axil_write <= (axil_write_ready)&&(awskd_addr == UART_TXREG)
 			&& wskd_strb[0];
-		txf_axil_data  <= wskd_data[7:0];
+		txf_axil_data  <= wskd_data[6:0];
 	end
 
 	// Transmit FIFO

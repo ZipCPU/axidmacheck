@@ -35,7 +35,6 @@
 ## {{{
 ##		http://www.gnu.org/licenses/gpl.html
 ##
-##
 ################################################################################
 ##
 ## }}}
@@ -50,7 +49,8 @@ all:	data
 #
 DATA := global.txt axibus.txt axiram.txt axidma.txt aximm2s.txt axis2mm.txt \
 	controlbus.txt streamsink.txt streamsrc.txt vibus.txt		\
-	zipaxi.txt busconsole.txt
+	zipaxi.txt axiconsole.txt mem_bkram_only.txt			\
+	mm2sperf.txt s2mmperf.txt
 
 AUTOFPGA?=$(shell which autofpga)
 

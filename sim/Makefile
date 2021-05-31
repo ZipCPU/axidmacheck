@@ -52,9 +52,17 @@ VROOT	:= $(VERILATOR_ROOT)
 VDEFS   := $(shell ./vversion.sh)
 VINCD   := $(VROOT)/include
 VINC	:= -I$(VINCD) -I$(VINCD)/vltstd -I$(VOBJDR)
-INCS	:= -I../sw -I$(RTLD) $(VINC)
-VOBJS   := $(OBJDIR)/verilated.o $(OBJDIR)/verilated_vcd_c.o $(OBJDIR)/verilated_cov.o
+INCS	:= -I../sw -I$(RTLD) $(VINC) -I../sw/host
 CFLAGS	:= -Og -g -Wall $(INCS) $(VDEFS) -DVM_COVERAGE=1 -D__WORDSIZE=64
+#
+# A list of our sources and headers
+#
+SIMSOURCES:= dbluartsim.cpp zipelf.cpp byteswap.cpp
+SIMOBJECTS:= $(addprefix $(OBJDIR)/,$(subst .cpp,.o,$(SIMSOURCES)))
+SIMHEADERS:= $(foreach header,$(subst .cpp,.h,$(SIMSOURCES)),$(wildcard $(header)))
+VOBJS   := $(OBJDIR)/verilated.o $(OBJDIR)/verilated_vcd_c.o $(OBJDIR)/verilated_cov.o
+SIMOBJ := $(subst .cpp,.o,$(SIMSOURCES))
+SIMOBJS:= $(addprefix $(OBJDIR)/,$(SIMOBJ)) $(VOBJS)
 
 SOURCES := $(SIMSOURCES) main_tb.cpp automaster_tb.cpp
 HEADERS := $(foreach header,$(subst .cpp,.h,$(SOURCES)),$(wildcard $(header)))
@@ -74,8 +82,8 @@ $(OBJDIR)/%.o: $(VINCD)/%.cpp
 MAINOBJS := $(OBJDIR)/automaster_tb.o
 $(OBJDIR)/automaster_tb.o: automaster_tb.cpp main_tb.cpp axi_tb.h testb.h ../rtl/obj_dir/Vmain.h
 
-main_tb: $(MAINOBJS) $(VOBJS) $(VOBJDR)/Vmain__ALL.a
-	$(CXX) $(CFLAGS) $(INCS) $(VDEFS) $^ $(VOBJDR)/Vmain__ALL.a -o $@
+main_tb: $(MAINOBJS) $(SIMOBJECTS) $(VOBJS) $(VOBJDR)/Vmain__ALL.a
+	$(CXX) $(CFLAGS) $^ $(VOBJDR)/Vmain__ALL.a -lelf -o $@
 
 .PHONY: clean
 clean:
@@ -148,4 +156,6 @@ tags:	$(SOURCES) $(HEADERS)
 	@ctags $(SOURCES) $(HEADERS)
 
 
+ifneq ($(MAKECMDGOALS),clean)
 -include $(OBJDIR)/depends.txt
+endif

@@ -17,7 +17,7 @@
 ## Copyright (C) 2017-2021, Gisselquist Technology, LLC
 ## {{{
 ## This program is free software (firmware): you can redistribute it and/or
-## modify it under the terms of  the GNU General Public License as published
+## modify it under the terms of the GNU General Public License as published
 ## by the Free Software Foundation, either version 3 of the License, or (at
 ## your option) any later version.
 ##
@@ -78,12 +78,12 @@
 	// Variables/definitions needed by the ZipCPU BUS master
 	//
 	//
-	// A 32-bit address indicating where the ZipCPU should start running
-	// from
-	localparam	RESET_ADDRESS = @$RESET_ADDRESS;
-	//
 	// The number of valid bits on the bus
 	localparam	ZIP_ADDRESS_WIDTH = @$(MASTER.BUS.AWID); // Zip-CPU address width
+	//
+	// A 32-bit address indicating where the ZipCPU should start running
+	// from
+	localparam	[ZIP_ADDRESS_WIDTH-1:0]	RESET_ADDRESS = @$[%d](MASTER.BUS.AWID)'h@$[%x]RESET_ADDRESS;
 	//
 	// Number of ZipCPU interrupts
 	localparam	ZIP_INTS = 16;
@@ -101,16 +101,17 @@
 @MASTER.ANSPREFIX=M_INSN_
 @SLAVE.ANSPREFIX=S_DBG_
 @MAIN.INSERT=
-	//
+	////////////////////////////////////////////////////////////////////////
 	//
 	// The ZipCPU/ZipSystem BUS master
-	//
+	// {{{
 	//
 	assign	zip_int_vector = { alt_int_vector[14:8], sys_int_vector[14:6] };
 	zipaxi #(
 		// {{{
 		.RESET_ADDRESS(RESET_ADDRESS),
-		.ADDRESS_WIDTH(ZIP_ADDRESS_WIDTH),
+		.C_AXI_ID_WIDTH(@$(MASTER.BUS.IDWIDTH)),
+		.C_AXI_ADDR_WIDTH(ZIP_ADDRESS_WIDTH),
 		.LGICACHE(@$(LGICACHE)),.OPT_LGDCACHE(@$(LGDCACHE)),
 		.START_HALTED(ZIP_START_HALTED),
 		.RESET_DURATION(20)
@@ -118,7 +119,7 @@
 	) swic(
 		// {{{
 		.S_AXI_ACLK(i_clk), .S_AXI_ARESETN(@$(MASTER.BUS.RESET)),
-			.i_cpu_reset(@$(MASTER.BUS.RESET)),
+			.i_cpu_reset(i_reset),
 			.i_interrupt(@$(axilp.INTERRUPT)),
 		// Debug interface
 		// {{{
@@ -142,6 +143,7 @@
 		// }}}
 	);
 	assign	zip_trigger = zip_debug[31];
+	// }}}
 @BDEF.INCLUDE=
 #include <design.h>
 #include <cpudefs.h>
@@ -182,7 +184,7 @@
 #endif
 #endif
 
-#define	CPUVAR(A)	VVAR(_swic__DOT__thecpu__DOT__core__DOT_ ## A)
+#define	CPUVAR(A)	VVAR(_swic__DOT__core__DOT_ ## A)
 
 #define	cpu_reset	VVAR(_swic__DOT__cmd_reset)
 #define	cpu_break 	VVAR(_swic__DOT__cpu_break)
@@ -439,8 +441,7 @@
 ## @PREFIX=zip_dbg
 @SLAVE.TYPE=OTHER
 @SLAVE.BUS=dbgaxil
-@SLAVE.ORDER=1000000
-@NADDR=128
+@NADDR=64
 @REGS.N=36
 @REGS.NOTE=// ZipCPU control/debug registers
 @REGS.0=32   R_ZIPCTRL   CPU ZIPCTRL
@@ -506,9 +507,10 @@
 @GIE=axilp_gie
 @MAIN.DEFNS=
 	wire	@$(GIE), @$(CPURESET), @$(HALTED), @$(ICOUNT),
-		@$(OPSTALL), @$(PFSTALL), @$(WATCHDOG);
+		@$(OPSTALL), @$(PFSTALL), @$(WATCHDOG), @$(INTERRUPT);
 @MAIN.INSERT=
 	axilperiphs #(
+		.EXTERNAL_INTERRUPTS(@$(syspic.PIC.MAX))
 	) @$(PREFIX)i (
 		// {{{
 		.S_AXI_ACLK(@$(SLAVE.BUS.CLOCK.WIRE)),
@@ -520,7 +522,7 @@
 		.i_cpu_pfstall(@$(PFSTALL)),
 		.i_cpu_opstall(@$(OPSTALL)),
 		.i_cpu_icount(@$(ICOUNT)),
-		.i_vec(syspic),
+		.i_ivec(@$(syspic.PIC.BUS)),
 		.o_interrupt(@$(INTERRUPT)),
 		.o_watchdog_reset(@$(WATCHDOG))
 		// }}}
@@ -627,7 +629,13 @@
 @MASTER.TYPE=SUBBUS
 @SLAVE.BUS=wbu
 @SLAVE.TYPE=OTHER
+@SLAVE.ORDER=10000
 @MAIN.INSERT=
+	////////////////////////////////////////////////////////////////////////
+	//
+	// Create a @$(MASTER.BUS.NAME) AXI-lite bus, to control the ZipCPU
+	// {{{
+	//
 	axi2axilite #(
 		// {{{
 		.C_AXI_ADDR_WIDTH(@$MASTER.BUS.AWID),
@@ -638,9 +646,14 @@
 		// {{{
 		.S_AXI_ACLK(i_clk),
 		.S_AXI_ARESETN(@$(SLAVE.BUS.RESET)),
-		//
+		// Slave connections
+		// {{{
 		@$(SLAVE.ANSIPORTLIST),
-		//
+		// }}}
+		// Master (output) connections
+		// {{{
 		@$(MASTER.ANSIPORTLIST)
 		// }}}
+		// }}}
 	);
+	// }}}

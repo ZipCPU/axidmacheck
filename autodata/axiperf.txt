@@ -1,20 +1,21 @@
 ################################################################################
 ##
 ## Filename: 	autodata/axiperf.txt
-##
+## {{{
 ## Project:	AXI DMA Check: A utility to measure AXI DMA speeds
 ##
-## Purpose:	
+## Purpose:	Measure the performance of the AXI bus, from the perspective
+##		of a particular target.
 ##
 ## Creator:	Dan Gisselquist, Ph.D.
 ##		Gisselquist Technology, LLC
 ##
 ################################################################################
-##
+## }}}
 ## Copyright (C) 2020-2021, Gisselquist Technology, LLC
-##
+## {{{
 ## This program is free software (firmware): you can redistribute it and/or
-## modify it under the terms of  the GNU General Public License as published
+## modify it under the terms of the GNU General Public License as published
 ## by the Free Software Foundation, either version 3 of the License, or (at
 ## your option) any later version.
 ##
@@ -27,14 +28,14 @@
 ## with this program.  (It's in the $(ROOT)/doc directory.  Run make with no
 ## target there if the PDF file isn't present.)  If not, see
 ## <http://www.gnu.org/licenses/> for a copy.
-##
+## }}}
 ## License:	GPL, v3, as defined and found on www.gnu.org,
+## {{{
 ##		http://www.gnu.org/licenses/gpl.html
-##
 ##
 ################################################################################
 ##
-##
+## }}}
 @PREFIX=axiperf
 @DEVID=AXIPERF
 ##
@@ -51,60 +52,71 @@
                 parameter [0:0] OPT_LOWPOWER = 0,
                 parameter       LGCNT = 32,
                 localparam      ADDRLSB = $clog2(C_AXI_DATA_WIDTH)-3
+@TARGETPFX=target
+@TARGETAWID=32
+@TARGETDWID=32
 @MAIN.INCLUDE=
 	axiperf #(
+		// {{{
 		.C_AXIL_ADDR_WIDTH(@$(AWID)),
-		.C_AXI_ADDR_WIDTH(@$(target.AWID)),
-		.C_AXI_DATA_WIDTH(@$(target.BUS.WIDTH)),
+		.C_AXI_ADDR_WIDTH(@$(TARGETAWID)),
+		.C_AXI_DATA_WIDTH(@$(TARGETDWID)),
 		.C_AXI_ID_WIDTH(@$(BUS.IDWIDTH))
+		// }}}
 	) @$(PREFIX)i(
+		// {{{
 		.S_AXI_ACLK(@$(BUS.CLOCK.WIRE)),
 		.S_AXI_ARESETN(@$(BUS.RESET)),
-		//
+		// Control interface
+		// {{{
 		@$(SLAVE.ANSIPORTLIST),
-		//
-		.M_AXI_AWVALID(@$(target.BUS.PREFIX)_awvalid),
-		.M_AXI_AWREADY(@$(target.BUS.PREFIX)_awready),
-		.M_AXI_AWID(   @$(target.BUS.PREFIX)_awid),
-		.M_AXI_AWADDR( @$(target.BUS.PREFIX)_awaddr[@$(target.AWID)-1:0]),
-		.M_AXI_AWLEN(  @$(target.BUS.PREFIX)_awlen),
-		.M_AXI_AWSIZE( @$(target.BUS.PREFIX)_awsize),
-		.M_AXI_AWBURST(@$(target.BUS.PREFIX)_awburst),
-		.M_AXI_AWLOCK( @$(target.BUS.PREFIX)_awlock),
-		.M_AXI_AWCACHE(@$(target.BUS.PREFIX)_awcache),
-		.M_AXI_AWPROT( @$(target.BUS.PREFIX)_awprot),
-		.M_AXI_AWQOS(  @$(target.BUS.PREFIX)_awqos),
+		// }}}
+		// The bus we are measuring
+		// {{{
+		.M_AXI_AWVALID(@$(TARGETPFX)_awvalid),
+		.M_AXI_AWREADY(@$(TARGETPFX)_awready),
+		.M_AXI_AWID(   @$(TARGETPFX)_awid),
+		.M_AXI_AWADDR( @$(TARGETPFX)_awaddr[@$(TARGETAWID)-1:0]),
+		.M_AXI_AWLEN(  @$(TARGETPFX)_awlen),
+		.M_AXI_AWSIZE( @$(TARGETPFX)_awsize),
+		.M_AXI_AWBURST(@$(TARGETPFX)_awburst),
+		.M_AXI_AWLOCK( @$(TARGETPFX)_awlock),
+		.M_AXI_AWCACHE(@$(TARGETPFX)_awcache),
+		.M_AXI_AWPROT( @$(TARGETPFX)_awprot),
+		.M_AXI_AWQOS(  @$(TARGETPFX)_awqos),
                 //
                 //
-		.M_AXI_WVALID(@$(target.BUS.PREFIX)_wvalid),
-		.M_AXI_WREADY(@$(target.BUS.PREFIX)_wready),
-		.M_AXI_WDATA( @$(target.BUS.PREFIX)_wdata),
-		.M_AXI_WSTRB( @$(target.BUS.PREFIX)_wstrb),
-		.M_AXI_WLAST( @$(target.BUS.PREFIX)_wlast),
+		.M_AXI_WVALID(@$(TARGETPFX)_wvalid),
+		.M_AXI_WREADY(@$(TARGETPFX)_wready),
+		.M_AXI_WDATA( @$(TARGETPFX)_wdata),
+		.M_AXI_WSTRB( @$(TARGETPFX)_wstrb),
+		.M_AXI_WLAST( @$(TARGETPFX)_wlast),
 		//
-		.M_AXI_BVALID(@$(target.BUS.PREFIX)_bvalid),
-		.M_AXI_BREADY(@$(target.BUS.PREFIX)_bready),
-		.M_AXI_BID(   @$(target.BUS.PREFIX)_bid),
-		.M_AXI_BRESP( @$(target.BUS.PREFIX)_bresp),
+		.M_AXI_BVALID(@$(TARGETPFX)_bvalid),
+		.M_AXI_BREADY(@$(TARGETPFX)_bready),
+		.M_AXI_BID(   @$(TARGETPFX)_bid),
+		.M_AXI_BRESP( @$(TARGETPFX)_bresp),
 		//
-		.M_AXI_ARVALID(@$(target.BUS.PREFIX)_arvalid),
-		.M_AXI_ARREADY(@$(target.BUS.PREFIX)_arready),
-		.M_AXI_ARID(   @$(target.BUS.PREFIX)_arid),
-		.M_AXI_ARADDR( @$(target.BUS.PREFIX)_araddr[@$(target.AWID)-1:0]),
-		.M_AXI_ARLEN(  @$(target.BUS.PREFIX)_arlen),
-		.M_AXI_ARSIZE( @$(target.BUS.PREFIX)_arsize),
-		.M_AXI_ARBURST(@$(target.BUS.PREFIX)_arburst),
-		.M_AXI_ARLOCK( @$(target.BUS.PREFIX)_arlock),
-		.M_AXI_ARCACHE(@$(target.BUS.PREFIX)_arcache),
-		.M_AXI_ARPROT( @$(target.BUS.PREFIX)_arprot),
-		.M_AXI_ARQOS(  @$(target.BUS.PREFIX)_arqos),
+		.M_AXI_ARVALID(@$(TARGETPFX)_arvalid),
+		.M_AXI_ARREADY(@$(TARGETPFX)_arready),
+		.M_AXI_ARID(   @$(TARGETPFX)_arid),
+		.M_AXI_ARADDR( @$(TARGETPFX)_araddr[@$(TARGETAWID)-1:0]),
+		.M_AXI_ARLEN(  @$(TARGETPFX)_arlen),
+		.M_AXI_ARSIZE( @$(TARGETPFX)_arsize),
+		.M_AXI_ARBURST(@$(TARGETPFX)_arburst),
+		.M_AXI_ARLOCK( @$(TARGETPFX)_arlock),
+		.M_AXI_ARCACHE(@$(TARGETPFX)_arcache),
+		.M_AXI_ARPROT( @$(TARGETPFX)_arprot),
+		.M_AXI_ARQOS(  @$(TARGETPFX)_arqos),
                 //
-		.M_AXI_RVALID(@$(target.BUS.PREFIX)_rvalid),
-		.M_AXI_RREADY(@$(target.BUS.PREFIX)_rready),
-		.M_AXI_RID(   @$(target.BUS.PREFIX)_rrid),
-		.M_AXI_RDATA( @$(target.BUS.PREFIX)_rdata),
-		.M_AXI_RLAST( @$(target.BUS.PREFIX)_rlast),
-		.M_AXI_RRESP( @$(target.BUS.PREFIX)_rresp)
+		.M_AXI_RVALID(@$(TARGETPFX)_rvalid),
+		.M_AXI_RREADY(@$(TARGETPFX)_rready),
+		.M_AXI_RID(   @$(TARGETPFX)_rrid),
+		.M_AXI_RDATA( @$(TARGETPFX)_rdata),
+		.M_AXI_RLAST( @$(TARGETPFX)_rlast),
+		.M_AXI_RRESP( @$(TARGETPFX)_rresp)
+		// }}}
+		// }}}
 	);
 @REGS.NOTE=
 //
