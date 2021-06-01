@@ -148,7 +148,7 @@ module	axiops #(
 		output	wire	[IW-1:0]		M_AXI_AWID,
 		output	reg	[AW-1:0]		M_AXI_AWADDR,
 		output	wire	[7:0]			M_AXI_AWLEN,
-		output	wire 	[2:0]			M_AXI_AWSIZE,
+		output	wire	[2:0]			M_AXI_AWSIZE,
 		output	wire	[1:0]			M_AXI_AWBURST,
 		output	wire				M_AXI_AWLOCK,
 		output	wire	[3:0]			M_AXI_AWCACHE,
@@ -173,7 +173,7 @@ module	axiops #(
 		output	wire	[IW-1:0]		M_AXI_ARID,
 		output	reg	[AW-1:0]		M_AXI_ARADDR,
 		output	wire	[7:0]			M_AXI_ARLEN,
-		output	wire 	[2:0]			M_AXI_ARSIZE,
+		output	wire	[2:0]			M_AXI_ARSIZE,
 		output	wire	[1:0]			M_AXI_ARBURST,
 		output	wire				M_AXI_ARLOCK,
 		output	wire	[3:0]			M_AXI_ARCACHE,
@@ -444,11 +444,11 @@ module	axiops #(
 	begin : BIG_ENDIAN_WSTRB
 		always @(*)
 			shifted_wstrb_word = { 4'b1111, {(2*DW/8-4){1'b0}} }
-						<< i_addr[AXILSB-1:0];
+						>> i_addr[AXILSB-1:0];
 
 		always @(*)
 			shifted_wstrb_halfword = { 2'b11, {(2*DW/8-2){1'b0}} }
-						<< i_addr[AXILSB-1:0];
+						>> i_addr[AXILSB-1:0];
 
 		always @(*)
 			shifted_wstrb_byte = { 1'b1, {(2*DW/8-1){1'b0}} }
@@ -534,25 +534,25 @@ module	axiops #(
 			casez(i_op[2:1])
 			2'b10: { axi_wdata, next_wdata }
 				<= { i_data[15:0], {(2*C_AXI_DATA_WIDTH-16){1'b0}} }
-			    		>> (8*swapaddr);
+					>> (8*swapaddr);
 			2'b11: { axi_wdata, next_wdata }
 				<= { i_data[7:0], {(2*C_AXI_DATA_WIDTH-8){1'b0}} }
-			    		<< (8*swapaddr);
+					>> (8*swapaddr);
 			default: { axi_wdata, next_wdata }
 				<= { i_data, {(2*C_AXI_DATA_WIDTH-32){1'b0}} }
-			    		<< (8*swapaddr);
+					>> (8*swapaddr);
 			endcase
 		end else begin
 			casez(i_op[2:1])
 			2'b10: { next_wdata, axi_wdata }
 				<= { {(2*C_AXI_DATA_WIDTH-16){1'b0}},
-			    	i_data[15:0] } << (8*swapaddr);
+				i_data[15:0] } << (8*swapaddr);
 			2'b11: { next_wdata, axi_wdata }
 				<= { {(2*C_AXI_DATA_WIDTH-8){1'b0}},
-			    	i_data[7:0] } << (8*swapaddr);
+				i_data[7:0] } << (8*swapaddr);
 			default: { next_wdata, axi_wdata }
 				<= { {(2*C_AXI_DATA_WIDTH-32){1'b0}},
-			    	i_data } << (8*swapaddr);
+				i_data } << (8*swapaddr);
 			endcase
 		end
 
@@ -1026,7 +1026,7 @@ module	axiops #(
 	////////////////////////////////////////////////////////////////////////
 	//
 	//
-	
+
 	faxi_master #(
 		// {{{
 		.C_AXI_ID_WIDTH(C_AXI_ID_WIDTH),

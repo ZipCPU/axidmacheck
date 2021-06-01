@@ -62,6 +62,7 @@ module	axidcache #(
 		parameter	LGNLINES = (LGCACHEWORDS-3),
 		// }}}
 		parameter [0:0]	SWAP_WSTRB = 1'b0,
+		parameter [0:0]	OPT_SIGN_EXTEND = 1'b0,
 		parameter	NAUX = 5,
 		// Verilator lint_off UNUSED
 		localparam	LGPIPE = 2,
@@ -221,7 +222,7 @@ module	axidcache #(
 	assign	M_AXI_AWID = AXI_ID;
 	assign	M_AXI_ARID = AXI_ID;
 	assign	M_AXI_AWLEN = 0;	// All writes are one beat only
-	assign	M_AXI_AWSIZE = 2;	// Write thru cache: All writes are 32-b
+	assign	M_AXI_AWSIZE = (SWAP_WSTRB) ? AXILSB[2:0] : 2;	// Write thru cache: All writes are 32-b
 
 	assign	M_AXI_AWBURST = 2'b01;	// INCR addressing only
 	assign	M_AXI_ARBURST = 2'b01;
@@ -565,8 +566,8 @@ module	axidcache #(
 
 			if (SWAP_WSTRB)
 			begin
-				axi_araddr[1:0] <= 0;
-				axi_arsize <= 3'd2;
+				axi_araddr[AXILSB-1:0] <= 0;
+				axi_arsize <= AXILSB[2:0];
 			end
 			// }}}
 		end
@@ -782,30 +783,67 @@ module	axidcache #(
 
 			// wcache_data
 			// {{{
-			casez(i_op[2:1])
-			// Write a 16b half-word
-			2'b10: wcache_data <= { {(C_AXI_DATA_WIDTH-16){1'b0}},
+			if (SWAP_WSTRB)
+			begin
+				casez(i_op[2:1])
+				// Write a 16b half-word
+				2'b10: wcache_data <= { i_data[15:0],
+							{(DW-16){1'b0}} }
+					>> (8*i_addr[AXILSB-1:0]);
+				// Write an 8b half-word
+				2'b11: wcache_data <= { i_data[7:0],
+							{(DW-8){1'b0}} }
+					>> (8*i_addr[AXILSB-1:0]);
+				default: wcache_data <= { i_data,
+							{(DW-32){1'b0}} }
+					>> (8*i_addr[AXILSB-1:0]);
+				endcase
+			end else begin
+				casez(i_op[2:1])
+				// Write a 16b half-word
+				2'b10: wcache_data <= { {(DW-16){1'b0}},
 					i_data[15:0] } << (8*i_addr[AXILSB-1:0]);
-			// Write an 8b half-word
-			2'b11: wcache_data <= { {(C_AXI_DATA_WIDTH-8){1'b0}},
+				// Write an 8b half-word
+				2'b11: wcache_data <= { {(DW-8){1'b0}},
 					i_data[7:0] } << (8*i_addr[AXILSB-1:0]);
-			default: wcache_data <= { {(C_AXI_DATA_WIDTH-32){1'b0}},
+				default: wcache_data <= { {(DW-32){1'b0}},
 					i_data } << (8*i_addr[AXILSB-1:0]);
-			endcase
+				endcase
+			end
 			// }}}
 
 			// wcache_strb
 			// {{{
-			casez(i_op[2:1])
-			// Write a 16b half-word
-			2'b10: wcache_strb<= { {(C_AXI_DATA_WIDTH/8-4){1'b0}},
-					4'h3 } << (i_addr[AXILSB-1:0]);
-			// Write an 8b byte
-			2'b11: wcache_strb<= { {(C_AXI_DATA_WIDTH/8-4){1'b0}},
-					4'h1 } << (i_addr[AXILSB-1:0]);
-			default: wcache_strb<={{(C_AXI_DATA_WIDTH/8-4){1'b0}},
-					4'hf } << (i_addr[AXILSB-1:0]);
-			endcase
+			if (SWAP_WSTRB)
+			begin
+				case(i_op[2:1])
+				// Write a 16b half-word
+				2'b10: wcache_strb<=
+					{ 2'h3, {(C_AXI_DATA_WIDTH/8-2){1'b0}} }
+						>> (i_addr[AXILSB-1:0]);
+				// Write an 8b byte
+				2'b11: wcache_strb<=
+					{ 1'b1, {(C_AXI_DATA_WIDTH/8-1){1'b0}} }
+						>> (i_addr[AXILSB-1:0]);
+				default: wcache_strb<=
+					{ 4'hf, {(C_AXI_DATA_WIDTH/8-4){1'b0}} }
+						>> (i_addr[AXILSB-1:0]);
+				endcase
+			end else begin
+				case(i_op[2:1])
+				// Write a 16b half-word
+				2'b10: wcache_strb<=
+					{ {(C_AXI_DATA_WIDTH/8-4){1'b0}}, 4'h3 }
+						<< (i_addr[AXILSB-1:0]);
+				// Write an 8b byte
+				2'b11: wcache_strb<=
+					{ {(C_AXI_DATA_WIDTH/8-4){1'b0}}, 4'h1 }
+						<< (i_addr[AXILSB-1:0]);
+				default: wcache_strb<=
+					{{(C_AXI_DATA_WIDTH/8-4){1'b0}}, 4'hf }
+						<< (i_addr[AXILSB-1:0]);
+				endcase
+			end
 			// }}}
 
 			if (!i_pipe_stb || !i_op[0] || misaligned)
@@ -959,11 +997,20 @@ module	axidcache #(
 	always @(posedge S_AXI_ACLK)
 	begin
 		o_data <= shifted_data[31:0];
-		casez(req_lsb)
-		2'b10: o_data[31:16] <= 0;
-		2'b11: o_data[31: 8] <= 0;
-		default: begin end
-		endcase
+		if (OPT_SIGN_EXTEND)
+		begin
+			casez(req_op)
+			2'b10: o_data[31:16] <= {(16){shifted_data[15]}};
+			2'b11: o_data[31: 8] <= {(24){shifted_data[ 7]}};
+			default: begin end
+			endcase
+		end else begin
+			casez(req_op)
+			2'b10: o_data[31:16] <= 0;
+			2'b11: o_data[31: 8] <= 0;
+			default: begin end
+			endcase
+		end
 	end
 	// }}}
 
@@ -1299,7 +1346,9 @@ module	axidcache #(
 			// assert(!w_v || wcache_tag != r_ctag);
 			assert(faxi_rd_ckarlen == 0);
 			assert(!faxi_rd_cklockd);
-			case(req_size)
+			if (SWAP_WSTRB)
+				assert(faxi_rd_cksize == AXILSB[2:0])
+			else case(req_size)
 			2'b10: assert(faxi_rd_cksize  == 3'd1);
 			2'b11: assert(faxi_rd_cksize  == 3'd0);
 			default: assert(faxi_rd_cksize  == 3'd2);
@@ -1685,14 +1734,32 @@ module	axidcache #(
 	// f_wide_return, f_return
 	// {{{
 	always @(*)
+	if (SWAP_WSTRB)
+	begin
+		f_wide_return = f_mem_data << (8*f_op[AXILSB-1:0]);
+		casez(f_op[AXILSB +: 2])
+		2'b0?:	f_wide_return[31:0] = f_wide_return[DW-1:DW-32];
+		2'b10:	f_wide_return[31:0] = { 16'h0, f_wide_return[DW-1:DW-16] };
+		2'b11:	f_wide_return[31:0] = { 24'h0, f_wide_return[DW-1:DW- 8] };
+		endcase
+	end else
 		f_wide_return = f_mem_data >> (8*f_op[AXILSB-1:0]);
 
 	always @(*)
-	casez(f_op[AXILSB +: 2])
-	2'b0?:	f_return = f_wide_return[31:0];
-	2'b10:	f_return = { 16'h0, f_wide_return[15:0] };
-	2'b11:	f_return = {  8'h0, f_wide_return[ 7:0] };
-	endcase
+	begin
+		casez(f_op[AXILSB +: 2])
+		2'b0?:	f_return = f_wide_return[31:0];
+		2'b10:	f_return = { 16'h0, f_wide_return[15:0] };
+		2'b11:	f_return = { 24'h0, f_wide_return[ 7:0] };
+		endcase
+
+		if (OPT_SIGN_EXTEND)
+		casez(f_op[AXILSB +: 2])
+		2'b0?:	begin end
+		2'b10:	f_return[31:16] = {(16){f_wide_return[15]}};
+		2'b11:	f_return[31:24] = {(24){f_wide_return[ 7]}};
+		endcase
+	end
 	// }}}
 
 	// Property #2: Assert a known response

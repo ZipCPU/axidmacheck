@@ -524,7 +524,7 @@ module	zipaxi #(
 
 		initial	reset_hold = 1;
 		always @(posedge S_AXI_ACLK)
-		if (!S_AXI_ARESETN)
+		if (!S_AXI_ARESETN || i_cpu_reset)
 			reset_hold <= 1;
 		else
 			reset_hold <= (reset_counter > 1);
@@ -559,7 +559,10 @@ module	zipaxi #(
 	// cmd_halt
 	// {{{
 	always @(posedge S_AXI_ACLK)
-	if (!S_AXI_ARESETN || i_cpu_reset)
+	if (!S_AXI_ARESETN)
+		cmd_halt <= START_HALTED;
+	else if (i_cpu_reset && (!dbg_write_ready
+				&& (!dbg_write_valid || !cpu_dbg_stall)))
 		cmd_halt <= START_HALTED;
 	else if (cmd_reset && START_HALTED)
 		cmd_halt <= START_HALTED;
@@ -678,7 +681,7 @@ module	zipaxi #(
 		// {{{
 		.i_clk(S_AXI_ACLK),
 		.i_reset(!S_AXI_ARESETN),
-		.i_cpu_reset(cmd_reset),
+		.i_cpu_reset(cmd_reset || i_cpu_reset),
 		.i_halt(cmd_halt),
 		.i_halted(f_cpu_halted),
 		.i_clear_cache(cmd_clear_cache),

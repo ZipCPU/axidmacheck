@@ -300,7 +300,6 @@ module	axilperiphs #(
 	////////////////////////////////////////////////////////////////////////
 	//
 	//
-	// wire		aint, bint, cint, jifint, altint;
 
 	////////////////////////////////////////////////////////////////////////
 	//
@@ -704,7 +703,6 @@ module	axilperiphs #(
 		.i_axi_awvalid(S_AXI_AWVALID),
 		.i_axi_awready(S_AXI_AWREADY),
 		.i_axi_awaddr( S_AXI_AWADDR),
-		.i_axi_awcache(4'h0),
 		.i_axi_awprot( S_AXI_AWPROT),
 		//
 		.i_axi_wvalid(S_AXI_WVALID),
@@ -719,7 +717,6 @@ module	axilperiphs #(
 		.i_axi_arvalid(S_AXI_ARVALID),
 		.i_axi_arready(S_AXI_ARREADY),
 		.i_axi_araddr( S_AXI_ARADDR),
-		.i_axi_arcache(4'h0),
 		.i_axi_arprot( S_AXI_ARPROT),
 		//
 		.i_axi_rvalid(S_AXI_RVALID),

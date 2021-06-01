@@ -1667,11 +1667,11 @@ module	axipipe #(
 
 	always @(posedge S_AXI_ACLK)
 	if (f_wrfifo && wraddr == f_first_addr)
-		f_first_data <= { M_AXI_ARVALID, ar_oreg, ar_op, misaligned_request, M_AXI_ARADDR[AXILSB-1:0] };
+		f_first_data <= { M_AXI_ARVALID, ar_oreg, ar_op, misaligned_request, adr_lsb };
 
 	always @(posedge S_AXI_ACLK)
 	if (f_wrfifo && wraddr == f_next_addr)
-		f_next_data <= { M_AXI_ARVALID, ar_oreg, ar_op, misaligned_request, M_AXI_ARADDR[AXILSB-1:0] };
+		f_next_data <= { M_AXI_ARVALID, ar_oreg, ar_op, misaligned_request, adr_lsb };
 
 	// f_fsmfifo
 	// {{{
