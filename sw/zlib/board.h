@@ -53,13 +53,28 @@
 #define	PIC	_zip->z_pic
 
 #ifdef	INCLUDE_ZIPCPU
-#ifdef INCLUDE_DMA_CONTROLLER
-#define	_HAVE_ZIPSYS_DMA
-#endif	// INCLUDE_DMA_CONTROLLER
 #ifdef INCLUDE_ACCOUNTING_COUNTERS
 #define	_HAVE_ZIPSYS_PERFORMANCE_COUNTERS
 #endif	// INCLUDE_ACCOUNTING_COUNTERS
 #endif // INCLUDE_ZIPCPU
+
+
+#ifndef	AXIPERF_H
+#define	AXIPERF_H
+
+typedef struct	AXIPERF_S {
+	unsigned	p_active, p_burstsz, p_wridles, p_awrbursts, p_wrbeats,
+			p_awbytes, p_wbytes, p_wrslowd, p_wrstalls, p_wraddrlag,
+			p_wrdatalag, p_wrbeatsd, p_awburstb, p_awaddrst,
+			p_awwstall, p_awwslow, p_awwnodata, p_awwbeats,
+			p_wrblags, p_wrbstall;
+	unsigned	p_unused[2];
+	unsigned	p_rdidles, p_rdmaxb, p_rdbursts, p_rdbeats, p_rdbytes,
+			p_rrdarstalls, p_rdrstalls, p_rdlag, p_rdslow;
+	unsigned	p_control;
+} AXIPERF;
+
+#endif
 
 
 #define	SYSPIC(A)	(1<<(A))
@@ -92,6 +107,24 @@ typedef struct  AXIDMA_S {
 
 
 
+#ifndef	AXIPERF_H
+#define	AXIPERF_H
+
+typedef struct	AXIPERF_S {
+	unsigned	p_active, p_burstsz, p_wridles, p_awrbursts, p_wrbeats,
+			p_awbytes, p_wbytes, p_wrslowd, p_wrstalls, p_wraddrlag,
+			p_wrdatalag, p_wrbeatsd, p_awburstb, p_awaddrst,
+			p_awwstall, p_awwslow, p_awwnodata, p_awwbeats,
+			p_wrblags, p_wrbstall;
+	unsigned	p_unused[2];
+	unsigned	p_rdidles, p_rdmaxb, p_rdbursts, p_rdbeats, p_rdbytes,
+			p_rrdarstalls, p_rdrstalls, p_rdlag, p_rdslow;
+	unsigned	p_control;
+} AXIPERF;
+
+#endif
+
+
 typedef struct  CONSOLE_S {
 	unsigned	u_setup;
 	unsigned	u_fifo;
@@ -113,16 +146,20 @@ typedef	struct	MM2S_S {
 
 
 
+#define	_BOARD_HAS_MM2SPERF
+static volatile AXIPERF const * _mm2sperf=((AXIPERF *)0x00800300);
 #define	_BOARD_HAS_S2MM
-static volatile S2MM const * _s2mm=((S2MM *)0x000000e0);
+static volatile S2MM const * _s2mm=((S2MM *)0x008002c0);
 #define	_BOARD_HAS_AXIDMA
-static volatile AXIDMA const * _dma=((AXIDMA *)0x000000a0);
+static volatile AXIDMA const * _dma=((AXIDMA *)0x00800240);
+#define	_BOARD_HAS_S2MMPERF
+static volatile AXIPERF const * _s2mmperf=((AXIPERF *)0x00800380);
 #ifdef	BUSCONSOLE_ACCESS
 #define	_BOARD_HAS_BUSCONSOLE
-static volatile CONSOLE *const _uart = ((CONSOLE *)@$[0x%08x](REGBASE));
+static volatile CONSOLE *const _uart = ((CONSOLE *)0x00800000);
 #endif	// BUSCONSOLE_ACCESS
 #define	_BOARD_HAS_MM2S
-static volatile MM2S const * _mm2s=((MM2S *)0x000000c0);
+static volatile MM2S const * _mm2s=((MM2S *)0x00800280);
 //
 // Interrupt assignments (2 PICs)
 //

@@ -43,30 +43,22 @@
 @SLAVE.TYPE=DOUBLE
 @SLAVE.BUS=axil
 ##
-        parameter       C_AXIL_ADDR_WIDTH = 7,
-                localparam      C_AXIL_DATA_WIDTH = 32,
-                parameter       C_AXI_DATA_WIDTH = 32,
-                parameter       C_AXI_ADDR_WIDTH = 32,
-                parameter       C_AXI_ID_WIDTH = 4,
-                parameter [0:0] OPT_SKIDBUFFER = 1'b0,
-                parameter [0:0] OPT_LOWPOWER = 0,
-                parameter       LGCNT = 32,
-                localparam      ADDRLSB = $clog2(C_AXI_DATA_WIDTH)-3
 @TARGETPFX=target
 @TARGETAWID=32
 @TARGETDWID=32
-@MAIN.INCLUDE=
+@TARGETIWID=32
+@SLAVE.ANSPREFIX=S_AXIL_
+@MAIN.INSERT=
 	axiperf #(
 		// {{{
-		.C_AXIL_ADDR_WIDTH(@$(AWID)),
 		.C_AXI_ADDR_WIDTH(@$(TARGETAWID)),
 		.C_AXI_DATA_WIDTH(@$(TARGETDWID)),
-		.C_AXI_ID_WIDTH(@$(BUS.IDWIDTH))
+		.C_AXI_ID_WIDTH(@$(TARGETIWID))
 		// }}}
 	) @$(PREFIX)i(
 		// {{{
-		.S_AXI_ACLK(@$(BUS.CLOCK.WIRE)),
-		.S_AXI_ARESETN(@$(BUS.RESET)),
+		.S_AXI_ACLK(@$(SLAVE.BUS.CLOCK.WIRE)),
+		.S_AXI_ARESETN(@$(SLAVE.BUS.RESET)),
 		// Control interface
 		// {{{
 		@$(SLAVE.ANSIPORTLIST),
@@ -111,7 +103,7 @@
                 //
 		.M_AXI_RVALID(@$(TARGETPFX)_rvalid),
 		.M_AXI_RREADY(@$(TARGETPFX)_rready),
-		.M_AXI_RID(   @$(TARGETPFX)_rrid),
+		.M_AXI_RID(   @$(TARGETPFX)_rid),
 		.M_AXI_RDATA( @$(TARGETPFX)_rdata),
 		.M_AXI_RLAST( @$(TARGETPFX)_rlast),
 		.M_AXI_RRESP( @$(TARGETPFX)_rresp)
@@ -145,13 +137,34 @@
 @REGS.19=19 R_@$(DEVID)WRBSTALL  @$(DEVID)WRBSTALL
 ##
 ##
-@REGS.22=24 R_@$(DEVID)RDIDLES    @$(DEVID)RDIDLES
-@REGS.23=25 R_@$(DEVID)RDMAXB     @$(DEVID)RDMAXB
-@REGS.24=25 R_@$(DEVID)RDBURSTS   @$(DEVID)RDBURSTS
-@REGS.25=25 R_@$(DEVID)RDBEATS    @$(DEVID)RDBEATS
-@REGS.26=25 R_@$(DEVID)RDBYTES    @$(DEVID)RDBYTES
-@REGS.27=25 R_@$(DEVID)RDARSTALLS @$(DEVID)RDARSTALLS
-@REGS.28=25 R_@$(DEVID)RDRSTALLS  @$(DEVID)RDRSTALLS
-@REGS.29=25 R_@$(DEVID)RDLAG      @$(DEVID)RDLAG
-@REGS.30=25 R_@$(DEVID)RDSLOW     @$(DEVID)RDSLOW
-@REGS.31=25 R_@$(DEVID)CONTROL    @$(DEVID)CONTROL 
+@REGS.20=22 R_@$(DEVID)RDIDLES    @$(DEVID)RDIDLES
+@REGS.21=23 R_@$(DEVID)RDMAXB     @$(DEVID)RDMAXB
+@REGS.22=24 R_@$(DEVID)RDBURSTS   @$(DEVID)RDBURSTS
+@REGS.23=25 R_@$(DEVID)RDBEATS    @$(DEVID)RDBEATS
+@REGS.24=26 R_@$(DEVID)RDBYTES    @$(DEVID)RDBYTES
+@REGS.25=27 R_@$(DEVID)RDARSTALLS @$(DEVID)RDARSTALLS
+@REGS.26=28 R_@$(DEVID)RDRSTALLS  @$(DEVID)RDRSTALLS
+@REGS.27=29 R_@$(DEVID)RDLAG      @$(DEVID)RDLAG
+@REGS.28=30 R_@$(DEVID)RDSLOW     @$(DEVID)RDSLOW
+@REGS.29=31 R_@$(DEVID)CONTROL    @$(DEVID)CONTROL
+
+@BDEF.DEFN=
+#ifndef	AXIPERF_H
+#define	AXIPERF_H
+
+typedef struct	AXIPERF_S {
+	unsigned	p_active, p_burstsz, p_wridles, p_awrbursts, p_wrbeats,
+			p_awbytes, p_wbytes, p_wrslowd, p_wrstalls, p_wraddrlag,
+			p_wrdatalag, p_wrbeatsd, p_awburstb, p_awaddrst,
+			p_awwstall, p_awwslow, p_awwnodata, p_awwbeats,
+			p_wrblags, p_wrbstall;
+	unsigned	p_unused[2];
+	unsigned	p_rdidles, p_rdmaxb, p_rdbursts, p_rdbeats, p_rdbytes,
+			p_rrdarstalls, p_rdrstalls, p_rdlag, p_rdslow;
+	unsigned	p_control;
+} AXIPERF;
+
+#endif
+@BDEF.IOTYPE=AXIPERF
+@BDEF.OSDEF=_BOARD_HAS_@$(DEVID)
+@BDEF.OSVAL=static volatile @$(BDEF.IOTYPE) const * _@$(PREFIX)=((@$(BDEF.IOTYPE) *)@$[0x%08x](REGBASE));

@@ -53,7 +53,7 @@ module iscachable(
 		// Bus master: axil
 		// Bus master: axil_dio
 		// axiram
-		if ((i_addr[24:0] & 25'h1000000) == 25'h0000000)
+		if ((i_addr[22:0] & 23'h400000) == 23'h400000)
 			o_cachable = 1'b1;
 	end
 

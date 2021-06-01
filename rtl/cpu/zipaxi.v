@@ -66,6 +66,7 @@ module	zipaxi #(
 		localparam	AXILSB = $clog2(C_AXI_DATA_WIDTH/8),
 		parameter [C_AXI_ADDR_WIDTH-1:0] RESET_ADDRESS=0,
 		parameter [0:0]	START_HALTED = 1'b0,
+		parameter [0:0]	SWAP_WSTRB = 1'b0,
 `ifdef	OPT_MULTIPLY
 		parameter	IMPLEMENT_MPY = `OPT_MULTIPLY,
 `else
@@ -109,7 +110,7 @@ module	zipaxi #(
 		parameter		LGILINESZ= 3,
 		parameter		OPT_LGDCACHE  = 0,
 		parameter		OPT_LGDLINESZ = 3,
-		localparam	[0:0]	OPT_DCACHE = (OPT_LGDCACHE > 0),
+		localparam	[0:0]	OPT_DCACHE = (OPT_LGDCACHE > 2),
 		parameter	RESET_DURATION = 10,
 		// localparam [0:0]	WITH_LOCAL_BUS = 1'b0,
 		localparam	AW=ADDRESS_WIDTH-2
@@ -705,7 +706,7 @@ module	zipaxi #(
 		.OPT_PIPELINED_BUS_ACCESS(OPT_PIPELINED_BUS_ACCESS),
 		// localparam	[0:0]	OPT_MEMPIPE = OPT_PIPELINED_BUS_ACCESS;
 		.IMPLEMENT_LOCK(IMPLEMENT_LOCK),
-		.OPT_DCACHE(OPT_DCACHE),
+		.OPT_DCACHE(OPT_LGDCACHE != 0),
 		// localparam	[0:0]	OPT_LOCK=(IMPLEMENT_LOCK)&&(OPT_PIPELINED);
 		// parameter [0:0]	WITH_LOCAL_BUS = 1'b1;
 		.OPT_GATE_CLOCK(1'b0)
@@ -792,6 +793,7 @@ module	zipaxi #(
 			.AXI_ID(INSN_ID),
 			.LGCACHESZ(LGICACHE),
 			.LGLINESZ(LGILINESZ),
+			// .SWAP_WSTRB(SWAP_WSTRB),
 			.SWAP_ENDIANNESS(SWAP_ENDIANNESS)
 			// }}}
 		) pf (
@@ -840,6 +842,7 @@ module	zipaxi #(
 			.C_AXI_ADDR_WIDTH(C_AXI_ADDR_WIDTH),
 			.C_AXI_DATA_WIDTH(C_AXI_DATA_WIDTH),
 			.FETCH_LIMIT(FETCH_LIMIT),
+			// .SWAP_WSTRB(SWAP_WSTRB),
 			.SWAP_ENDIANNESS(SWAP_ENDIANNESS)
 			// }}}
 		) pf (
@@ -928,7 +931,7 @@ module	zipaxi #(
 			.LGCACHELEN(OPT_LGDCACHE),
 			.LGNLINES(OPT_LGDCACHE-$clog2(C_AXI_DATA_WIDTH/8)-OPT_LGDLINESZ),
 			// .SWAP_ENDIANNESS(SWAP_ENDIANNESS),
-			// .SWAP_WSTRB(1'b0),
+			.SWAP_WSTRB(SWAP_WSTRB),
 			// .OPT_SIGN_EXTEND(OPT_SIGN_EXTEND),
 			.OPT_LOWPOWER(OPT_LOWPOWER)
 			// .OPT_LOCAL_BUS(WITH_LOCAL_BUS),
@@ -1009,7 +1012,7 @@ module	zipaxi #(
 			// }}}
 		);
 
-	end else if (OPT_PIPELINED_BUS_ACCESS)
+	end else if (OPT_PIPELINED_BUS_ACCESS && OPT_LGDCACHE > 0)
 	begin : PIPELINED_MEM
 
 		axipipe #(
@@ -1020,6 +1023,7 @@ module	zipaxi #(
 			.AXI_ID(DATA_ID),
 			.OPT_LOCK(IMPLEMENT_LOCK),
 			.OPT_ALIGNMENT_ERR(OPT_ALIGNMENT_ERR),
+			.SWAP_WSTRB(SWAP_WSTRB),
 			.OPT_LOWPOWER(OPT_LOWPOWER)
 			// .OPT_SIGN_EXTEND(OPT_SIGN_EXTEND)
 			// }}}
@@ -1032,7 +1036,7 @@ module	zipaxi #(
 			.i_stb(mem_ce),
 			.i_lock(bus_lock),
 			.i_op(mem_op),
-			.i_addr(mem_cpu_addr),
+			.i_addr(mem_cpu_addr[AW+1:0]),
 			.i_restart_pc(mem_lock_pc),
 			.i_data(mem_wdata),
 			.i_oreg(mem_reg),
@@ -1110,7 +1114,7 @@ module	zipaxi #(
 			.C_AXI_ID_WIDTH(C_AXI_ID_WIDTH),
 			.AXI_ID(DATA_ID),
 			.SWAP_ENDIANNESS(SWAP_ENDIANNESS),
-			.SWAP_WSTRB(1'b0),
+			.SWAP_WSTRB(SWAP_WSTRB),
 			// .OPT_SIGN_EXTEND(OPT_SIGN_EXTEND),
 			.OPT_LOCK(IMPLEMENT_LOCK),
 			.OPT_ALIGNMENT_ERR(OPT_ALIGNMENT_ERR),
@@ -1125,7 +1129,7 @@ module	zipaxi #(
 			.i_stb(mem_ce),
 			.i_lock(bus_lock),
 			.i_op(mem_op),
-			.i_addr(mem_cpu_addr),
+			.i_addr(mem_cpu_addr[AW+1:0]),
 			.i_restart_pc(mem_lock_pc),
 			.i_data(mem_wdata),
 			.i_oreg(mem_reg),

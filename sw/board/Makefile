@@ -51,8 +51,8 @@ SUBMAKE:= $(MAKE) --no-print-directory -C
 #
 #
 TTTT    := tttt
-SOURCES := hello.c sdtest.c cputest.c gpiotoggle.c contest.c rintftst.c
-HEADERS :=
+SOURCES := hello.c cputest.c contest.c dmatest.c
+HEADERS := board.h
 DUMPRTL := -fdump-rtl-all
 DUMPTREE:= -fdump-tree-all
 LDSCRIPT:= board.ld

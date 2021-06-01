@@ -270,6 +270,222 @@ module	main(i_clk, i_reset,
 	// {{{
 	////////////////////////////////////////////////////////////////////////
 
+	// Bus axil
+	// {{{
+	//
+	// AXI-lite master definitions for bus axil,
+	// component controlbus, with prefix axil_controlbus
+	// {{{
+	// Verilator lint_off UNUSED
+	wire		axil_controlbus_awready, axil_controlbus_wready,
+			axil_controlbus_arready;
+	wire		axil_controlbus_bvalid, axil_controlbus_rvalid;
+	wire	[1:0]	axil_controlbus_bresp, axil_controlbus_rresp;
+	wire	[31:0]	axil_controlbus_rdata;
+
+	wire		axil_controlbus_awvalid, axil_controlbus_wvalid,
+			axil_controlbus_arvalid,
+			axil_controlbus_bready, axil_controlbus_rready;
+	wire	[9:0]	axil_controlbus_araddr, axil_controlbus_awaddr;
+	wire	[2:0]	axil_controlbus_arprot, axil_controlbus_awprot;
+	wire	[31:0]	axil_controlbus_wdata;
+	wire	[3:0]	axil_controlbus_wstrb;
+
+	// Verilator lint_on  UNUSED
+	// }}}
+
+	// Bus axil has no SINGLE slaves
+	//
+	//
+	// AXI-lite slave definitions for bus axil(DIO),
+	// component streamsink, with prefix axil_streamsink
+	// {{{
+	// Verilator lint_off UNUSED
+	wire		axil_streamsink_awready, axil_streamsink_wready,
+			axil_streamsink_arready;
+	wire		axil_streamsink_bvalid, axil_streamsink_rvalid;
+	wire	[1:0]	axil_streamsink_bresp, axil_streamsink_rresp;
+	wire	[31:0]	axil_streamsink_rdata;
+
+	wire		axil_streamsink_awvalid, axil_streamsink_wvalid,
+			axil_streamsink_arvalid,
+			axil_streamsink_bready, axil_streamsink_rready;
+	wire	[9:0]	axil_streamsink_araddr, axil_streamsink_awaddr;
+	wire	[2:0]	axil_streamsink_arprot, axil_streamsink_awprot;
+	wire	[31:0]	axil_streamsink_wdata;
+	wire	[3:0]	axil_streamsink_wstrb;
+
+	// Verilator lint_on  UNUSED
+	// }}}
+	//
+	// AXI-lite slave definitions for bus axil(DIO),
+	// component dma, with prefix axil_dma
+	// {{{
+	// Verilator lint_off UNUSED
+	wire		axil_dma_awready, axil_dma_wready,
+			axil_dma_arready;
+	wire		axil_dma_bvalid, axil_dma_rvalid;
+	wire	[1:0]	axil_dma_bresp, axil_dma_rresp;
+	wire	[31:0]	axil_dma_rdata;
+
+	wire		axil_dma_awvalid, axil_dma_wvalid,
+			axil_dma_arvalid,
+			axil_dma_bready, axil_dma_rready;
+	wire	[9:0]	axil_dma_araddr, axil_dma_awaddr;
+	wire	[2:0]	axil_dma_arprot, axil_dma_awprot;
+	wire	[31:0]	axil_dma_wdata;
+	wire	[3:0]	axil_dma_wstrb;
+
+	// Verilator lint_on  UNUSED
+	// }}}
+	//
+	// AXI-lite slave definitions for bus axil(DIO),
+	// component mm2s, with prefix axil_mm2s
+	// {{{
+	// Verilator lint_off UNUSED
+	wire		axil_mm2s_awready, axil_mm2s_wready,
+			axil_mm2s_arready;
+	wire		axil_mm2s_bvalid, axil_mm2s_rvalid;
+	wire	[1:0]	axil_mm2s_bresp, axil_mm2s_rresp;
+	wire	[31:0]	axil_mm2s_rdata;
+
+	wire		axil_mm2s_awvalid, axil_mm2s_wvalid,
+			axil_mm2s_arvalid,
+			axil_mm2s_bready, axil_mm2s_rready;
+	wire	[9:0]	axil_mm2s_araddr, axil_mm2s_awaddr;
+	wire	[2:0]	axil_mm2s_arprot, axil_mm2s_awprot;
+	wire	[31:0]	axil_mm2s_wdata;
+	wire	[3:0]	axil_mm2s_wstrb;
+
+	// Verilator lint_on  UNUSED
+	// }}}
+	//
+	// AXI-lite slave definitions for bus axil(DIO),
+	// component s2mm, with prefix axil_s2mm
+	// {{{
+	// Verilator lint_off UNUSED
+	wire		axil_s2mm_awready, axil_s2mm_wready,
+			axil_s2mm_arready;
+	wire		axil_s2mm_bvalid, axil_s2mm_rvalid;
+	wire	[1:0]	axil_s2mm_bresp, axil_s2mm_rresp;
+	wire	[31:0]	axil_s2mm_rdata;
+
+	wire		axil_s2mm_awvalid, axil_s2mm_wvalid,
+			axil_s2mm_arvalid,
+			axil_s2mm_bready, axil_s2mm_rready;
+	wire	[9:0]	axil_s2mm_araddr, axil_s2mm_awaddr;
+	wire	[2:0]	axil_s2mm_arprot, axil_s2mm_awprot;
+	wire	[31:0]	axil_s2mm_wdata;
+	wire	[3:0]	axil_s2mm_wstrb;
+
+	// Verilator lint_on  UNUSED
+	// }}}
+	//
+	// AXI-lite slave definitions for bus axil(DIO),
+	// component mm2sperf, with prefix axil_mm2sperf
+	// {{{
+	// Verilator lint_off UNUSED
+	wire		axil_mm2sperf_awready, axil_mm2sperf_wready,
+			axil_mm2sperf_arready;
+	wire		axil_mm2sperf_bvalid, axil_mm2sperf_rvalid;
+	wire	[1:0]	axil_mm2sperf_bresp, axil_mm2sperf_rresp;
+	wire	[31:0]	axil_mm2sperf_rdata;
+
+	wire		axil_mm2sperf_awvalid, axil_mm2sperf_wvalid,
+			axil_mm2sperf_arvalid,
+			axil_mm2sperf_bready, axil_mm2sperf_rready;
+	wire	[9:0]	axil_mm2sperf_araddr, axil_mm2sperf_awaddr;
+	wire	[2:0]	axil_mm2sperf_arprot, axil_mm2sperf_awprot;
+	wire	[31:0]	axil_mm2sperf_wdata;
+	wire	[3:0]	axil_mm2sperf_wstrb;
+
+	// Verilator lint_on  UNUSED
+	// }}}
+	//
+	// AXI-lite slave definitions for bus axil(DIO),
+	// component s2mmperf, with prefix axil_s2mmperf
+	// {{{
+	// Verilator lint_off UNUSED
+	wire		axil_s2mmperf_awready, axil_s2mmperf_wready,
+			axil_s2mmperf_arready;
+	wire		axil_s2mmperf_bvalid, axil_s2mmperf_rvalid;
+	wire	[1:0]	axil_s2mmperf_bresp, axil_s2mmperf_rresp;
+	wire	[31:0]	axil_s2mmperf_rdata;
+
+	wire		axil_s2mmperf_awvalid, axil_s2mmperf_wvalid,
+			axil_s2mmperf_arvalid,
+			axil_s2mmperf_bready, axil_s2mmperf_rready;
+	wire	[9:0]	axil_s2mmperf_araddr, axil_s2mmperf_awaddr;
+	wire	[2:0]	axil_s2mmperf_arprot, axil_s2mmperf_awprot;
+	wire	[31:0]	axil_s2mmperf_wdata;
+	wire	[3:0]	axil_s2mmperf_wstrb;
+
+	// Verilator lint_on  UNUSED
+	// }}}
+	//
+	// AXI-lite slave definitions for bus axil,
+	// component uart, with prefix axil_uart
+	// {{{
+	// Verilator lint_off UNUSED
+	wire		axil_uart_awready, axil_uart_wready,
+			axil_uart_arready;
+	wire		axil_uart_bvalid, axil_uart_rvalid;
+	wire	[1:0]	axil_uart_bresp, axil_uart_rresp;
+	wire	[31:0]	axil_uart_rdata;
+
+	wire		axil_uart_awvalid, axil_uart_wvalid,
+			axil_uart_arvalid,
+			axil_uart_bready, axil_uart_rready;
+	wire	[9:0]	axil_uart_araddr, axil_uart_awaddr;
+	wire	[2:0]	axil_uart_arprot, axil_uart_awprot;
+	wire	[31:0]	axil_uart_wdata;
+	wire	[3:0]	axil_uart_wstrb;
+
+	// Verilator lint_on  UNUSED
+	// }}}
+	//
+	// AXI-lite slave definitions for bus axil,
+	// component axilp, with prefix axil_axilp
+	// {{{
+	// Verilator lint_off UNUSED
+	wire		axil_axilp_awready, axil_axilp_wready,
+			axil_axilp_arready;
+	wire		axil_axilp_bvalid, axil_axilp_rvalid;
+	wire	[1:0]	axil_axilp_bresp, axil_axilp_rresp;
+	wire	[31:0]	axil_axilp_rdata;
+
+	wire		axil_axilp_awvalid, axil_axilp_wvalid,
+			axil_axilp_arvalid,
+			axil_axilp_bready, axil_axilp_rready;
+	wire	[9:0]	axil_axilp_araddr, axil_axilp_awaddr;
+	wire	[2:0]	axil_axilp_arprot, axil_axilp_awprot;
+	wire	[31:0]	axil_axilp_wdata;
+	wire	[3:0]	axil_axilp_wstrb;
+
+	// Verilator lint_on  UNUSED
+	// }}}
+	//
+	// AXI-lite slave definitions for bus axil,
+	// component axil_dio, with prefix axil_dio
+	// {{{
+	// Verilator lint_off UNUSED
+	wire		axil_dio_awready, axil_dio_wready,
+			axil_dio_arready;
+	wire		axil_dio_bvalid, axil_dio_rvalid;
+	wire	[1:0]	axil_dio_bresp, axil_dio_rresp;
+	wire	[31:0]	axil_dio_rdata;
+
+	wire		axil_dio_awvalid, axil_dio_wvalid,
+			axil_dio_arvalid,
+			axil_dio_bready, axil_dio_rready;
+	wire	[9:0]	axil_dio_araddr, axil_dio_awaddr;
+	wire	[2:0]	axil_dio_arprot, axil_dio_awprot;
+	wire	[31:0]	axil_dio_wdata;
+	wire	[3:0]	axil_dio_wstrb;
+
+	// Verilator lint_on  UNUSED
+	// }}}
+	// }}}
 	// Bus axi
 	// {{{
 	// AXI4 master definitions for bus axi,
@@ -939,185 +1155,426 @@ module	main(i_clk, i_reset,
 	// Verilator lint_on  UNUSED
 	// }}}
 	// }}}
-	// Bus axil
-	// {{{
-	//
-	// AXI-lite master definitions for bus axil,
-	// component controlbus, with prefix axil_controlbus
-	// {{{
-	// Verilator lint_off UNUSED
-	wire		axil_controlbus_awready, axil_controlbus_wready,
-			axil_controlbus_arready;
-	wire		axil_controlbus_bvalid, axil_controlbus_rvalid;
-	wire	[1:0]	axil_controlbus_bresp, axil_controlbus_rresp;
-	wire	[31:0]	axil_controlbus_rdata;
-
-	wire		axil_controlbus_awvalid, axil_controlbus_wvalid,
-			axil_controlbus_arvalid,
-			axil_controlbus_bready, axil_controlbus_rready;
-	wire	[7:0]	axil_controlbus_araddr, axil_controlbus_awaddr;
-	wire	[2:0]	axil_controlbus_arprot, axil_controlbus_awprot;
-	wire	[31:0]	axil_controlbus_wdata;
-	wire	[3:0]	axil_controlbus_wstrb;
-
-	// Verilator lint_on  UNUSED
-	// }}}
-
-	// Bus axil has no SINGLE slaves
-	//
-	//
-	// AXI-lite slave definitions for bus axil(DIO),
-	// component streamsink, with prefix axil_streamsink
-	// {{{
-	// Verilator lint_off UNUSED
-	wire		axil_streamsink_awready, axil_streamsink_wready,
-			axil_streamsink_arready;
-	wire		axil_streamsink_bvalid, axil_streamsink_rvalid;
-	wire	[1:0]	axil_streamsink_bresp, axil_streamsink_rresp;
-	wire	[31:0]	axil_streamsink_rdata;
-
-	wire		axil_streamsink_awvalid, axil_streamsink_wvalid,
-			axil_streamsink_arvalid,
-			axil_streamsink_bready, axil_streamsink_rready;
-	wire	[7:0]	axil_streamsink_araddr, axil_streamsink_awaddr;
-	wire	[2:0]	axil_streamsink_arprot, axil_streamsink_awprot;
-	wire	[31:0]	axil_streamsink_wdata;
-	wire	[3:0]	axil_streamsink_wstrb;
-
-	// Verilator lint_on  UNUSED
-	// }}}
-	//
-	// AXI-lite slave definitions for bus axil(DIO),
-	// component dma, with prefix axil_dma
-	// {{{
-	// Verilator lint_off UNUSED
-	wire		axil_dma_awready, axil_dma_wready,
-			axil_dma_arready;
-	wire		axil_dma_bvalid, axil_dma_rvalid;
-	wire	[1:0]	axil_dma_bresp, axil_dma_rresp;
-	wire	[31:0]	axil_dma_rdata;
-
-	wire		axil_dma_awvalid, axil_dma_wvalid,
-			axil_dma_arvalid,
-			axil_dma_bready, axil_dma_rready;
-	wire	[7:0]	axil_dma_araddr, axil_dma_awaddr;
-	wire	[2:0]	axil_dma_arprot, axil_dma_awprot;
-	wire	[31:0]	axil_dma_wdata;
-	wire	[3:0]	axil_dma_wstrb;
-
-	// Verilator lint_on  UNUSED
-	// }}}
-	//
-	// AXI-lite slave definitions for bus axil(DIO),
-	// component mm2s, with prefix axil_mm2s
-	// {{{
-	// Verilator lint_off UNUSED
-	wire		axil_mm2s_awready, axil_mm2s_wready,
-			axil_mm2s_arready;
-	wire		axil_mm2s_bvalid, axil_mm2s_rvalid;
-	wire	[1:0]	axil_mm2s_bresp, axil_mm2s_rresp;
-	wire	[31:0]	axil_mm2s_rdata;
-
-	wire		axil_mm2s_awvalid, axil_mm2s_wvalid,
-			axil_mm2s_arvalid,
-			axil_mm2s_bready, axil_mm2s_rready;
-	wire	[7:0]	axil_mm2s_araddr, axil_mm2s_awaddr;
-	wire	[2:0]	axil_mm2s_arprot, axil_mm2s_awprot;
-	wire	[31:0]	axil_mm2s_wdata;
-	wire	[3:0]	axil_mm2s_wstrb;
-
-	// Verilator lint_on  UNUSED
-	// }}}
-	//
-	// AXI-lite slave definitions for bus axil(DIO),
-	// component s2mm, with prefix axil_s2mm
-	// {{{
-	// Verilator lint_off UNUSED
-	wire		axil_s2mm_awready, axil_s2mm_wready,
-			axil_s2mm_arready;
-	wire		axil_s2mm_bvalid, axil_s2mm_rvalid;
-	wire	[1:0]	axil_s2mm_bresp, axil_s2mm_rresp;
-	wire	[31:0]	axil_s2mm_rdata;
-
-	wire		axil_s2mm_awvalid, axil_s2mm_wvalid,
-			axil_s2mm_arvalid,
-			axil_s2mm_bready, axil_s2mm_rready;
-	wire	[7:0]	axil_s2mm_araddr, axil_s2mm_awaddr;
-	wire	[2:0]	axil_s2mm_arprot, axil_s2mm_awprot;
-	wire	[31:0]	axil_s2mm_wdata;
-	wire	[3:0]	axil_s2mm_wstrb;
-
-	// Verilator lint_on  UNUSED
-	// }}}
-	//
-	// AXI-lite slave definitions for bus axil,
-	// component uart, with prefix axil_uart
-	// {{{
-	// Verilator lint_off UNUSED
-	wire		axil_uart_awready, axil_uart_wready,
-			axil_uart_arready;
-	wire		axil_uart_bvalid, axil_uart_rvalid;
-	wire	[1:0]	axil_uart_bresp, axil_uart_rresp;
-	wire	[31:0]	axil_uart_rdata;
-
-	wire		axil_uart_awvalid, axil_uart_wvalid,
-			axil_uart_arvalid,
-			axil_uart_bready, axil_uart_rready;
-	wire	[7:0]	axil_uart_araddr, axil_uart_awaddr;
-	wire	[2:0]	axil_uart_arprot, axil_uart_awprot;
-	wire	[31:0]	axil_uart_wdata;
-	wire	[3:0]	axil_uart_wstrb;
-
-	// Verilator lint_on  UNUSED
-	// }}}
-	//
-	// AXI-lite slave definitions for bus axil,
-	// component axilp, with prefix axil_axilp
-	// {{{
-	// Verilator lint_off UNUSED
-	wire		axil_axilp_awready, axil_axilp_wready,
-			axil_axilp_arready;
-	wire		axil_axilp_bvalid, axil_axilp_rvalid;
-	wire	[1:0]	axil_axilp_bresp, axil_axilp_rresp;
-	wire	[31:0]	axil_axilp_rdata;
-
-	wire		axil_axilp_awvalid, axil_axilp_wvalid,
-			axil_axilp_arvalid,
-			axil_axilp_bready, axil_axilp_rready;
-	wire	[7:0]	axil_axilp_araddr, axil_axilp_awaddr;
-	wire	[2:0]	axil_axilp_arprot, axil_axilp_awprot;
-	wire	[31:0]	axil_axilp_wdata;
-	wire	[3:0]	axil_axilp_wstrb;
-
-	// Verilator lint_on  UNUSED
-	// }}}
-	//
-	// AXI-lite slave definitions for bus axil,
-	// component axil_dio, with prefix axil_dio
-	// {{{
-	// Verilator lint_off UNUSED
-	wire		axil_dio_awready, axil_dio_wready,
-			axil_dio_arready;
-	wire		axil_dio_bvalid, axil_dio_rvalid;
-	wire	[1:0]	axil_dio_bresp, axil_dio_rresp;
-	wire	[31:0]	axil_dio_rdata;
-
-	wire		axil_dio_awvalid, axil_dio_wvalid,
-			axil_dio_arvalid,
-			axil_dio_bready, axil_dio_rready;
-	wire	[7:0]	axil_dio_araddr, axil_dio_awaddr;
-	wire	[2:0]	axil_dio_arprot, axil_dio_awprot;
-	wire	[31:0]	axil_dio_wdata;
-	wire	[3:0]	axil_dio_wstrb;
-
-	// Verilator lint_on  UNUSED
-	// }}}
-	// }}}
 	// }}}
 	////////////////////////////////////////////////////////////////////////
 	//
 	// Peripheral address decoding, bus handling
 	// {{{
+	//
+	// BUS-LOGIC for axil
+	// {{{
+	//
+	// No class SINGLE peripherals on the "axil" bus
+	//
+
+	//
+	// axil Bus logic to handle 6 DOUBLE slaves
+	//
+	//
+	// Some extra wires to capture combined values--values
+	// that will be the same across all slaves of the
+	// class
+	wire [9:0]	axil_diow_awaddr;
+	wire [2:0]	axil_diow_awprot;
+	wire [31:0]	axil_diow_wdata;
+	wire [3:0]	axil_diow_wstrb;
+	wire [9:0]	axil_diow_araddr;
+	wire [2:0]	axil_diow_arprot;
+
+	axildouble #(
+		// {{{
+		.C_AXI_ADDR_WIDTH(10),
+		.C_AXI_DATA_WIDTH(32),
+		.NS(6),
+		.OPT_LOWPOWER(1'b1),
+		.SLAVE_ADDR({
+			// Address width    = 10
+			// Address LSBs     = 0
+			// Slave name width = 10
+			{ 10'h180 }, //   s2mmperf: 0x180
+			{ 10'h100 }, //   mm2sperf: 0x100
+			{ 10'h0c0 }, //       s2mm: 0x0c0
+			{ 10'h080 }, //       mm2s: 0x080
+			{ 10'h040 }, //        dma: 0x040
+			{ 10'h000 }  // streamsink: 0x000
+		}),
+		.SLAVE_MASK({
+			// Address width    = 10
+			// Address LSBs     = 0
+			// Slave name width = 10
+			{ 10'h180 }, //   s2mmperf
+			{ 10'h180 }, //   mm2sperf
+			{ 10'h1c0 }, //       s2mm
+			{ 10'h1c0 }, //       mm2s
+			{ 10'h1c0 }, //        dma
+			{ 10'h1c0 }  // streamsink
+		})
+		// }}}
+	) axil_axildouble(
+		// {{{
+		.S_AXI_ACLK(i_clk),
+		.S_AXI_ARESETN(!i_reset),
+		//
+		// Slave port
+		// {{{
+		.S_AXI_AWVALID(axil_dio_awvalid),
+		.S_AXI_AWREADY(axil_dio_awready),
+		.S_AXI_AWADDR( axil_dio_awaddr[9:0]),
+		.S_AXI_AWPROT( axil_dio_awprot),
+		//
+		.S_AXI_WVALID( axil_dio_wvalid),
+		.S_AXI_WREADY( axil_dio_wready),
+		.S_AXI_WDATA(  axil_dio_wdata),
+		.S_AXI_WSTRB(  axil_dio_wstrb),
+		//
+		.S_AXI_BVALID( axil_dio_bvalid),
+		.S_AXI_BREADY( axil_dio_bready),
+		.S_AXI_BRESP(  axil_dio_bresp),
+		//
+		// Read connections
+		.S_AXI_ARVALID(axil_dio_arvalid),
+		.S_AXI_ARREADY(axil_dio_arready),
+		.S_AXI_ARADDR( axil_dio_araddr[9:0]),
+		.S_AXI_ARPROT( axil_dio_arprot),
+		//
+		.S_AXI_RVALID( axil_dio_rvalid),
+		.S_AXI_RREADY( axil_dio_rready),
+		.S_AXI_RDATA(  axil_dio_rdata),
+		.S_AXI_RRESP(  axil_dio_rresp),
+		// }}}
+		// Connections to slaves
+		// {{{
+		.M_AXI_AWVALID({
+			axil_s2mmperf_awvalid,
+			axil_mm2sperf_awvalid,
+			axil_s2mm_awvalid,
+			axil_mm2s_awvalid,
+			axil_dma_awvalid,
+			axil_streamsink_awvalid
+		}),
+		.M_AXI_AWADDR(axil_diow_awaddr),
+		.M_AXI_AWPROT(axil_diow_awprot),
+		.M_AXI_WDATA( axil_diow_wdata),
+		.M_AXI_WSTRB( axil_diow_wstrb),
+		//
+		//
+		.M_AXI_BRESP({
+			axil_s2mmperf_bresp,
+			axil_mm2sperf_bresp,
+			axil_s2mm_bresp,
+			axil_mm2s_bresp,
+			axil_dma_bresp,
+			axil_streamsink_bresp
+		}),
+		// Read connections
+		.M_AXI_ARVALID({
+			axil_s2mmperf_arvalid,
+			axil_mm2sperf_arvalid,
+			axil_s2mm_arvalid,
+			axil_mm2s_arvalid,
+			axil_dma_arvalid,
+			axil_streamsink_arvalid
+		}),
+		.M_AXI_ARADDR(axil_diow_araddr),
+		.M_AXI_ARPROT(axil_diow_arprot),
+		//
+		.M_AXI_RDATA({
+			axil_s2mmperf_rdata,
+			axil_mm2sperf_rdata,
+			axil_s2mm_rdata,
+			axil_mm2s_rdata,
+			axil_dma_rdata,
+			axil_streamsink_rdata
+		}),
+		.M_AXI_RRESP({
+			axil_s2mmperf_rresp,
+			axil_mm2sperf_rresp,
+			axil_s2mm_rresp,
+			axil_mm2s_rresp,
+			axil_dma_rresp,
+			axil_streamsink_rresp
+		})
+		// }}}
+		// }}}
+	);
+
+	//
+	// Now connecting the extra slaves wires to the AXILDOUBLE controller
+	//
+	// s2mmperf
+	// {{{
+	assign axil_s2mmperf_awaddr = axil_diow_awaddr;
+	assign axil_s2mmperf_awprot = axil_diow_awprot;
+	assign axil_s2mmperf_wvalid = axil_s2mmperf_awvalid;
+	assign axil_s2mmperf_wdata = axil_diow_wdata;
+	assign axil_s2mmperf_wstrb = axil_diow_wstrb;
+	assign axil_s2mmperf_bready = 1'b1;
+	assign axil_s2mmperf_araddr = axil_diow_araddr;
+	assign axil_s2mmperf_arprot = axil_diow_arprot;
+	assign axil_s2mmperf_rready = 1'b1;
+	// }}}
+	// mm2sperf
+	// {{{
+	assign axil_mm2sperf_awaddr = axil_diow_awaddr;
+	assign axil_mm2sperf_awprot = axil_diow_awprot;
+	assign axil_mm2sperf_wvalid = axil_mm2sperf_awvalid;
+	assign axil_mm2sperf_wdata = axil_diow_wdata;
+	assign axil_mm2sperf_wstrb = axil_diow_wstrb;
+	assign axil_mm2sperf_bready = 1'b1;
+	assign axil_mm2sperf_araddr = axil_diow_araddr;
+	assign axil_mm2sperf_arprot = axil_diow_arprot;
+	assign axil_mm2sperf_rready = 1'b1;
+	// }}}
+	// s2mm
+	// {{{
+	assign axil_s2mm_awaddr = axil_diow_awaddr;
+	assign axil_s2mm_awprot = axil_diow_awprot;
+	assign axil_s2mm_wvalid = axil_s2mm_awvalid;
+	assign axil_s2mm_wdata = axil_diow_wdata;
+	assign axil_s2mm_wstrb = axil_diow_wstrb;
+	assign axil_s2mm_bready = 1'b1;
+	assign axil_s2mm_araddr = axil_diow_araddr;
+	assign axil_s2mm_arprot = axil_diow_arprot;
+	assign axil_s2mm_rready = 1'b1;
+	// }}}
+	// mm2s
+	// {{{
+	assign axil_mm2s_awaddr = axil_diow_awaddr;
+	assign axil_mm2s_awprot = axil_diow_awprot;
+	assign axil_mm2s_wvalid = axil_mm2s_awvalid;
+	assign axil_mm2s_wdata = axil_diow_wdata;
+	assign axil_mm2s_wstrb = axil_diow_wstrb;
+	assign axil_mm2s_bready = 1'b1;
+	assign axil_mm2s_araddr = axil_diow_araddr;
+	assign axil_mm2s_arprot = axil_diow_arprot;
+	assign axil_mm2s_rready = 1'b1;
+	// }}}
+	// dma
+	// {{{
+	assign axil_dma_awaddr = axil_diow_awaddr;
+	assign axil_dma_awprot = axil_diow_awprot;
+	assign axil_dma_wvalid = axil_dma_awvalid;
+	assign axil_dma_wdata = axil_diow_wdata;
+	assign axil_dma_wstrb = axil_diow_wstrb;
+	assign axil_dma_bready = 1'b1;
+	assign axil_dma_araddr = axil_diow_araddr;
+	assign axil_dma_arprot = axil_diow_arprot;
+	assign axil_dma_rready = 1'b1;
+	// }}}
+	// streamsink
+	// {{{
+	assign axil_streamsink_awaddr = axil_diow_awaddr;
+	assign axil_streamsink_awprot = axil_diow_awprot;
+	assign axil_streamsink_wvalid = axil_streamsink_awvalid;
+	assign axil_streamsink_wdata = axil_diow_wdata;
+	assign axil_streamsink_wstrb = axil_diow_wstrb;
+	assign axil_streamsink_bready = 1'b1;
+	assign axil_streamsink_araddr = axil_diow_araddr;
+	assign axil_streamsink_arprot = axil_diow_arprot;
+	assign axil_streamsink_rready = 1'b1;
+	// }}}
+	//
+	// Connect the axil bus components together using the axilxbar()
+	// {{{
+	//
+	axilxbar #(
+		// {{{
+		.C_AXI_ADDR_WIDTH(10),
+		.C_AXI_DATA_WIDTH(32),
+		.NM(1), .NS(3),
+		.SLAVE_ADDR({
+			// Address width    = 10
+			// Address LSBs     = 0
+			// Slave name width = 8
+			{ 10'h200 }, // axil_dio: 0x200
+			{ 10'h100 }, //    axilp: 0x100
+			{ 10'h000 }  //     uart: 0x000
+		}),
+		.SLAVE_MASK({
+			// Address width    = 10
+			// Address LSBs     = 0
+			// Slave name width = 8
+			{ 10'h200 }, // axil_dio
+			{ 10'h300 }, //    axilp
+			{ 10'h300 }  //     uart
+		}),
+		.OPT_LOWPOWER(1'b1)
+		// }}}
+	) axil_xbar(
+		// {{{
+		.S_AXI_ACLK(i_clk),
+		.S_AXI_ARESETN(!i_reset),
+		// Connections from masters
+		// {{{
+		.S_AXI_AWVALID({
+			axil_controlbus_awvalid
+		}),
+		.S_AXI_AWREADY({
+			axil_controlbus_awready
+		}),
+		.S_AXI_AWADDR({
+			axil_controlbus_awaddr
+		}),
+		.S_AXI_AWPROT({
+			axil_controlbus_awprot
+		}),
+		//
+		.S_AXI_WVALID({
+			axil_controlbus_wvalid
+		}),
+		.S_AXI_WREADY({
+			axil_controlbus_wready
+		}),
+		.S_AXI_WDATA({
+			axil_controlbus_wdata
+		}),
+		.S_AXI_WSTRB({
+			axil_controlbus_wstrb
+		}),
+		//
+		.S_AXI_BVALID({
+			axil_controlbus_bvalid
+		}),
+		.S_AXI_BREADY({
+			axil_controlbus_bready
+		}),
+		.S_AXI_BRESP({
+			axil_controlbus_bresp
+		}),
+		// Read connections
+		.S_AXI_ARVALID({
+			axil_controlbus_arvalid
+		}),
+		.S_AXI_ARREADY({
+			axil_controlbus_arready
+		}),
+		.S_AXI_ARADDR({
+			axil_controlbus_araddr
+		}),
+		.S_AXI_ARPROT({
+			axil_controlbus_arprot
+		}),
+		//
+		.S_AXI_RVALID({
+			axil_controlbus_rvalid
+		}),
+		.S_AXI_RREADY({
+			axil_controlbus_rready
+		}),
+		.S_AXI_RDATA({
+			axil_controlbus_rdata
+		}),
+		.S_AXI_RRESP({
+			axil_controlbus_rresp
+		}),
+		// }}}
+		// Connections to slaves
+		// {{{
+		.M_AXI_AWVALID({
+			axil_dio_awvalid,
+			axil_axilp_awvalid,
+			axil_uart_awvalid
+		}),
+		.M_AXI_AWREADY({
+			axil_dio_awready,
+			axil_axilp_awready,
+			axil_uart_awready
+		}),
+		.M_AXI_AWADDR({
+			axil_dio_awaddr,
+			axil_axilp_awaddr,
+			axil_uart_awaddr
+		}),
+		.M_AXI_AWPROT({
+			axil_dio_awprot,
+			axil_axilp_awprot,
+			axil_uart_awprot
+		}),
+		//
+		.M_AXI_WVALID({
+			axil_dio_wvalid,
+			axil_axilp_wvalid,
+			axil_uart_wvalid
+		}),
+		.M_AXI_WREADY({
+			axil_dio_wready,
+			axil_axilp_wready,
+			axil_uart_wready
+		}),
+		.M_AXI_WDATA({
+			axil_dio_wdata,
+			axil_axilp_wdata,
+			axil_uart_wdata
+		}),
+		.M_AXI_WSTRB({
+			axil_dio_wstrb,
+			axil_axilp_wstrb,
+			axil_uart_wstrb
+		}),
+		//
+		.M_AXI_BVALID({
+			axil_dio_bvalid,
+			axil_axilp_bvalid,
+			axil_uart_bvalid
+		}),
+		.M_AXI_BREADY({
+			axil_dio_bready,
+			axil_axilp_bready,
+			axil_uart_bready
+		}),
+		.M_AXI_BRESP({
+			axil_dio_bresp,
+			axil_axilp_bresp,
+			axil_uart_bresp
+		}),
+		// Read connections
+		.M_AXI_ARVALID({
+			axil_dio_arvalid,
+			axil_axilp_arvalid,
+			axil_uart_arvalid
+		}),
+		.M_AXI_ARREADY({
+			axil_dio_arready,
+			axil_axilp_arready,
+			axil_uart_arready
+		}),
+		.M_AXI_ARADDR({
+			axil_dio_araddr,
+			axil_axilp_araddr,
+			axil_uart_araddr
+		}),
+		.M_AXI_ARPROT({
+			axil_dio_arprot,
+			axil_axilp_arprot,
+			axil_uart_arprot
+		}),
+		//
+		.M_AXI_RVALID({
+			axil_dio_rvalid,
+			axil_axilp_rvalid,
+			axil_uart_rvalid
+		}),
+		.M_AXI_RREADY({
+			axil_dio_rready,
+			axil_axilp_rready,
+			axil_uart_rready
+		}),
+		.M_AXI_RDATA({
+			axil_dio_rdata,
+			axil_axilp_rdata,
+			axil_uart_rdata
+		}),
+		.M_AXI_RRESP({
+			axil_dio_rresp,
+			axil_axilp_rresp,
+			axil_uart_rresp
+		})
+		// }}}
+		// }}}
+	);
+
+	// End of bus logic for axil
+	// }}}
 	//
 	// BUS-LOGIC for axi
 	// {{{
@@ -1145,14 +1602,14 @@ module	main(i_clk, i_reset,
 			// Address LSBs     = 0
 			// Slave name width = 10
 			{ 25'h1000000 }, //     axiram: 0x1000000
-			{ 25'h0000000 }  // controlbus: 0x0000000
+			{ 25'h0800000 }  // controlbus: 0x0800000
 		}),
 		.SLAVE_MASK({
 			// Address width    = 25
 			// Address LSBs     = 0
 			// Slave name width = 10
 			{ 25'h1000000 }, //     axiram
-			{ 25'h1000000 }  // controlbus
+			{ 25'h1800000 }  // controlbus
 		}),
 		.OPT_LOWPOWER(1'b1)
 		// }}}
@@ -2019,383 +2476,6 @@ module	main(i_clk, i_reset,
 
 	// End of bus logic for dbgaxil
 	// }}}
-	//
-	// BUS-LOGIC for axil
-	// {{{
-	//
-	// No class SINGLE peripherals on the "axil" bus
-	//
-
-	//
-	// axil Bus logic to handle 4 DOUBLE slaves
-	//
-	//
-	// Some extra wires to capture combined values--values
-	// that will be the same across all slaves of the
-	// class
-	wire [7:0]	axil_diow_awaddr;
-	wire [2:0]	axil_diow_awprot;
-	wire [31:0]	axil_diow_wdata;
-	wire [3:0]	axil_diow_wstrb;
-	wire [7:0]	axil_diow_araddr;
-	wire [2:0]	axil_diow_arprot;
-
-	axildouble #(
-		// {{{
-		.C_AXI_ADDR_WIDTH(8),
-		.C_AXI_DATA_WIDTH(32),
-		.NS(4),
-		.OPT_LOWPOWER(1'b1),
-		.SLAVE_ADDR({
-			// Address width    = 8
-			// Address LSBs     = 0
-			// Slave name width = 10
-			{ 8'h60 }, //       s2mm: 0x60
-			{ 8'h40 }, //       mm2s: 0x40
-			{ 8'h20 }, //        dma: 0x20
-			{ 8'h00 }  // streamsink: 0x00
-		}),
-		.SLAVE_MASK({
-			// Address width    = 8
-			// Address LSBs     = 0
-			// Slave name width = 10
-			{ 8'h60 }, //       s2mm
-			{ 8'h60 }, //       mm2s
-			{ 8'h60 }, //        dma
-			{ 8'h60 }  // streamsink
-		})
-		// }}}
-	) axil_axildouble(
-		// {{{
-		.S_AXI_ACLK(i_clk),
-		.S_AXI_ARESETN(!i_reset),
-		//
-		// Slave port
-		// {{{
-		.S_AXI_AWVALID(axil_dio_awvalid),
-		.S_AXI_AWREADY(axil_dio_awready),
-		.S_AXI_AWADDR( axil_dio_awaddr[7:0]),
-		.S_AXI_AWPROT( axil_dio_awprot),
-		//
-		.S_AXI_WVALID( axil_dio_wvalid),
-		.S_AXI_WREADY( axil_dio_wready),
-		.S_AXI_WDATA(  axil_dio_wdata),
-		.S_AXI_WSTRB(  axil_dio_wstrb),
-		//
-		.S_AXI_BVALID( axil_dio_bvalid),
-		.S_AXI_BREADY( axil_dio_bready),
-		.S_AXI_BRESP(  axil_dio_bresp),
-		//
-		// Read connections
-		.S_AXI_ARVALID(axil_dio_arvalid),
-		.S_AXI_ARREADY(axil_dio_arready),
-		.S_AXI_ARADDR( axil_dio_araddr[7:0]),
-		.S_AXI_ARPROT( axil_dio_arprot),
-		//
-		.S_AXI_RVALID( axil_dio_rvalid),
-		.S_AXI_RREADY( axil_dio_rready),
-		.S_AXI_RDATA(  axil_dio_rdata),
-		.S_AXI_RRESP(  axil_dio_rresp),
-		// }}}
-		// Connections to slaves
-		// {{{
-		.M_AXI_AWVALID({
-			axil_s2mm_awvalid,
-			axil_mm2s_awvalid,
-			axil_dma_awvalid,
-			axil_streamsink_awvalid
-		}),
-		.M_AXI_AWADDR(axil_diow_awaddr),
-		.M_AXI_AWPROT(axil_diow_awprot),
-		.M_AXI_WDATA( axil_diow_wdata),
-		.M_AXI_WSTRB( axil_diow_wstrb),
-		//
-		//
-		.M_AXI_BRESP({
-			axil_s2mm_bresp,
-			axil_mm2s_bresp,
-			axil_dma_bresp,
-			axil_streamsink_bresp
-		}),
-		// Read connections
-		.M_AXI_ARVALID({
-			axil_s2mm_arvalid,
-			axil_mm2s_arvalid,
-			axil_dma_arvalid,
-			axil_streamsink_arvalid
-		}),
-		.M_AXI_ARADDR(axil_diow_araddr),
-		.M_AXI_ARPROT(axil_diow_arprot),
-		//
-		.M_AXI_RDATA({
-			axil_s2mm_rdata,
-			axil_mm2s_rdata,
-			axil_dma_rdata,
-			axil_streamsink_rdata
-		}),
-		.M_AXI_RRESP({
-			axil_s2mm_rresp,
-			axil_mm2s_rresp,
-			axil_dma_rresp,
-			axil_streamsink_rresp
-		})
-		// }}}
-		// }}}
-	);
-
-	//
-	// Now connecting the extra slaves wires to the AXILDOUBLE controller
-	//
-	// s2mm
-	// {{{
-	assign axil_s2mm_awaddr = axil_diow_awaddr;
-	assign axil_s2mm_awprot = axil_diow_awprot;
-	assign axil_s2mm_wvalid = axil_s2mm_awvalid;
-	assign axil_s2mm_wdata = axil_diow_wdata;
-	assign axil_s2mm_wstrb = axil_diow_wstrb;
-	assign axil_s2mm_bready = 1'b1;
-	assign axil_s2mm_araddr = axil_diow_araddr;
-	assign axil_s2mm_arprot = axil_diow_arprot;
-	assign axil_s2mm_rready = 1'b1;
-	// }}}
-	// mm2s
-	// {{{
-	assign axil_mm2s_awaddr = axil_diow_awaddr;
-	assign axil_mm2s_awprot = axil_diow_awprot;
-	assign axil_mm2s_wvalid = axil_mm2s_awvalid;
-	assign axil_mm2s_wdata = axil_diow_wdata;
-	assign axil_mm2s_wstrb = axil_diow_wstrb;
-	assign axil_mm2s_bready = 1'b1;
-	assign axil_mm2s_araddr = axil_diow_araddr;
-	assign axil_mm2s_arprot = axil_diow_arprot;
-	assign axil_mm2s_rready = 1'b1;
-	// }}}
-	// dma
-	// {{{
-	assign axil_dma_awaddr = axil_diow_awaddr;
-	assign axil_dma_awprot = axil_diow_awprot;
-	assign axil_dma_wvalid = axil_dma_awvalid;
-	assign axil_dma_wdata = axil_diow_wdata;
-	assign axil_dma_wstrb = axil_diow_wstrb;
-	assign axil_dma_bready = 1'b1;
-	assign axil_dma_araddr = axil_diow_araddr;
-	assign axil_dma_arprot = axil_diow_arprot;
-	assign axil_dma_rready = 1'b1;
-	// }}}
-	// streamsink
-	// {{{
-	assign axil_streamsink_awaddr = axil_diow_awaddr;
-	assign axil_streamsink_awprot = axil_diow_awprot;
-	assign axil_streamsink_wvalid = axil_streamsink_awvalid;
-	assign axil_streamsink_wdata = axil_diow_wdata;
-	assign axil_streamsink_wstrb = axil_diow_wstrb;
-	assign axil_streamsink_bready = 1'b1;
-	assign axil_streamsink_araddr = axil_diow_araddr;
-	assign axil_streamsink_arprot = axil_diow_arprot;
-	assign axil_streamsink_rready = 1'b1;
-	// }}}
-	//
-	// Connect the axil bus components together using the axilxbar()
-	// {{{
-	//
-	axilxbar #(
-		// {{{
-		.C_AXI_ADDR_WIDTH(8),
-		.C_AXI_DATA_WIDTH(32),
-		.NM(1), .NS(3),
-		.SLAVE_ADDR({
-			// Address width    = 8
-			// Address LSBs     = 0
-			// Slave name width = 8
-			{ 8'h80 }, // axil_dio: 0x80
-			{ 8'h40 }, //    axilp: 0x40
-			{ 8'h00 }  //     uart: 0x00
-		}),
-		.SLAVE_MASK({
-			// Address width    = 8
-			// Address LSBs     = 0
-			// Slave name width = 8
-			{ 8'h80 }, // axil_dio
-			{ 8'hc0 }, //    axilp
-			{ 8'hc0 }  //     uart
-		}),
-		.OPT_LOWPOWER(1'b1)
-		// }}}
-	) axil_xbar(
-		// {{{
-		.S_AXI_ACLK(i_clk),
-		.S_AXI_ARESETN(!i_reset),
-		// Connections from masters
-		// {{{
-		.S_AXI_AWVALID({
-			axil_controlbus_awvalid
-		}),
-		.S_AXI_AWREADY({
-			axil_controlbus_awready
-		}),
-		.S_AXI_AWADDR({
-			axil_controlbus_awaddr
-		}),
-		.S_AXI_AWPROT({
-			axil_controlbus_awprot
-		}),
-		//
-		.S_AXI_WVALID({
-			axil_controlbus_wvalid
-		}),
-		.S_AXI_WREADY({
-			axil_controlbus_wready
-		}),
-		.S_AXI_WDATA({
-			axil_controlbus_wdata
-		}),
-		.S_AXI_WSTRB({
-			axil_controlbus_wstrb
-		}),
-		//
-		.S_AXI_BVALID({
-			axil_controlbus_bvalid
-		}),
-		.S_AXI_BREADY({
-			axil_controlbus_bready
-		}),
-		.S_AXI_BRESP({
-			axil_controlbus_bresp
-		}),
-		// Read connections
-		.S_AXI_ARVALID({
-			axil_controlbus_arvalid
-		}),
-		.S_AXI_ARREADY({
-			axil_controlbus_arready
-		}),
-		.S_AXI_ARADDR({
-			axil_controlbus_araddr
-		}),
-		.S_AXI_ARPROT({
-			axil_controlbus_arprot
-		}),
-		//
-		.S_AXI_RVALID({
-			axil_controlbus_rvalid
-		}),
-		.S_AXI_RREADY({
-			axil_controlbus_rready
-		}),
-		.S_AXI_RDATA({
-			axil_controlbus_rdata
-		}),
-		.S_AXI_RRESP({
-			axil_controlbus_rresp
-		}),
-		// }}}
-		// Connections to slaves
-		// {{{
-		.M_AXI_AWVALID({
-			axil_dio_awvalid,
-			axil_axilp_awvalid,
-			axil_uart_awvalid
-		}),
-		.M_AXI_AWREADY({
-			axil_dio_awready,
-			axil_axilp_awready,
-			axil_uart_awready
-		}),
-		.M_AXI_AWADDR({
-			axil_dio_awaddr,
-			axil_axilp_awaddr,
-			axil_uart_awaddr
-		}),
-		.M_AXI_AWPROT({
-			axil_dio_awprot,
-			axil_axilp_awprot,
-			axil_uart_awprot
-		}),
-		//
-		.M_AXI_WVALID({
-			axil_dio_wvalid,
-			axil_axilp_wvalid,
-			axil_uart_wvalid
-		}),
-		.M_AXI_WREADY({
-			axil_dio_wready,
-			axil_axilp_wready,
-			axil_uart_wready
-		}),
-		.M_AXI_WDATA({
-			axil_dio_wdata,
-			axil_axilp_wdata,
-			axil_uart_wdata
-		}),
-		.M_AXI_WSTRB({
-			axil_dio_wstrb,
-			axil_axilp_wstrb,
-			axil_uart_wstrb
-		}),
-		//
-		.M_AXI_BVALID({
-			axil_dio_bvalid,
-			axil_axilp_bvalid,
-			axil_uart_bvalid
-		}),
-		.M_AXI_BREADY({
-			axil_dio_bready,
-			axil_axilp_bready,
-			axil_uart_bready
-		}),
-		.M_AXI_BRESP({
-			axil_dio_bresp,
-			axil_axilp_bresp,
-			axil_uart_bresp
-		}),
-		// Read connections
-		.M_AXI_ARVALID({
-			axil_dio_arvalid,
-			axil_axilp_arvalid,
-			axil_uart_arvalid
-		}),
-		.M_AXI_ARREADY({
-			axil_dio_arready,
-			axil_axilp_arready,
-			axil_uart_arready
-		}),
-		.M_AXI_ARADDR({
-			axil_dio_araddr,
-			axil_axilp_araddr,
-			axil_uart_araddr
-		}),
-		.M_AXI_ARPROT({
-			axil_dio_arprot,
-			axil_axilp_arprot,
-			axil_uart_arprot
-		}),
-		//
-		.M_AXI_RVALID({
-			axil_dio_rvalid,
-			axil_axilp_rvalid,
-			axil_uart_rvalid
-		}),
-		.M_AXI_RREADY({
-			axil_dio_rready,
-			axil_axilp_rready,
-			axil_uart_rready
-		}),
-		.M_AXI_RDATA({
-			axil_dio_rdata,
-			axil_axilp_rdata,
-			axil_uart_rdata
-		}),
-		.M_AXI_RRESP({
-			axil_dio_rresp,
-			axil_axilp_rresp,
-			axil_uart_rresp
-		})
-		// }}}
-		// }}}
-	);
-
-	// End of bus logic for axil
-	// }}}
 	// }}}
 	////////////////////////////////////////////////////////////////////////
 	//
@@ -2468,6 +2548,89 @@ module	main(i_clk, i_reset,
 	// or making sure all of the various interrupt wires are set to
 	// zero if the component is not included.
 	//
+	axiperf #(
+		// {{{
+		.C_AXI_ADDR_WIDTH(25),
+		.C_AXI_DATA_WIDTH(32),
+		.C_AXI_ID_WIDTH(3)
+		// }}}
+	) mm2sperfi(
+		// {{{
+		.S_AXI_ACLK(i_clk),
+		.S_AXI_ARESETN(!i_reset),
+		// Control interface
+		// {{{
+		.S_AXIL_AWVALID(axil_mm2sperf_awvalid),
+		.S_AXIL_AWREADY(axil_mm2sperf_awready),
+		.S_AXIL_AWADDR( axil_mm2sperf_awaddr[7-1:0]),
+		.S_AXIL_AWPROT( axil_mm2sperf_awprot),
+//
+		.S_AXIL_WVALID(axil_mm2sperf_wvalid),
+		.S_AXIL_WREADY(axil_mm2sperf_wready),
+		.S_AXIL_WDATA( axil_mm2sperf_wdata),
+		.S_AXIL_WSTRB( axil_mm2sperf_wstrb),
+//
+		.S_AXIL_BVALID(axil_mm2sperf_bvalid),
+		.S_AXIL_BREADY(axil_mm2sperf_bready),
+		.S_AXIL_BRESP( axil_mm2sperf_bresp),
+		// Read connections
+		.S_AXIL_ARVALID(axil_mm2sperf_arvalid),
+		.S_AXIL_ARREADY(axil_mm2sperf_arready),
+		.S_AXIL_ARADDR( axil_mm2sperf_araddr[7-1:0]),
+		.S_AXIL_ARPROT( axil_mm2sperf_arprot),
+//
+		.S_AXIL_RVALID(axil_mm2sperf_rvalid),
+		.S_AXIL_RREADY(axil_mm2sperf_rready),
+		.S_AXIL_RDATA( axil_mm2sperf_rdata),
+		.S_AXIL_RRESP( axil_mm2sperf_rresp),
+		// }}}
+		// The bus we are measuring
+		// {{{
+		.M_AXI_AWVALID(axi_mm2s_awvalid),
+		.M_AXI_AWREADY(axi_mm2s_awready),
+		.M_AXI_AWID(   axi_mm2s_awid),
+		.M_AXI_AWADDR( axi_mm2s_awaddr[25-1:0]),
+		.M_AXI_AWLEN(  axi_mm2s_awlen),
+		.M_AXI_AWSIZE( axi_mm2s_awsize),
+		.M_AXI_AWBURST(axi_mm2s_awburst),
+		.M_AXI_AWLOCK( axi_mm2s_awlock),
+		.M_AXI_AWCACHE(axi_mm2s_awcache),
+		.M_AXI_AWPROT( axi_mm2s_awprot),
+		.M_AXI_AWQOS(  axi_mm2s_awqos),
+                //
+                //
+		.M_AXI_WVALID(axi_mm2s_wvalid),
+		.M_AXI_WREADY(axi_mm2s_wready),
+		.M_AXI_WDATA( axi_mm2s_wdata),
+		.M_AXI_WSTRB( axi_mm2s_wstrb),
+		.M_AXI_WLAST( axi_mm2s_wlast),
+		//
+		.M_AXI_BVALID(axi_mm2s_bvalid),
+		.M_AXI_BREADY(axi_mm2s_bready),
+		.M_AXI_BID(   axi_mm2s_bid),
+		.M_AXI_BRESP( axi_mm2s_bresp),
+		//
+		.M_AXI_ARVALID(axi_mm2s_arvalid),
+		.M_AXI_ARREADY(axi_mm2s_arready),
+		.M_AXI_ARID(   axi_mm2s_arid),
+		.M_AXI_ARADDR( axi_mm2s_araddr[25-1:0]),
+		.M_AXI_ARLEN(  axi_mm2s_arlen),
+		.M_AXI_ARSIZE( axi_mm2s_arsize),
+		.M_AXI_ARBURST(axi_mm2s_arburst),
+		.M_AXI_ARLOCK( axi_mm2s_arlock),
+		.M_AXI_ARCACHE(axi_mm2s_arcache),
+		.M_AXI_ARPROT( axi_mm2s_arprot),
+		.M_AXI_ARQOS(  axi_mm2s_arqos),
+                //
+		.M_AXI_RVALID(axi_mm2s_rvalid),
+		.M_AXI_RREADY(axi_mm2s_rready),
+		.M_AXI_RID(   axi_mm2s_rid),
+		.M_AXI_RDATA( axi_mm2s_rdata),
+		.M_AXI_RLAST( axi_mm2s_rlast),
+		.M_AXI_RRESP( axi_mm2s_rresp)
+		// }}}
+		// }}}
+	);
 `ifdef	WBUBUS_MASTER
 	// {{{
 	// Debug bus / console serial port modules
@@ -2587,7 +2750,8 @@ module	main(i_clk, i_reset,
 		.C_AXI_ADDR_WIDTH(ZIP_ADDRESS_WIDTH),
 		.LGICACHE(12),.OPT_LGDCACHE(12),
 		.START_HALTED(ZIP_START_HALTED),
-		.RESET_DURATION(20)
+		.RESET_DURATION(20),
+		.SWAP_WSTRB(1)
 		// }}}
 	) swic(
 		// {{{
@@ -3124,6 +3288,89 @@ module	main(i_clk, i_reset,
 	assign	wbu_crossbus_rlast  = axi_crossbus_rlast;
 	assign	wbu_crossbus_rresp  = axi_crossbus_rresp;
 	// }}}
+	axiperf #(
+		// {{{
+		.C_AXI_ADDR_WIDTH(25),
+		.C_AXI_DATA_WIDTH(32),
+		.C_AXI_ID_WIDTH(3)
+		// }}}
+	) s2mmperfi(
+		// {{{
+		.S_AXI_ACLK(i_clk),
+		.S_AXI_ARESETN(!i_reset),
+		// Control interface
+		// {{{
+		.S_AXIL_AWVALID(axil_s2mmperf_awvalid),
+		.S_AXIL_AWREADY(axil_s2mmperf_awready),
+		.S_AXIL_AWADDR( axil_s2mmperf_awaddr[7-1:0]),
+		.S_AXIL_AWPROT( axil_s2mmperf_awprot),
+//
+		.S_AXIL_WVALID(axil_s2mmperf_wvalid),
+		.S_AXIL_WREADY(axil_s2mmperf_wready),
+		.S_AXIL_WDATA( axil_s2mmperf_wdata),
+		.S_AXIL_WSTRB( axil_s2mmperf_wstrb),
+//
+		.S_AXIL_BVALID(axil_s2mmperf_bvalid),
+		.S_AXIL_BREADY(axil_s2mmperf_bready),
+		.S_AXIL_BRESP( axil_s2mmperf_bresp),
+		// Read connections
+		.S_AXIL_ARVALID(axil_s2mmperf_arvalid),
+		.S_AXIL_ARREADY(axil_s2mmperf_arready),
+		.S_AXIL_ARADDR( axil_s2mmperf_araddr[7-1:0]),
+		.S_AXIL_ARPROT( axil_s2mmperf_arprot),
+//
+		.S_AXIL_RVALID(axil_s2mmperf_rvalid),
+		.S_AXIL_RREADY(axil_s2mmperf_rready),
+		.S_AXIL_RDATA( axil_s2mmperf_rdata),
+		.S_AXIL_RRESP( axil_s2mmperf_rresp),
+		// }}}
+		// The bus we are measuring
+		// {{{
+		.M_AXI_AWVALID(axi_s2mm_awvalid),
+		.M_AXI_AWREADY(axi_s2mm_awready),
+		.M_AXI_AWID(   axi_s2mm_awid),
+		.M_AXI_AWADDR( axi_s2mm_awaddr[25-1:0]),
+		.M_AXI_AWLEN(  axi_s2mm_awlen),
+		.M_AXI_AWSIZE( axi_s2mm_awsize),
+		.M_AXI_AWBURST(axi_s2mm_awburst),
+		.M_AXI_AWLOCK( axi_s2mm_awlock),
+		.M_AXI_AWCACHE(axi_s2mm_awcache),
+		.M_AXI_AWPROT( axi_s2mm_awprot),
+		.M_AXI_AWQOS(  axi_s2mm_awqos),
+                //
+                //
+		.M_AXI_WVALID(axi_s2mm_wvalid),
+		.M_AXI_WREADY(axi_s2mm_wready),
+		.M_AXI_WDATA( axi_s2mm_wdata),
+		.M_AXI_WSTRB( axi_s2mm_wstrb),
+		.M_AXI_WLAST( axi_s2mm_wlast),
+		//
+		.M_AXI_BVALID(axi_s2mm_bvalid),
+		.M_AXI_BREADY(axi_s2mm_bready),
+		.M_AXI_BID(   axi_s2mm_bid),
+		.M_AXI_BRESP( axi_s2mm_bresp),
+		//
+		.M_AXI_ARVALID(axi_s2mm_arvalid),
+		.M_AXI_ARREADY(axi_s2mm_arready),
+		.M_AXI_ARID(   axi_s2mm_arid),
+		.M_AXI_ARADDR( axi_s2mm_araddr[25-1:0]),
+		.M_AXI_ARLEN(  axi_s2mm_arlen),
+		.M_AXI_ARSIZE( axi_s2mm_arsize),
+		.M_AXI_ARBURST(axi_s2mm_arburst),
+		.M_AXI_ARLOCK( axi_s2mm_arlock),
+		.M_AXI_ARCACHE(axi_s2mm_arcache),
+		.M_AXI_ARPROT( axi_s2mm_arprot),
+		.M_AXI_ARQOS(  axi_s2mm_arqos),
+                //
+		.M_AXI_RVALID(axi_s2mm_rvalid),
+		.M_AXI_RREADY(axi_s2mm_rready),
+		.M_AXI_RID(   axi_s2mm_rid),
+		.M_AXI_RDATA( axi_s2mm_rdata),
+		.M_AXI_RLAST( axi_s2mm_rlast),
+		.M_AXI_RRESP( axi_s2mm_rresp)
+		// }}}
+		// }}}
+	);
 	////////////////////////////////////////////////////////////////////////
 	//
 	// AXI streamsrc : streamsrc
@@ -3217,7 +3464,7 @@ module	main(i_clk, i_reset,
 	//
 	axi2axilite #(
 		// {{{
-		.C_AXI_ADDR_WIDTH(8),
+		.C_AXI_ADDR_WIDTH(10),
 		.C_AXI_DATA_WIDTH(32),
 		.C_AXI_ID_WIDTH(3)
 		// }}}
@@ -3230,7 +3477,7 @@ module	main(i_clk, i_reset,
 		.S_AXI_AWVALID(axi_controlbus_awvalid),
 		.S_AXI_AWREADY(axi_controlbus_awready),
 		.S_AXI_AWID(   axi_controlbus_awid),
-		.S_AXI_AWADDR( axi_controlbus_awaddr[8-1:0]),
+		.S_AXI_AWADDR( axi_controlbus_awaddr[10-1:0]),
 		.S_AXI_AWLEN(  axi_controlbus_awlen),
 		.S_AXI_AWSIZE( axi_controlbus_awsize),
 		.S_AXI_AWBURST(axi_controlbus_awburst),
@@ -3253,7 +3500,7 @@ module	main(i_clk, i_reset,
 		.S_AXI_ARVALID(axi_controlbus_arvalid),
 		.S_AXI_ARREADY(axi_controlbus_arready),
 		.S_AXI_ARID(   axi_controlbus_arid),
-		.S_AXI_ARADDR( axi_controlbus_araddr[8-1:0]),
+		.S_AXI_ARADDR( axi_controlbus_araddr[10-1:0]),
 		.S_AXI_ARLEN(  axi_controlbus_arlen),
 		.S_AXI_ARSIZE( axi_controlbus_arsize),
 		.S_AXI_ARBURST(axi_controlbus_arburst),
@@ -3273,7 +3520,7 @@ module	main(i_clk, i_reset,
 		// {{{
 		.M_AXI_AWVALID(axil_controlbus_awvalid),
 		.M_AXI_AWREADY(axil_controlbus_awready),
-		.M_AXI_AWADDR( axil_controlbus_awaddr[8-1:0]),
+		.M_AXI_AWADDR( axil_controlbus_awaddr[10-1:0]),
 		.M_AXI_AWPROT( axil_controlbus_awprot),
 		//
 		.M_AXI_WVALID(axil_controlbus_wvalid),
@@ -3287,7 +3534,7 @@ module	main(i_clk, i_reset,
 		// Read connections
 		.M_AXI_ARVALID(axil_controlbus_arvalid),
 		.M_AXI_ARREADY(axil_controlbus_arready),
-		.M_AXI_ARADDR( axil_controlbus_araddr[8-1:0]),
+		.M_AXI_ARADDR( axil_controlbus_araddr[10-1:0]),
 		.M_AXI_ARPROT( axil_controlbus_arprot),
 //
 		.M_AXI_RVALID(axil_controlbus_rvalid),

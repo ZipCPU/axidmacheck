@@ -61,6 +61,7 @@ module	axidcache #(
 		// line has a valid signal and a tag associated with it.
 		parameter	LGNLINES = (LGCACHEWORDS-3),
 		// }}}
+		parameter [0:0]	SWAP_WSTRB = 1'b0,
 		parameter	NAUX = 5,
 		// Verilator lint_off UNUSED
 		localparam	LGPIPE = 2,
@@ -201,6 +202,8 @@ module	axidcache #(
 				last_tag_valid, w_cache_miss;
 	reg	[DW-1:0]	pre_data, shifted_data;
 	reg	[AXILSB+1:0]	req_data;
+	wire	[AXILSB-1:0]	req_lsb;
+	wire	[1:0]		req_op;
 
 	reg			axi_awvalid, axi_wvalid;
 	reg	[AW-1:0]	axi_awaddr;
@@ -559,6 +562,12 @@ module	axidcache #(
 			2'b11: axi_arsize <= 3'd0;
 			default:  axi_arsize <= 3'd2;
 			endcase
+
+			if (SWAP_WSTRB)
+			begin
+				axi_araddr[1:0] <= 0;
+				axi_arsize <= 3'd2;
+			end
 			// }}}
 		end
 
@@ -610,6 +619,9 @@ module	axidcache #(
 	begin
 		axi_awaddr <= i_addr;
 
+		if (SWAP_WSTRB)
+			axi_awaddr[AXILSB-1:0] <= 0;
+
 		if (!i_pipe_stb || !i_op[0] || misaligned)
 			axi_awaddr <= 0;
 	end
@@ -649,30 +661,72 @@ module	axidcache #(
 
 		// WDATA
 		// {{{
-		casez(i_op[2:1])
-		// Write a 16b half-word
-		2'b10: axi_wdata <= { {(C_AXI_DATA_WIDTH-16){1'b0}},
+		if (SWAP_WSTRB)
+		begin
+			// {{{
+			casez(i_op[2:1])
+			// Write a 16b half-word
+			2'b10: axi_wdata <= { i_data[15:0],
+				{(C_AXI_DATA_WIDTH-16){1'b0}} }
+				>> (8*i_addr[AXILSB-1:0]);
+			// Write an 8b half-word
+			2'b11: axi_wdata <= { i_data[7:0],
+					{(C_AXI_DATA_WIDTH-8){1'b0}} }
+				>> (8*i_addr[AXILSB-1:0]);
+			default: axi_wdata <= { i_data,
+					{(C_AXI_DATA_WIDTH-32){1'b0}} }
+				>> (8*i_addr[AXILSB-1:0]);
+			endcase
+			// }}}
+		end else begin
+			// {{{
+			casez(i_op[2:1])
+			// Write a 16b half-word
+			2'b10: axi_wdata <= { {(C_AXI_DATA_WIDTH-16){1'b0}},
 				i_data[15:0] } << (8*i_addr[AXILSB-1:0]);
-		// Write an 8b half-word
-		2'b11: axi_wdata <= { {(C_AXI_DATA_WIDTH-8){1'b0}},
+			// Write an 8b half-word
+			2'b11: axi_wdata <= { {(C_AXI_DATA_WIDTH-8){1'b0}},
 				i_data[7:0] } << (8*i_addr[AXILSB-1:0]);
-		default: axi_wdata <= { {(C_AXI_DATA_WIDTH-32){1'b0}},
+			default: axi_wdata <= { {(C_AXI_DATA_WIDTH-32){1'b0}},
 				i_data } << (8*i_addr[AXILSB-1:0]);
-		endcase
+			endcase
+			// }}}
+		end
 		// }}}
 
 		// WSTRB
 		// {{{
-		casez(i_op[2:1])
-		// Write a 16b half-word
-		2'b10: axi_wstrb <= { {(C_AXI_DATA_WIDTH/8-4){1'b0}},
+		if (SWAP_WSTRB)
+		begin
+			// {{{
+			casez(i_op[2:1])
+			// Write a 16b half-word
+			2'b10: axi_wstrb <= { 2'b11,
+				{(C_AXI_DATA_WIDTH/8-2){1'b0}} }
+				>> (i_addr[AXILSB-1:0]);
+			// Write an 8b half-word
+			2'b11: axi_wstrb <= { 1'b1,
+				{(C_AXI_DATA_WIDTH/8-1){1'b0}} }
+				>> (i_addr[AXILSB-1:0]);
+			default: axi_wstrb <= { 4'b1111,
+					{(C_AXI_DATA_WIDTH/8-4){1'b0}} }
+					>> (i_addr[AXILSB-1:0]);
+			endcase
+			// }}}
+		end else begin
+			// {{{
+			casez(i_op[2:1])
+			// Write a 16b half-word
+			2'b10: axi_wstrb <= { {(C_AXI_DATA_WIDTH/8-4){1'b0}},
 				4'b0011 } << (i_addr[AXILSB-1:0]);
-		// Write an 8b half-word
-		2'b11: axi_wstrb <= { {(C_AXI_DATA_WIDTH/8-4){1'b0}},
+			// Write an 8b half-word
+			2'b11: axi_wstrb <= { {(C_AXI_DATA_WIDTH/8-4){1'b0}},
 				4'b0001 } << (i_addr[AXILSB-1:0]);
-		default: axi_wstrb <= { {(C_AXI_DATA_WIDTH/8-4){1'b0}},
-				4'b1111 } << (i_addr[AXILSB-1:0]);
-		endcase
+			default: axi_wstrb <= { {(C_AXI_DATA_WIDTH/8-4){1'b0}},
+					4'b1111 } << (i_addr[AXILSB-1:0]);
+			endcase
+			// }}}
+		end
 		// }}}
 
 		// OPT_LOWPOWER: Clear if nothing is being used
@@ -835,6 +889,9 @@ module	axidcache #(
 	always @(posedge S_AXI_ACLK)
 	if (i_pipe_stb)
 		req_data <= { i_op[2:1], i_addr[AXILSB-1:0] };
+
+	assign	req_lsb = req_data[AXILSB-1:0];
+	assign	req_op  = req_data[AXILSB +: 2];
 	// }}}
 
 	// o_err
@@ -886,13 +943,23 @@ module	axidcache #(
 		pre_data = cached_rword;
 
 	always @(*)
-		shifted_data = pre_data >> (8*req_data[AXILSB-1:0]);
+	if (SWAP_WSTRB)
+	begin
+		shifted_data = pre_data << (8*req_lsb);
+
+		casez(req_op)
+		2'b10: shifted_data[31:0] = { 16'h0, shifted_data[DW-1:DW-16] };
+		2'b11: shifted_data[31:0] = { 24'h0, shifted_data[DW-1:DW- 8] };
+		default: shifted_data[31:0] = shifted_data[DW-1:DW-32];
+		endcase
+	end else
+		shifted_data = pre_data >> (8*req_lsb);
 
 	// o_data
 	always @(posedge S_AXI_ACLK)
 	begin
 		o_data <= shifted_data[31:0];
-		casez(req_data[AXILSB +: 2])
+		casez(req_lsb)
 		2'b10: o_data[31:16] <= 0;
 		2'b11: o_data[31: 8] <= 0;
 		default: begin end
