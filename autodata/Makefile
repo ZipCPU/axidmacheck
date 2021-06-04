@@ -50,7 +50,7 @@ all:	data
 DATA := global.txt axibus.txt axiram.txt axidma.txt aximm2s.txt axis2mm.txt \
 	controlbus.txt streamsink.txt streamsrc.txt vibus.txt		\
 	zipaxi.txt axiconsole.txt mem_bkram_only.txt			\
-	mm2sperf.txt s2mmperf.txt
+	mm2sperf.txt s2mmperf.txt dmaperf.txt cpuperf.txt ramperf.txt
 
 AUTOFPGA?=$(shell which autofpga)
 

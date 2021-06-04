@@ -492,6 +492,7 @@
 ##
 ##
 @PREFIX=axilp
+@DEVID=AXILP
 @SLAVE.BUS=axil
 @SLAVE.TYPE=OTHER
 @NADDR=16
@@ -525,6 +526,25 @@
 		.o_watchdog_reset(@$(WATCHDOG))
 		// }}}
 	);
+@REGS.N=6
+@REGS.NOTE=// AXIL Peripheral set
+@REGS.0=0 R_AXILP axilp
+@REGS.1=1 R_PIC   pic
+@REGS.2=2 R_WDT   watchdog
+@REGS.3=4 R_TIMA	timera
+@REGS.4=5 R_TIMB	timerb
+@REGS.5=6 R_TIMC	timerc
+@BDEF.DEFN=
+typedef struct	@$(DEVID)_S {
+	unsigned	z_pic, z_wdt, z_apic, z_unused0;
+	unsigned	z_tma, z_tmb, z_tmc, z_jiffies;
+	unsigned	z_mac_ck, z_mac_mem, z_mac_pf, z_mac_icnt;
+	unsigned	z_uac_ck, z_uac_mem, z_uac_pf, z_uac_icnt;
+} @$(DEVID);
+
+@BDEF.IOTYPE=@$(DEVID)
+@BDEF.OSDEF=_BOARD_HAS_@$(DEVID)
+@BDEF.OSVAL=static volatile @$(DEVID) * const _@$(PREFIX)=((@$(BDEF.IOTYPE) *)@$[0x%08x](REGBASE));
 ## }}}
 ################################################################################
 ##

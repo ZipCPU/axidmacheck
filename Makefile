@@ -110,8 +110,6 @@ autodata: check-autofpga
 	$(call copyif-changed,autodata/toplevel.v,rtl/toplevel.v)
 	$(call copyif-changed,autodata/main.v,rtl/main.v)
 	$(call copyif-changed,autodata/iscachable.v,rtl/cpu/iscachable.v)
-	$(call copyif-changed,autodata/regdefs.h,sw/regdefs.h)
-	$(call copyif-changed,autodata/regdefs.cpp,sw/regdefs.cpp)
 	$(call copyif-changed,autodata/rtl.make.inc,rtl/make.inc)
 	$(call copyif-changed,autodata/testb.h,sim/testb.h)
 	$(call copyif-changed,autodata/main_tb.cpp,sim/main_tb.cpp)

@@ -114,7 +114,7 @@
 //
 // AXI Performance monitor for @$(DEVID)
 //
-@REGS.N=32
+@REGS.N=30
 @REGS.0=0   R_@$(DEVID)ACTIVE    @$(DEVID)ACTIVE
 @REGS.1=1   R_@$(DEVID)BURSTSZ   @$(DEVID)BURSTSZ
 @REGS.2=2   R_@$(DEVID)WRIDLES   @$(DEVID)WRIDLES
@@ -126,16 +126,16 @@
 @REGS.8=8   R_@$(DEVID)WRSTALLS  @$(DEVID)WRSTALLS
 @REGS.9=9   R_@$(DEVID)WRADDRLAG @$(DEVID)WRADDRLAG
 @REGS.10=10 R_@$(DEVID)WRDATALAG @$(DEVID)WRDATALAG
-@REGS.11=11 R_@$(DEVID)WRBEATSD  @$(DEVID)WRBEATSD
-@REGS.12=12 R_@$(DEVID)AWBURSTB  @$(DEVID)AWBURSTB
-@REGS.13=13 R_@$(DEVID)AWADDRST  @$(DEVID)AWADDRST
-@REGS.14=14 R_@$(DEVID)AWWSTALL  @$(DEVID)AWWSTALL
-@REGS.15=15 R_@$(DEVID)AWWSLOW   @$(DEVID)AWWSLOW
-@REGS.16=16 R_@$(DEVID)AWWNODATA @$(DEVID)AWWNODATA
-@REGS.17=17 R_@$(DEVID)AWWBEATS  @$(DEVID)AWWBEATS
-@REGS.18=18 R_@$(DEVID)WRBLAGS   @$(DEVID)WRBLAGS
-@REGS.19=19 R_@$(DEVID)WRBSTALL  @$(DEVID)WRBSTALL
+@REGS.11=11 R_@$(DEVID)AWREARLY  @$(DEVID)AWREARLY
+@REGS.12=12 R_@$(DEVID)WREARLYD  @$(DEVID)WREARLYD
+@REGS.13=13 R_@$(DEVID)AWSTALL   @$(DEVID)AWSTALL
+@REGS.14=14 R_@$(DEVID)EARLYST   @$(DEVID)EARLYST
+@REGS.15=15 R_@$(DEVID)WRBLAGS   @$(DEVID)WRBLAGS
+@REGS.16=16 R_@$(DEVID)WRBSTALL  @$(DEVID)WRBSTALL
 ##
+@REGS.17=19 R_@$(DEVID)WRBIAS    @$(DEVID)WRBIAS
+@REGS.18=20 R_@$(DEVID)AWCYCLES  @$(DEVID)AWCYCLES
+@REGS.19=21 R_@$(DEVID)WRCYCLES   @$(DEVID)WRCYCLES
 ##
 @REGS.20=22 R_@$(DEVID)RDIDLES    @$(DEVID)RDIDLES
 @REGS.21=23 R_@$(DEVID)RDMAXB     @$(DEVID)RDMAXB
@@ -152,13 +152,18 @@
 #ifndef	AXIPERF_H
 #define	AXIPERF_H
 
+#define	AXIPERF_START		1
+#define	AXIPERF_STOP		0
+#define	AXIPERF_CLEAR		2
+#define	AXIPERF_TRIGGERED	4
+
 typedef struct	AXIPERF_S {
 	unsigned	p_active, p_burstsz, p_wridles, p_awrbursts, p_wrbeats,
 			p_awbytes, p_wbytes, p_wrslowd, p_wrstalls, p_wraddrlag,
-			p_wrdatalag, p_wrbeatsd, p_awburstb, p_awaddrst,
-			p_awwstall, p_awwslow, p_awwnodata, p_awwbeats,
-			p_wrblags, p_wrbstall;
+			p_wrdatalag, p_awearly, p_wrearlyd, p_awstall,
+			p_wr_early_stall, p_wrblags, p_wrbstall;
 	unsigned	p_unused[2];
+	unsigned	p_wrbias, p_awrcycles, p_wrcycles;
 	unsigned	p_rdidles, p_rdmaxb, p_rdbursts, p_rdbeats, p_rdbytes,
 			p_rrdarstalls, p_rdrstalls, p_rdlag, p_rdslow;
 	unsigned	p_control;
@@ -167,4 +172,4 @@ typedef struct	AXIPERF_S {
 #endif
 @BDEF.IOTYPE=AXIPERF
 @BDEF.OSDEF=_BOARD_HAS_@$(DEVID)
-@BDEF.OSVAL=static volatile @$(BDEF.IOTYPE) const * _@$(PREFIX)=((@$(BDEF.IOTYPE) *)@$[0x%08x](REGBASE));
+@BDEF.OSVAL=static volatile @$(BDEF.IOTYPE) * const _@$(PREFIX)=((@$(BDEF.IOTYPE) *)@$[0x%08x](REGBASE));

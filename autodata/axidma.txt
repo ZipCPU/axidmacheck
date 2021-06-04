@@ -92,5 +92,4 @@ typedef struct  @$(DEVID)_S {
 
 @BDEF.IOTYPE=@$(DEVID)
 @BDEF.OSDEF=_BOARD_HAS_@$(DEVID)
-@BDEF.OSVAL=static volatile @$(DEVID) const * _@$(PREFIX)=((@$(BDEF.IOTYPE) *)@$[0x%08x]
-(REGBASE));
+@BDEF.OSVAL=static volatile @$(DEVID) * const _@$(PREFIX)=((@$(BDEF.IOTYPE) *)@$[0x%08x](REGBASE));
