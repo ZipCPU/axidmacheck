@@ -101,7 +101,7 @@ SUBMAKE := $(MAKE) --no-print-directory -C
 # (also in the $(VDIRFB) directory)
 .PHONY: library
 library: $(VDIRFB)/Vmain.h
-	$(SUBMAKE) $(VDIRFB)/ -f Vmain.mk
+	+$(SUBMAKE) $(VDIRFB)/ -f Vmain.mk
 
 
 ## cpudefs.h
@@ -153,8 +153,10 @@ clean:
 # we need to rebuild.
 DEPS := $(wildcard $(VDIRFB)/*.d)
 
+ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(DEPS),)
 include $(DEPS)
+endif
 endif
 include make.inc
 ## }}}

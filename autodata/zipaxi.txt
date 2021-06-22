@@ -112,6 +112,7 @@
 		.RESET_ADDRESS(RESET_ADDRESS),
 		.C_AXI_ID_WIDTH(@$(MASTER.BUS.IDWIDTH)),
 		.C_AXI_ADDR_WIDTH(ZIP_ADDRESS_WIDTH),
+		.C_AXI_DATA_WIDTH(@$(MASTER.BUS.WIDTH)),
 		.LGICACHE(@$(LGICACHE)),.OPT_LGDCACHE(@$(LGDCACHE)),
 		.START_HALTED(ZIP_START_HALTED),
 		.RESET_DURATION(20),
@@ -143,6 +144,7 @@
 		.o_debug(zip_debug)
 		// }}}
 	);
+
 	assign	zip_trigger = zip_debug[31];
 	// }}}
 @BDEF.INCLUDE=
@@ -508,6 +510,13 @@
 	wire	@$(GIE), @$(CPURESET), @$(HALTED), @$(ICOUNT),
 		@$(OPSTALL), @$(PFSTALL), @$(WATCHDOG), @$(INTERRUPT);
 @MAIN.INSERT=
+	////////////////////////////////////////////////////////////////////////
+	//
+	// AXI-lite peripherals for the ZipCPU
+	// {{{
+	////////////////////////////////////////////////////////////////////////
+	//
+	//
 	axilperiphs #(
 		.EXTERNAL_INTERRUPTS(@$(syspic.PIC.MAX))
 	) @$(PREFIX)i (
@@ -526,6 +535,7 @@
 		.o_watchdog_reset(@$(WATCHDOG))
 		// }}}
 	);
+	// }}}
 @REGS.N=6
 @REGS.NOTE=// AXIL Peripheral set
 @REGS.0=0 R_AXILP axilp

@@ -106,10 +106,11 @@ module	axilconsole #(
 	////////////////////////////////////////////////////////////////////////
 	//
 	// Register/wire signal declarations
-	//
+	// {{{
 	////////////////////////////////////////////////////////////////////////
 	//
-	// {{{
+	//
+
 	// Perform a simple/quick bounds check on the log FIFO length, to make
 	// sure its within the bounds we can support with our current
 	// interface.
@@ -136,25 +137,16 @@ module	axilconsole #(
 	reg				axil_read_valid;
 	//
 	//
-	wire		tx_busy;
-	//
-	reg	[30:0]	uart_setup;
-	//
-	wire		rx_stb, rx_break, rx_perr, rx_ferr, ck_uart;
-	wire	[7:0]	rx_uart_data;
 	reg		rx_uart_reset;
 	//
 	wire		rx_empty_n, rx_fifo_err;
 	wire	[6:0]	rxf_axil_data;
 	wire	[15:0]	rxf_status;
 	reg		rxf_axil_read;
-	reg		r_rx_perr, r_rx_ferr;
 	//
-	wire	[(LCLLGFLEN-1):0]	check_cutoff;
 	wire	[31:0]	axil_rx_data;
 	//
-	wire		tx_empty_n, txf_err, tx_break;
-	wire	[7:0]	tx_data;
+	wire		tx_empty_n, txf_err;
 	wire	[15:0]	txf_status;
 	reg		txf_axil_write, tx_uart_reset;
 	reg	[6:0]	txf_axil_data;
@@ -168,10 +160,10 @@ module	axilconsole #(
 	////////////////////////////////////////////////////////////////////////
 	//
 	// AXI-lite signaling
-	//
+	// {{{
 	////////////////////////////////////////////////////////////////////////
 	//
-	// {{{
+	//
 
 	//
 	// Write signaling
@@ -180,7 +172,7 @@ module	axilconsole #(
 
 	generate if (OPT_SKIDBUFFER)
 	begin : SKIDBUFFER_WRITE
-
+		// {{{
 		wire	awskd_valid, wskd_valid;
 
 		skidbuffer #(.OPT_OUTREG(0),
@@ -205,9 +197,9 @@ module	axilconsole #(
 
 		assign	axil_write_ready = awskd_valid && wskd_valid
 				&& (!S_AXI_BVALID || S_AXI_BREADY);
-
+		// }}}
 	end else begin : SIMPLE_WRITES
-
+		// {{{
 		reg	axil_awready;
 
 		initial	axil_awready = 1'b0;
@@ -227,7 +219,7 @@ module	axilconsole #(
 		assign	wskd_strb  = S_AXI_WSTRB;
 
 		assign	axil_write_ready = axil_awready;
-
+		// }}}
 	end endgenerate
 
 	initial	axil_bvalid = 0;
@@ -250,7 +242,7 @@ module	axilconsole #(
 
 	generate if (OPT_SKIDBUFFER)
 	begin : SKIDBUFFER_READ
-
+		// {{{
 		wire	arskd_valid;
 
 		skidbuffer #(.OPT_OUTREG(0),
@@ -267,9 +259,9 @@ module	axilconsole #(
 		assign	axil_read_ready = arskd_valid
 				&& (!r_preread || !axil_read_valid
 							|| S_AXI_RREADY);
-
+		// }}}
 	end else begin : SIMPLE_READS
-
+		// {{{
 		reg	axil_arready;
 
 		initial	axil_arready = 1;
@@ -284,7 +276,7 @@ module	axilconsole #(
 		assign	arskd_addr = S_AXI_ARADDR[C_AXI_ADDR_WIDTH-1:ADDRLSB];
 		assign	S_AXI_ARREADY = axil_arready;
 		assign	axil_read_ready = (S_AXI_ARVALID && S_AXI_ARREADY);
-
+		// }}}
 	end endgenerate
 
 	initial	axil_read_valid = 1'b0;
@@ -305,10 +297,10 @@ module	axilconsole #(
 	////////////////////////////////////////////////////////////////////////
 	//
 	// AXI-lite register logic
-	//
+	// {{{
 	////////////////////////////////////////////////////////////////////////
 	//
-	// {{{
+	//
 
 	// We place it into a receiver FIFO.
 
@@ -456,13 +448,21 @@ module	axilconsole #(
 	// We choose here to provide information about the transmit FIFO
 	// (txf_err, txf_half_full, txf_full_n), information about the current
 	// voltage on the line (o_uart_tx)--and even the voltage on the receive
-	// line (ck_uart), as well as our current setting of the break and
+	// line, as well as our current setting of the break and
 	// whether or not we are actively transmitting.
 	assign	axil_tx_data = { 16'h00, 
 				1'b0, txf_status[1:0], txf_err,
 				1'b0, o_uart_stb, 1'b0,
 				(i_uart_busy|tx_empty_n),
 				1'b0,(i_uart_busy|tx_empty_n)?o_uart_data:7'h0};
+
+`ifndef	VERILATOR
+	always @(posedge S_AXI_ACLK)
+	if (S_AXI_ARESETN && !tx_uart_reset && o_uart_stb && !i_uart_busy)
+	begin
+		$write("%c", o_uart_data);
+	end
+`endif
 	// }}}
 	////////////////////////////////////////////////////////////////////////
 	//
@@ -477,11 +477,11 @@ module	axilconsole #(
 	assign	axil_fifo_data = { txf_status, rxf_status };
 
 	// }}}
-	/////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////
 	//
 	// Final read register
 	// {{{
-	/////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////
 	//
 	// You may recall from above that reads take two clocks.  Hence, we
 	// need to delay the address decoding for a clock until the data is 
@@ -518,21 +518,6 @@ module	axilconsole #(
 			axil_read_data <= 0;
 	end
 	// }}}
-
-	function [C_AXI_DATA_WIDTH-1:0]	apply_wstrb;
-		input	[C_AXI_DATA_WIDTH-1:0]		prior_data;
-		input	[C_AXI_DATA_WIDTH-1:0]		new_data;
-		input	[C_AXI_DATA_WIDTH/8-1:0]	wstrb;
-
-		integer	k;
-		for(k=0; k<C_AXI_DATA_WIDTH/8; k=k+1)
-		begin
-			apply_wstrb[k*8 +: 8]
-				= wstrb[k] ? new_data[k*8 +: 8] : prior_data[k*8 +: 8];
-		end
-	endfunction
-	// }}}
-
 	////////////////////////////////////////////////////////////////////////
 	//
 	// Veri1ator lint-check
@@ -540,18 +525,21 @@ module	axilconsole #(
 	// Verilator lint_off UNUSED
 	wire	unused;
 	assign	unused = &{ 1'b0, S_AXI_AWPROT, S_AXI_ARPROT,
+			wskd_data[31:13], wskd_data[11:7],
 			S_AXI_ARADDR[ADDRLSB-1:0],
 			S_AXI_AWADDR[ADDRLSB-1:0] };
 	// Verilator lint_on  UNUSED
 	// }}}
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//
+// Formal properties used in verfiying this core
+// {{{
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 `ifdef	FORMAL
-	////////////////////////////////////////////////////////////////////////
-	//
-	// Formal properties used in verfiying this core
-	//
-	////////////////////////////////////////////////////////////////////////
-	//
-	// {{{
 	reg	f_past_valid;
 	initial	f_past_valid = 0;
 	always @(posedge S_AXI_ACLK)
@@ -638,13 +626,6 @@ module	axilconsole #(
 `ifdef	VERIFIC
 	assert property (@(posedge S_AXI_ACLK)
 		disable iff (!S_AXI_ARESETN || (S_AXI_RVALID && !S_AXI_RREADY))
-		S_AXI_ARVALID && S_AXI_ARREADY && S_AXI_ARADDR[3:2]== UART_SETUP
-		|=> r_preread && r_axil_addr == UART_SETUP
-		##1 S_AXI_RVALID && axil_read_data
-						== { 1'b0, $past(uart_setup) });
-			
-	assert property (@(posedge S_AXI_ACLK)
-		disable iff (!S_AXI_ARESETN || (S_AXI_RVALID && !S_AXI_RREADY))
 		S_AXI_ARVALID && S_AXI_ARREADY && S_AXI_ARADDR[3:2] == UART_FIFO
 		|=> r_preread && r_axil_addr == UART_FIFO
 		##1 S_AXI_RVALID && axil_read_data == $past(axil_fifo_data));
@@ -684,6 +665,6 @@ module	axilconsole #(
 	// application specific here
 
 	// }}}
-	// }}}
 `endif
+// }}}
 endmodule

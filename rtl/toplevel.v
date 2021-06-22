@@ -102,7 +102,7 @@ module	toplevel(
 	input	wire		i_cpu_resetn;
 	//
 	// Drive the AXI bus from an AXI-lite control
-	//
+	// {{{
 	input	wire				S_AXI_AWVALID;
 	output	wire				S_AXI_AWREADY;
 	input	wire [26-1:0]	S_AXI_AWADDR;
@@ -124,6 +124,7 @@ module	toplevel(
 	input	wire					S_AXI_RREADY;
 	output	wire	[32-1:0]	S_AXI_RDATA;
 	output	wire	[1:0]				S_AXI_RRESP;
+	// }}}
 
 
 	//

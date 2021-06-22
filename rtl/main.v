@@ -164,7 +164,7 @@ module	main(i_clk, i_reset,
 	input	wire		i_cpu_reset;
 	//
 	// Drive the AXI bus from an AXI-lite control
-	//
+	// {{{
 	input	wire				S_AXI_AWVALID;
 	output	wire				S_AXI_AWREADY;
 	input	wire [26-1:0]	S_AXI_AWADDR;
@@ -186,6 +186,7 @@ module	main(i_clk, i_reset,
 	input	wire					S_AXI_RREADY;
 	output	wire	[32-1:0]	S_AXI_RDATA;
 	output	wire	[1:0]				S_AXI_RRESP;
+	// }}}
 // }}}
 	// Make Verilator happy
 	// {{{
@@ -233,14 +234,19 @@ module	main(i_clk, i_reset,
 	wire		zip_trigger;
 	wire	[ZIP_INTS-1:0] zip_int_vector;
 	wire	axi_s2mm_wuser;
+	// Verilator lint_off UNUSED
+	wire	dma_cactive, dma_csysack;
+	// Verilator lint_on  UNUSED
+	// AXI RAM definitions
+	// {{{
 	wire	axiram_we, axiram_rd;
 	wire	[32-1:0]	axiram_wdata;
 	wire	[32/8-1:0]	axiram_wstrb;
 	reg	[32-1:0]	axiram_rdata;
-	wire	[24-2-1:0]		axiram_waddr, axiram_raddr;
+	wire	[24-$clog2(32/8)-1:0]		axiram_waddr, axiram_raddr;
 	reg	[32-1:0]	axiram_mem [0:(4194304-1)];
 	integer	axiram_ik;
-
+	// }}}
 	reg	streamsrc_tvalid, streamsrc_tlast;
 	wire	streamsrc_tready;
 	reg	[31:0]	streamsrc_tdata;
@@ -1733,6 +1739,7 @@ module	main(i_clk, i_reset,
 		// }}}
 	);
 
+		// }}}
 	// End of bus logic for axil
 	// }}}
 	//
@@ -3157,7 +3164,8 @@ module	main(i_clk, i_reset,
 		.RESET_ADDRESS(RESET_ADDRESS),
 		.C_AXI_ID_WIDTH(3),
 		.C_AXI_ADDR_WIDTH(ZIP_ADDRESS_WIDTH),
-		.LGICACHE(18),.OPT_LGDCACHE(18),
+		.C_AXI_DATA_WIDTH(32),
+		.LGICACHE(12),.OPT_LGDCACHE(12),
 		.START_HALTED(ZIP_START_HALTED),
 		.RESET_DURATION(20),
 		.SWAP_WSTRB(1)
@@ -3290,6 +3298,7 @@ module	main(i_clk, i_reset,
 		.o_debug(zip_debug)
 		// }}}
 	);
+
 	assign	zip_trigger = zip_debug[31];
 	// }}}
 	// }}}
@@ -3405,6 +3414,10 @@ module	main(i_clk, i_reset,
 		.C_AXI_ADDR_WIDTH(25),
 		.C_AXI_DATA_WIDTH(32),
 		.C_AXI_ID_WIDTH(3),
+`ifdef	VERILATOR
+		.OPT_LOWPOWER(1'b1),
+		.OPT_CLKGATE(1'b1),
+`endif
 		.AXI_READ_ID(3'b010),
 		.AXI_WRITE_ID(3'b011)
 		// }}}
@@ -3412,6 +3425,9 @@ module	main(i_clk, i_reset,
 		// {{{
 		.S_AXI_ACLK(i_clk),
 		.S_AXI_ARESETN(!i_reset),
+		.S_AXI_CSYSREQ(1'b0),
+		.S_AXI_CACTIVE(dma_cactive),
+		.S_AXI_CSYSACK(dma_csysack),
 		.S_AXIL_AWVALID(axil_dma_awvalid),
 		.S_AXIL_AWREADY(axil_dma_awready),
 		.S_AXIL_AWADDR( axil_dma_awaddr[5-1:0]),
@@ -3549,9 +3565,11 @@ module	main(i_clk, i_reset,
 		// }}}
 	);
 
+	// The companion SRAM implementation itself
+	// {{{
 	always @(posedge i_clk)
 	if (axiram_we)
-	for(axiram_ik=0; axiram_ik < 32/4;
+	for(axiram_ik=0; axiram_ik < 32/8;
 			axiram_ik = axiram_ik + 1)
 	begin
 		if (axiram_wstrb[axiram_ik])
@@ -3562,6 +3580,7 @@ module	main(i_clk, i_reset,
 	if (axiram_rd)
 		axiram_rdata <= axiram_mem[axiram_raddr];
 
+	// }}}
 	// }}}
 	////////////////////////////////////////////////////////////////////////
 	//
@@ -4085,6 +4104,8 @@ module	main(i_clk, i_reset,
 	// External (i.e. Verilator) bus controller
 	// {{{
 	//
+
+	// Convert from AXI-lite to AXI
 	axilite2axi #(
 		// {{{
 		.C_AXI_ADDR_WIDTH(26),
@@ -4097,7 +4118,8 @@ module	main(i_clk, i_reset,
 		// {{{
 		.ACLK(i_clk),
 		.ARESETN(!i_reset),
-		//
+		// AXI-lite input (slave interface)
+		// {{{
 		.S_AXI_AWVALID(S_AXI_AWVALID),
 		.S_AXI_AWREADY(S_AXI_AWREADY),
 		.S_AXI_AWADDR( S_AXI_AWADDR),
@@ -4121,7 +4143,9 @@ module	main(i_clk, i_reset,
 		.S_AXI_RREADY(S_AXI_RREADY),
 		.S_AXI_RDATA( S_AXI_RDATA),
 		.S_AXI_RRESP( S_AXI_RRESP),
-		//
+		// }}}
+		// AXI (full) outputs (master interface)
+		// {{{
 		.M_AXI_AWVALID(wbu_vibus_awvalid),
 		.M_AXI_AWREADY(wbu_vibus_awready),
 		.M_AXI_AWID(   wbu_vibus_awid),
@@ -4164,9 +4188,17 @@ module	main(i_clk, i_reset,
 		.M_AXI_RLAST( wbu_vibus_rlast),
 		.M_AXI_RRESP( wbu_vibus_rresp)
 		// }}}
+		// }}}
 	);
 
 	// }}}
+	////////////////////////////////////////////////////////////////////////
+	//
+	// AXI-lite peripherals for the ZipCPU
+	// {{{
+	////////////////////////////////////////////////////////////////////////
+	//
+	//
 	axilperiphs #(
 		.EXTERNAL_INTERRUPTS(15)
 	) axilpi (
@@ -4207,6 +4239,7 @@ module	main(i_clk, i_reset,
 		.o_watchdog_reset(axilp_watchdog)
 		// }}}
 	);
+	// }}}
 	////////////////////////////////////////////////////////////////////////
 	//
 	// AXI MM2S

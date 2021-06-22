@@ -66,7 +66,7 @@
 @MAIN.IODECL=
 	//
 	// Drive the AXI bus from an AXI-lite control
-	//
+	// {{{
 	input	wire				S_AXI_AWVALID;
 	output	wire				S_AXI_AWREADY;
 	input	wire [@$(MASTER.BUS.AWID)-1:0]	S_AXI_AWADDR;
@@ -88,12 +88,15 @@
 	input	wire					S_AXI_RREADY;
 	output	wire	[@$(MASTER.BUS.WIDTH)-1:0]	S_AXI_RDATA;
 	output	wire	[1:0]				S_AXI_RRESP;
+	// }}}
 @MAIN.INSERT=
 	////////////////////////////////////////////////////////////////////////
 	//
 	// External (i.e. Verilator) bus controller
 	// {{{
 	//
+
+	// Convert from AXI-lite to AXI
 	axilite2axi #(
 		// {{{
 		.C_AXI_ADDR_WIDTH(@$(MASTER.BUS.AWID)),
@@ -106,7 +109,8 @@
 		// {{{
 		.ACLK(i_clk),
 		.ARESETN(!i_reset),
-		//
+		// AXI-lite input (slave interface)
+		// {{{
 		.S_AXI_AWVALID(S_AXI_AWVALID),
 		.S_AXI_AWREADY(S_AXI_AWREADY),
 		.S_AXI_AWADDR( S_AXI_AWADDR),
@@ -130,8 +134,11 @@
 		.S_AXI_RREADY(S_AXI_RREADY),
 		.S_AXI_RDATA( S_AXI_RDATA),
 		.S_AXI_RRESP( S_AXI_RRESP),
-		//
+		// }}}
+		// AXI (full) outputs (master interface)
+		// {{{
 		@$(MASTER.ANSIPORTLIST)
+		// }}}
 		// }}}
 	);
 

@@ -72,10 +72,10 @@ typedef struct	AXIPERF_S {
 			p_awbytes, p_wbytes, p_wrslowd, p_wrstalls, p_wraddrlag,
 			p_wrdatalag, p_awearly, p_wrearlyd, p_awstall,
 			p_wr_early_stall, p_wrblags, p_wrbstall;
-	unsigned	p_unused[2];
+	unsigned	p_unused;
 	unsigned	p_wrbias, p_awrcycles, p_wrcycles;
 	unsigned	p_rdidles, p_rdmaxb, p_rdbursts, p_rdbeats, p_rdbytes,
-			p_rrdarstalls, p_rdrstalls, p_rdlag, p_rdslow;
+			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow;
 	unsigned	p_control;
 } AXIPERF;
 
@@ -95,10 +95,10 @@ typedef struct	AXIPERF_S {
 			p_awbytes, p_wbytes, p_wrslowd, p_wrstalls, p_wraddrlag,
 			p_wrdatalag, p_awearly, p_wrearlyd, p_awstall,
 			p_wr_early_stall, p_wrblags, p_wrbstall;
-	unsigned	p_unused[2];
+	unsigned	p_unused;
 	unsigned	p_wrbias, p_awrcycles, p_wrcycles;
 	unsigned	p_rdidles, p_rdmaxb, p_rdbursts, p_rdbeats, p_rdbytes,
-			p_rrdarstalls, p_rdrstalls, p_rdlag, p_rdslow;
+			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow;
 	unsigned	p_control;
 } AXIPERF;
 
@@ -118,10 +118,10 @@ typedef struct	AXIPERF_S {
 			p_awbytes, p_wbytes, p_wrslowd, p_wrstalls, p_wraddrlag,
 			p_wrdatalag, p_awearly, p_wrearlyd, p_awstall,
 			p_wr_early_stall, p_wrblags, p_wrbstall;
-	unsigned	p_unused[2];
+	unsigned	p_unused;
 	unsigned	p_wrbias, p_awrcycles, p_wrcycles;
 	unsigned	p_rdidles, p_rdmaxb, p_rdbursts, p_rdbeats, p_rdbytes,
-			p_rrdarstalls, p_rdrstalls, p_rdlag, p_rdslow;
+			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow;
 	unsigned	p_control;
 } AXIPERF;
 
@@ -141,10 +141,10 @@ typedef struct	AXIPERF_S {
 			p_awbytes, p_wbytes, p_wrslowd, p_wrstalls, p_wraddrlag,
 			p_wrdatalag, p_awearly, p_wrearlyd, p_awstall,
 			p_wr_early_stall, p_wrblags, p_wrbstall;
-	unsigned	p_unused[2];
+	unsigned	p_unused;
 	unsigned	p_wrbias, p_awrcycles, p_wrcycles;
 	unsigned	p_rdidles, p_rdmaxb, p_rdbursts, p_rdbeats, p_rdbytes,
-			p_rrdarstalls, p_rdrstalls, p_rdlag, p_rdslow;
+			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow;
 	unsigned	p_control;
 } AXIPERF;
 
@@ -168,15 +168,19 @@ typedef	struct	S2MM_S {
 #define	ALTPIC(A)	(1<<(A))
 
 
+
+#define DMA_START_CMD           0x00000011
+#define DMA_BUSY_BIT            0x00000001
+
 typedef struct  AXIDMA_S {
-        unsigned        a_control;
-        unsigned        a_unused1;
-        unsigned        *a_src;
-        unsigned        a_unused2;
-        unsigned        *a_dest;
-        unsigned        a_unused3;
-        unsigned        a_len;
-        unsigned        a_unused4;
+        unsigned	a_control;
+        unsigned	a_unused1;
+        char		*a_src;
+        unsigned	a_unused2;
+        char		*a_dest;
+        unsigned	a_unused3;
+        unsigned	a_len;
+        unsigned	a_unused4;
 } AXIDMA;
 
 
@@ -194,10 +198,10 @@ typedef struct	AXIPERF_S {
 			p_awbytes, p_wbytes, p_wrslowd, p_wrstalls, p_wraddrlag,
 			p_wrdatalag, p_awearly, p_wrearlyd, p_awstall,
 			p_wr_early_stall, p_wrblags, p_wrbstall;
-	unsigned	p_unused[2];
+	unsigned	p_unused;
 	unsigned	p_wrbias, p_awrcycles, p_wrcycles;
 	unsigned	p_rdidles, p_rdmaxb, p_rdbursts, p_rdbeats, p_rdbytes,
-			p_rrdarstalls, p_rdrstalls, p_rdlag, p_rdslow;
+			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow;
 	unsigned	p_control;
 } AXIPERF;
 
@@ -227,10 +231,10 @@ typedef struct	AXIPERF_S {
 			p_awbytes, p_wbytes, p_wrslowd, p_wrstalls, p_wraddrlag,
 			p_wrdatalag, p_awearly, p_wrearlyd, p_awstall,
 			p_wr_early_stall, p_wrblags, p_wrbstall;
-	unsigned	p_unused[2];
+	unsigned	p_unused;
 	unsigned	p_wrbias, p_awrcycles, p_wrcycles;
 	unsigned	p_rdidles, p_rdmaxb, p_rdbursts, p_rdbeats, p_rdbytes,
-			p_rrdarstalls, p_rdrstalls, p_rdlag, p_rdslow;
+			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow;
 	unsigned	p_control;
 } AXIPERF;
 

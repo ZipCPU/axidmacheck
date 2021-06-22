@@ -119,7 +119,9 @@
 
 
 #define	AXIRAM	VVAR(_axiram_mem)
+#ifndef	RAMSIZE
 #define	RAMSIZE	(1<<24)
+#endif
 
 #define	block_ram	VVAR(_axiram_mem)
 class	MAINTB : public TESTB<Vmain> {

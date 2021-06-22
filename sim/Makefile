@@ -52,7 +52,7 @@ VROOT	:= $(VERILATOR_ROOT)
 VDEFS   := $(shell ./vversion.sh)
 VINCD   := $(VROOT)/include
 VINC	:= -I$(VINCD) -I$(VINCD)/vltstd -I$(VOBJDR)
-INCS	:= -I../sw -I$(RTLD) $(VINC) -I../sw/host
+INCS	:= -I../sw/host -I$(RTLD) $(VINC) -I../sw/host
 CFLAGS	:= -Og -g -Wall $(INCS) $(VDEFS) -DVM_COVERAGE=1 -D__WORDSIZE=64
 #
 # A list of our sources and headers

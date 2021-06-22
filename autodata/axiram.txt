@@ -39,19 +39,23 @@
 ## }}}
 @PREFIX=axiram
 @$LGRAM=24
-@$NADDR=(1<<@$(LGRAM))/4
+@LGRAMW=@$(LGRAM)-$clog2(@$(SLAVE.BUS.WIDTH)/8)
+@$NADDR=(1<<@$(LGRAM))/(@$(SLAVE.BUS.WIDTH)/8)
 @SLAVE.BUS=axi
 @SLAVE.TYPE=MEMORY
 @CLOCK=clk
+@LD.PERM=wx
 @MAIN.DEFNS=
+	// AXI RAM definitions
+	// {{{
 	wire	@$(PREFIX)_we, @$(PREFIX)_rd;
 	wire	[@$(SLAVE.BUS.WIDTH)-1:0]	@$(PREFIX)_wdata;
 	wire	[@$(SLAVE.BUS.WIDTH)/8-1:0]	@$(PREFIX)_wstrb;
 	reg	[@$(SLAVE.BUS.WIDTH)-1:0]	@$(PREFIX)_rdata;
-	wire	[@$(LGRAM)-2-1:0]		@$(PREFIX)_waddr, @$(PREFIX)_raddr;
+	wire	[@$(LGRAMW)-1:0]		@$(PREFIX)_waddr, @$(PREFIX)_raddr;
 	reg	[@$(SLAVE.BUS.WIDTH)-1:0]	@$(PREFIX)_mem [0:(@$(NADDR)-1)];
 	integer	@$(PREFIX)_ik;
-
+	// }}}
 @MAIN.INSERT=
 	////////////////////////////////////////////////////////////////////////
 	//
@@ -66,7 +70,7 @@
 		// }}}
 	) @$(PREFIX)i (
 		// {{{
-		.S_AXI_ACLK(i_clk),
+		.S_AXI_ACLK(@$(SLAVE.BUS.CLOCK.WIRE)),
 		.S_AXI_ARESETN(@$(SLAVE.BUS.RESET)),
 		//
 		.o_we(@$(PREFIX)_we),
@@ -81,9 +85,11 @@
 		// }}}
 	);
 
+	// The companion SRAM implementation itself
+	// {{{
 	always @(posedge i_clk)
 	if (@$(PREFIX)_we)
-	for(@$(PREFIX)_ik=0; @$(PREFIX)_ik < @$(SLAVE.BUS.WIDTH)/4;
+	for(@$(PREFIX)_ik=0; @$(PREFIX)_ik < @$(SLAVE.BUS.WIDTH)/8;
 			@$(PREFIX)_ik = @$(PREFIX)_ik + 1)
 	begin
 		if (@$(PREFIX)_wstrb[@$(PREFIX)_ik])
@@ -95,12 +101,19 @@
 		@$(PREFIX)_rdata <= @$(PREFIX)_mem[@$(PREFIX)_raddr];
 
 	// }}}
+	// }}}
 @REGS.N=1
 @REGS.0=0 R_AXIRAM AXIRAM RAM
+@REGDEFS.H.INSERT=
+
+#define	RAMSIZE	(1u<<@$(LGRAM))
+
 @SIM.DEFINES=
 
 #define	AXIRAM	VVAR(_axiram_mem)
+#ifndef	RAMSIZE
 #define	RAMSIZE	(1<<@$(LGRAM))
+#endif
 
 #define	block_ram	VVAR(_@$(PREFIX)_mem)
 @SIM.LOAD=
