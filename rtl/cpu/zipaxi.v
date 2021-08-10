@@ -738,7 +738,7 @@ module	zipaxi #(
 		.o_pf_new_pc(pf_new_pc), .o_clear_icache(clear_icache),
 		.o_pf_ready(pf_ready),
 			.o_pf_request_address(pf_request_address),
-		.i_pf_valid(pf_valid),
+		.i_pf_valid(pf_valid && cpu_clken),
 			.i_pf_illegal(pf_illegal),
 			.i_pf_instruction(pf_instruction),
 			.i_pf_instruction_pc(pf_instruction_pc),
@@ -815,7 +815,7 @@ module	zipaxi #(
 			.i_cpu_reset(cmd_reset),
 			.i_new_pc(pf_new_pc),
 			.i_clear_cache(clear_icache),
-			.i_ready(pf_ready),
+			.i_ready(pf_ready && cpu_clken),
 			.i_pc(pf_request_address),
 			.o_insn(pf_instruction),
 			.o_pc(pf_instruction_pc),
@@ -864,7 +864,7 @@ module	zipaxi #(
 			.i_cpu_reset(cmd_reset),
 			.i_new_pc(pf_new_pc),
 			.i_clear_cache(clear_icache),
-			.i_ready(pf_ready),
+			.i_ready(pf_ready && cpu_clken),
 			.i_pc(pf_request_address),
 			.o_insn(pf_instruction),
 			.o_pc(pf_instruction_pc),
@@ -1249,7 +1249,7 @@ module	zipaxi #(
 	generate if (OPT_GATE_CLOCK)
 	begin : GATE_CPU_CLOCK
 
-		reg	gatep, gaten;
+		reg	gatep, gaten, gated;
 
 		always @(posedge S_AXI_ACLK)
 		if (!S_AXI_ARESETN)
@@ -1263,8 +1263,14 @@ module	zipaxi #(
 		else
 			gaten <= gatep;
 
+		always @(posedge S_AXI_ACLK)
+		if (!S_AXI_ARESETN)
+			gated <= 1'b1;
+		else
+			gated <= gatep;
+
 		assign	cpu_clock = S_AXI_ACLK && gaten;
-		assign	clk_gate = gaten;
+		assign	clk_gate = gated;
 
 	end else begin : NO_CLOCK_GATE
 
