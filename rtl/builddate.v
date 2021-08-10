@@ -39,6 +39,6 @@
 //
 // }}}
 `ifndef	DATESTAMP
-`define DATESTAMP 32'h20210622
-`define BUILDTIME 32'h00112116
+`define DATESTAMP 32'h20210808
+`define BUILDTIME 32'h00043449
 `endif

@@ -282,8 +282,16 @@ module	axipipe #(
 			axi_size <= AXILSB[2:0];
 		else begin
 			casez(i_op[2:1])
-			2'b0?: axi_size <= 3'b010;
-			2'b10: axi_size <= 3'b001;
+			2'b0?: begin
+				axi_size <= 3'b010;
+				if ((|i_addr[1:0]) && !w_misaligned)
+					axi_size <= AXILSB[2:0];
+				end
+			2'b10: begin
+				axi_size <= 3'b001;
+				if (i_addr[0] && !w_misaligned)
+					axi_size <= AXILSB[2:0];
+				end
 			2'b11: axi_size <= 3'b000;
 			// default: begin end
 			endcase
@@ -757,11 +765,11 @@ module	axipipe #(
 
 		casez(i_op[2:1])
 		2'b0?: wide_wstrb
-			= { 4'b1111, {(C_AXI_DATA_WIDTH/4-4){1'b0}} } >> i_addr[AXILSB-1:0];
+			= { 4'b1111, {(2*C_AXI_DATA_WIDTH/8-4){1'b0}} } >> i_addr[AXILSB-1:0];
 		2'b10: wide_wstrb
-			= { 2'b11, {(C_AXI_DATA_WIDTH/4-2){1'b0}} } >> i_addr[AXILSB-1:0];
+			= { 2'b11, {(2*C_AXI_DATA_WIDTH/8-2){1'b0}} } >> i_addr[AXILSB-1:0];
 		2'b11: wide_wstrb
-			= { 1'b1, {(C_AXI_DATA_WIDTH/4-1){1'b0}} } >> i_addr[AXILSB-1:0];
+			= { 1'b1, {(2*C_AXI_DATA_WIDTH/8-1){1'b0}} } >> i_addr[AXILSB-1:0];
 		endcase
 		// }}}
 	end else begin : LITTLE_ENDIAN_DATA
@@ -780,11 +788,11 @@ module	axipipe #(
 
 		casez(i_op[2:1])
 		2'b0?: wide_wstrb
-			= { {(C_AXI_DATA_WIDTH/4-4){1'b0}}, 4'b1111} << i_addr[AXILSB-1:0];
+			= { {(2*C_AXI_DATA_WIDTH/8-4){1'b0}}, 4'b1111} << i_addr[AXILSB-1:0];
 		2'b10: wide_wstrb
-			= { {(C_AXI_DATA_WIDTH/4-4){1'b0}}, 4'b0011} << i_addr[AXILSB-1:0];
+			= { {(2*C_AXI_DATA_WIDTH/8-4){1'b0}}, 4'b0011} << i_addr[AXILSB-1:0];
 		2'b11: wide_wstrb
-			= { {(C_AXI_DATA_WIDTH/4-4){1'b0}}, 4'b0001} << i_addr[AXILSB-1:0];
+			= { {(2*C_AXI_DATA_WIDTH/8-4){1'b0}}, 4'b0001} << i_addr[AXILSB-1:0];
 		endcase
 		// }}}
 	end

@@ -409,10 +409,10 @@ module	axilfetch #(
 		if (fifo_empty)
 			out_fill <= 0;
 		else if (o_valid)
-			out_fill <= INSNS_PER_WORD;
+			out_fill <= INSNS_PER_WORD[FILLBITS:0];
 		else
 			// Verilator lint_off WIDTH
-			out_fill <= (INSNS_PER_WORD - shift);
+			out_fill <= (INSNS_PER_WORD[FILLBITS:0] - shift);
 			// Verilator lint_on  WIDTH
 	end else if (i_ready && out_fill > 0)
 		out_fill <= out_fill - 1;

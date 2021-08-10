@@ -1354,10 +1354,10 @@ module	main(i_clk, i_reset,
 			axil_dma_awvalid,
 			axil_streamsink_awvalid
 		}),
-		.M_AXI_AWADDR(axil_diow_awaddr),
-		.M_AXI_AWPROT(axil_diow_awprot),
-		.M_AXI_WDATA( axil_diow_wdata),
-		.M_AXI_WSTRB( axil_diow_wstrb),
+		.M_AXI_AWADDR( axil_diow_awaddr),
+		.M_AXI_AWPROT( axil_diow_awprot),
+		.M_AXI_WDATA(  axil_diow_wdata),
+		.M_AXI_WSTRB(  axil_diow_wstrb),
 		//
 		//
 		.M_AXI_BRESP({
@@ -1385,8 +1385,8 @@ module	main(i_clk, i_reset,
 			axil_dma_arvalid,
 			axil_streamsink_arvalid
 		}),
-		.M_AXI_ARADDR(axil_diow_araddr),
-		.M_AXI_ARPROT(axil_diow_arprot),
+		.M_AXI_ARADDR( axil_diow_araddr),
+		.M_AXI_ARPROT( axil_diow_arprot),
 		//
 		.M_AXI_RDATA({
 			axil_s2mmperf_rdata,
@@ -1539,6 +1539,7 @@ module	main(i_clk, i_reset,
 	assign axil_streamsink_arprot = axil_diow_arprot;
 	assign axil_streamsink_rready = 1'b1;
 	// }}}
+	////////////////////////////////////////////////////////////////////////
 	//
 	// Connect the axil bus components together using the axilxbar()
 	// {{{
@@ -1784,7 +1785,7 @@ module	main(i_clk, i_reset,
 		// {{{
 		.S_AXI_ACLK(i_clk),
 		.S_AXI_ARESETN(!i_reset),
-		// Master ports
+		// Connections from masters
 		// {{{
 		.S_AXI_AWVALID({
 			axi_mm2s_awvalid,
@@ -2292,7 +2293,7 @@ module	main(i_clk, i_reset,
 		// {{{
 		.S_AXI_ACLK(i_clk),
 		.S_AXI_ARESETN(!i_reset),
-		// Master ports
+		// Connections from masters
 		// {{{
 		.S_AXI_AWVALID({
 			wbu_vibus_awvalid,
@@ -2614,7 +2615,7 @@ module	main(i_clk, i_reset,
 	// BUS-LOGIC for dbgaxil
 	// {{{
 	//
-	// Bus dbgaxil has only one master (dbgaxil) and one slave (zip)
+	// Bus dbgaxil has only one master (dbgaxil) and one slave (dbgaxil_zip)
 	// connected to it -- skipping the interconnect
 	//
 	assign	dbgaxil_zip_awvalid = dbgaxil_dbgaxil_awvalid;
@@ -2622,10 +2623,10 @@ module	main(i_clk, i_reset,
 	assign	dbgaxil_zip_awaddr  = dbgaxil_dbgaxil_awaddr;
 	assign	dbgaxil_zip_awprot  = dbgaxil_dbgaxil_awprot;
 	//
-	assign	dbgaxil_zip_wvalid = dbgaxil_dbgaxil_wvalid;
-	assign	dbgaxil_dbgaxil_wready = dbgaxil_zip_wready;
-	assign	dbgaxil_zip_wdata  = dbgaxil_dbgaxil_wdata;
-	assign	dbgaxil_zip_wstrb  = dbgaxil_dbgaxil_wstrb;
+	assign	dbgaxil_zip_wvalid  = dbgaxil_dbgaxil_wvalid;
+	assign	dbgaxil_dbgaxil_wready  = dbgaxil_zip_wready;
+	assign	dbgaxil_zip_wdata   = dbgaxil_dbgaxil_wdata;
+	assign	dbgaxil_zip_wstrb   = dbgaxil_dbgaxil_wstrb;
 	//
 	assign	dbgaxil_dbgaxil_bvalid  = dbgaxil_zip_bvalid;
 	assign	dbgaxil_zip_bready  = dbgaxil_dbgaxil_bready;
