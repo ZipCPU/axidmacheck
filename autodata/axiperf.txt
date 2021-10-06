@@ -114,7 +114,7 @@
 //
 // AXI Performance monitor for @$(DEVID)
 //
-@REGS.N=31
+@REGS.N=32
 @REGS.0=0   R_@$(DEVID)ACTIVE    @$(DEVID)ACTIVE
 @REGS.1=1   R_@$(DEVID)BURSTSZ   @$(DEVID)BURSTSZ
 @REGS.2=2   R_@$(DEVID)WRIDLES   @$(DEVID)WRIDLES
@@ -132,22 +132,23 @@
 @REGS.14=14 R_@$(DEVID)EARLYST   @$(DEVID)EARLYST
 @REGS.15=15 R_@$(DEVID)WRBLAGS   @$(DEVID)WRBLAGS
 @REGS.16=16 R_@$(DEVID)WRBSTALL  @$(DEVID)WRBSTALL
+@REGS.17=17 R_@$(DEVID)WRBEND    @$(DEVID)WRBEND
 ##
-@REGS.17=18 R_@$(DEVID)WRBIAS    @$(DEVID)WRBIAS
-@REGS.18=19 R_@$(DEVID)AWCYCLES  @$(DEVID)AWCYCLES
-@REGS.19=20 R_@$(DEVID)WRCYCLES   @$(DEVID)WRCYCLES
+@REGS.18=18 R_@$(DEVID)WRBIAS    @$(DEVID)WRBIAS
+@REGS.19=19 R_@$(DEVID)WUNUSED   @$(DEVID)WUNUSED
 ##
-@REGS.20=21 R_@$(DEVID)RDIDLES    @$(DEVID)RDIDLES
-@REGS.21=22 R_@$(DEVID)RDMAXB     @$(DEVID)RDMAXB
-@REGS.22=23 R_@$(DEVID)RDBURSTS   @$(DEVID)RDBURSTS
-@REGS.23=24 R_@$(DEVID)RDBEATS    @$(DEVID)RDBEATS
-@REGS.24=25 R_@$(DEVID)RDBYTES    @$(DEVID)RDBYTES
-@REGS.25=27 R_@$(DEVID)RDARCYCLES @$(DEVID)RDARSCYCLES
-@REGS.25=27 R_@$(DEVID)RDARSTALLS @$(DEVID)RDARSTALLS
-@REGS.26=28 R_@$(DEVID)RDRSTALLS  @$(DEVID)RDRSTALLS
-@REGS.27=29 R_@$(DEVID)RDLAG      @$(DEVID)RDLAG
-@REGS.28=30 R_@$(DEVID)RDSLOW     @$(DEVID)RDSLOW
-@REGS.29=31 R_@$(DEVID)CONTROL    @$(DEVID)CONTROL
+@REGS.20=20 R_@$(DEVID)RDIDLES    @$(DEVID)RDIDLES
+@REGS.21=21 R_@$(DEVID)RDMAXB     @$(DEVID)RDMAXB
+@REGS.22=22 R_@$(DEVID)RDBURSTS   @$(DEVID)RDBURSTS
+@REGS.23=23 R_@$(DEVID)RDBEATS    @$(DEVID)RDBEATS
+@REGS.24=24 R_@$(DEVID)RDBYTES    @$(DEVID)RDBYTES
+@REGS.25=25 R_@$(DEVID)RDARCYCLES @$(DEVID)RDARSCYCLES
+@REGS.26=26 R_@$(DEVID)RDARSTALLS @$(DEVID)RDARSTALLS
+@REGS.27=27 R_@$(DEVID)RDRSTALLS  @$(DEVID)RDRSTALLS
+@REGS.28=28 R_@$(DEVID)RDLAG      @$(DEVID)RDLAG
+@REGS.29=29 R_@$(DEVID)RDSLOW     @$(DEVID)RDSLOW
+@REGS.30=30 R_@$(DEVID)RDFIRSTLAG @$(DEVID)RDFIRSTLAG
+@REGS.31=31 R_@$(DEVID)CONTROL    @$(DEVID)CONTROL
 
 @BDEF.DEFN=
 #ifndef	AXIPERF_H
@@ -162,11 +163,11 @@ typedef struct	AXIPERF_S {
 	unsigned	p_active, p_burstsz, p_wridles, p_awrbursts, p_wrbeats,
 			p_awbytes, p_wbytes, p_wrslowd, p_wrstalls, p_wraddrlag,
 			p_wrdatalag, p_awearly, p_wrearlyd, p_awstall,
-			p_wr_early_stall, p_wrblags, p_wrbstall;
-	unsigned	p_unused;
-	unsigned	p_wrbias, p_awrcycles, p_wrcycles;
+			p_wr_early_stall, p_wrblags, p_wrbstall, p_wrbend;
+	unsigned	p_wrbias, p_wrunused;
 	unsigned	p_rdidles, p_rdmaxb, p_rdbursts, p_rdbeats, p_rdbytes,
-			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow;
+			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow,
+			p_rdfirst_lag;
 	unsigned	p_control;
 } AXIPERF;
 

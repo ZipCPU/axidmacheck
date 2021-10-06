@@ -202,7 +202,7 @@ int	main(int argc, char **argv) {
 		//
 		// Test the AXIMM2S
 		// {{{
-		memset(tb->TBRAM, -1, RAMSIZE);
+		memset((void *)&tb->TBRAM[0], -1, RAMSIZE);
 		for(int k=0; k<MM2S_LENGTHW; k++)
 			tb->TBRAM[k+MM2S_START_ADDRW] = k;
 		tb->write64(R_MM2SADDRLO, (uint64_t)MM2S_START_ADDR + R_AXIRAM);
@@ -220,7 +220,7 @@ int	main(int argc, char **argv) {
 		printf("\tCOUNTS: 0x%08lx\n", tb->tickcount()-start_counts);
 
 		// Try aborting an AXIMM2S transaction
-		memset(tb->TBRAM, -1, RAMSIZE);
+		memset((void *)&tb->TBRAM[0], -1, RAMSIZE);
 		for(int k=0; k<MM2S_LENGTHW; k++)
 			tb->TBRAM[k+MM2S_START_ADDRW] = k;
 		tb->write64(R_MM2SADDRLO, (uint64_t)MM2S_START_ADDR + R_AXIRAM);
@@ -241,7 +241,7 @@ int	main(int argc, char **argv) {
 		printf("\tCOUNTS: 0x%08lx\n", tb->tickcount()-start_counts);
 	
 		// Try an unaligned AXIMM2S transaction
-		memset(tb->TBRAM, -1, RAMSIZE);
+		memset((void *)&tb->TBRAM[0], -1, RAMSIZE);
 		for(int k=0; k<MM2S_LENGTHW; k++)
 			tb->TBRAM[k+MM2S_START_ADDRW] = k;
 		tb->write64(R_MM2SADDRLO, (uint64_t)MM2S_START_ADDR + R_AXIRAM + 3);
@@ -262,7 +262,7 @@ int	main(int argc, char **argv) {
 			printf("AXIMM2S (unaligned) Check: No unaligned support (0x%08x)\n", tb->readio(R_MM2SADDRLO));
 
 		// Try a continuous transaction
-		memset(tb->TBRAM, -1, RAMSIZE);
+		memset((void *)&tb->TBRAM[0], -1, RAMSIZE);
 		for(int k=0; k<MM2S_LENGTHW; k++)
 			tb->TBRAM[k+MM2S_START_ADDRW] = k;
 		tb->write64(R_MM2SADDRLO, (uint64_t)MM2S_START_ADDR + R_AXIRAM);
@@ -300,7 +300,7 @@ int	main(int argc, char **argv) {
 		// Test the AXIS2MM
 		// {{{
 		//
-		memset(tb->TBRAM, -1, RAMSIZE);
+		memset((void *)&tb->TBRAM[0], -1, RAMSIZE);
 		tb->write64(R_S2MMADDRLO, (uint64_t)S2MM_START_ADDR + R_AXIRAM);
 		tb->write64(R_S2MMLENLO,  (uint64_t)S2MM_LENGTH);
 		start_counts = tb->tickcount();
@@ -327,7 +327,7 @@ int	main(int argc, char **argv) {
 
 		// Try it again--this time aborting the transaction midway
 		start_counts = tb->tickcount();
-		memset(tb->TBRAM, -1, RAMSIZE);
+		memset((void *)&tb->TBRAM[0], -1, RAMSIZE);
 		tb->write64(R_S2MMADDRLO, (uint64_t)S2MM_START_ADDR + R_AXIRAM);
 		tb->write64(R_S2MMLENLO,  (uint64_t)S2MM_LENGTH);
 		start_counts = tb->tickcount();
@@ -367,7 +367,7 @@ int	main(int argc, char **argv) {
 		// {{{
 		//
 		printf("Running AXI DMA test\n");
-		memset(tb->TBRAM, -1, RAMSIZE);
+		memset((void *)&tb->TBRAM[0], -1, RAMSIZE);
 		tb->write64(R_AXIDMASRCLO,  (uint64_t)DMA_SRC_ADDR + R_AXIRAM);
 		tb->write64(R_AXIDMADSTLO,  (uint64_t)DMA_DST_ADDR + R_AXIRAM);
 		tb->write64(R_AXIDMALENLO,  (uint64_t)DMA_LENGTH);
@@ -389,7 +389,7 @@ int	main(int argc, char **argv) {
 		// }}}
 	}
 
-	VerilatedCov::write("logs/coverage.dat");
+	// VerilatedCov::write("logs/coverage.dat");
 	tb->close();
 	delete tb;
 

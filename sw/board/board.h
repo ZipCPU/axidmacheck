@@ -49,8 +49,7 @@
 #include <design.h>
 #include <cpudefs.h>
 
-#define	_HAVE_ZIPSYS
-#define	PIC	_zip->z_pic
+#define	PIC	_axilp->z_pic
 
 #ifdef	INCLUDE_ZIPCPU
 #ifdef INCLUDE_ACCOUNTING_COUNTERS
@@ -71,11 +70,11 @@ typedef struct	AXIPERF_S {
 	unsigned	p_active, p_burstsz, p_wridles, p_awrbursts, p_wrbeats,
 			p_awbytes, p_wbytes, p_wrslowd, p_wrstalls, p_wraddrlag,
 			p_wrdatalag, p_awearly, p_wrearlyd, p_awstall,
-			p_wr_early_stall, p_wrblags, p_wrbstall;
-	unsigned	p_unused;
-	unsigned	p_wrbias, p_awrcycles, p_wrcycles;
+			p_wr_early_stall, p_wrblags, p_wrbstall, p_wrbend;
+	unsigned	p_wrbias, p_wrunused;
 	unsigned	p_rdidles, p_rdmaxb, p_rdbursts, p_rdbeats, p_rdbytes,
-			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow;
+			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow,
+			p_rdfirst_lag;
 	unsigned	p_control;
 } AXIPERF;
 
@@ -94,11 +93,11 @@ typedef struct	AXIPERF_S {
 	unsigned	p_active, p_burstsz, p_wridles, p_awrbursts, p_wrbeats,
 			p_awbytes, p_wbytes, p_wrslowd, p_wrstalls, p_wraddrlag,
 			p_wrdatalag, p_awearly, p_wrearlyd, p_awstall,
-			p_wr_early_stall, p_wrblags, p_wrbstall;
-	unsigned	p_unused;
-	unsigned	p_wrbias, p_awrcycles, p_wrcycles;
+			p_wr_early_stall, p_wrblags, p_wrbstall, p_wrbend;
+	unsigned	p_wrbias, p_wrunused;
 	unsigned	p_rdidles, p_rdmaxb, p_rdbursts, p_rdbeats, p_rdbytes,
-			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow;
+			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow,
+			p_rdfirst_lag;
 	unsigned	p_control;
 } AXIPERF;
 
@@ -117,11 +116,11 @@ typedef struct	AXIPERF_S {
 	unsigned	p_active, p_burstsz, p_wridles, p_awrbursts, p_wrbeats,
 			p_awbytes, p_wbytes, p_wrslowd, p_wrstalls, p_wraddrlag,
 			p_wrdatalag, p_awearly, p_wrearlyd, p_awstall,
-			p_wr_early_stall, p_wrblags, p_wrbstall;
-	unsigned	p_unused;
-	unsigned	p_wrbias, p_awrcycles, p_wrcycles;
+			p_wr_early_stall, p_wrblags, p_wrbstall, p_wrbend;
+	unsigned	p_wrbias, p_wrunused;
 	unsigned	p_rdidles, p_rdmaxb, p_rdbursts, p_rdbeats, p_rdbytes,
-			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow;
+			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow,
+			p_rdfirst_lag;
 	unsigned	p_control;
 } AXIPERF;
 
@@ -140,11 +139,11 @@ typedef struct	AXIPERF_S {
 	unsigned	p_active, p_burstsz, p_wridles, p_awrbursts, p_wrbeats,
 			p_awbytes, p_wbytes, p_wrslowd, p_wrstalls, p_wraddrlag,
 			p_wrdatalag, p_awearly, p_wrearlyd, p_awstall,
-			p_wr_early_stall, p_wrblags, p_wrbstall;
-	unsigned	p_unused;
-	unsigned	p_wrbias, p_awrcycles, p_wrcycles;
+			p_wr_early_stall, p_wrblags, p_wrbstall, p_wrbend;
+	unsigned	p_wrbias, p_wrunused;
 	unsigned	p_rdidles, p_rdmaxb, p_rdbursts, p_rdbeats, p_rdbytes,
-			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow;
+			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow,
+			p_rdfirst_lag;
 	unsigned	p_control;
 } AXIPERF;
 
@@ -197,11 +196,11 @@ typedef struct	AXIPERF_S {
 	unsigned	p_active, p_burstsz, p_wridles, p_awrbursts, p_wrbeats,
 			p_awbytes, p_wbytes, p_wrslowd, p_wrstalls, p_wraddrlag,
 			p_wrdatalag, p_awearly, p_wrearlyd, p_awstall,
-			p_wr_early_stall, p_wrblags, p_wrbstall;
-	unsigned	p_unused;
-	unsigned	p_wrbias, p_awrcycles, p_wrcycles;
+			p_wr_early_stall, p_wrblags, p_wrbstall, p_wrbend;
+	unsigned	p_wrbias, p_wrunused;
 	unsigned	p_rdidles, p_rdmaxb, p_rdbursts, p_rdbeats, p_rdbytes,
-			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow;
+			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow,
+			p_rdfirst_lag;
 	unsigned	p_control;
 } AXIPERF;
 
@@ -230,11 +229,11 @@ typedef struct	AXIPERF_S {
 	unsigned	p_active, p_burstsz, p_wridles, p_awrbursts, p_wrbeats,
 			p_awbytes, p_wbytes, p_wrslowd, p_wrstalls, p_wraddrlag,
 			p_wrdatalag, p_awearly, p_wrearlyd, p_awstall,
-			p_wr_early_stall, p_wrblags, p_wrbstall;
-	unsigned	p_unused;
-	unsigned	p_wrbias, p_awrcycles, p_wrcycles;
+			p_wr_early_stall, p_wrblags, p_wrbstall, p_wrbend;
+	unsigned	p_wrbias, p_wrunused;
 	unsigned	p_rdidles, p_rdmaxb, p_rdbursts, p_rdbeats, p_rdbytes,
-			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow;
+			p_arcycles, p_arstalls, p_rdrstalls, p_rdlag, p_rdslow,
+			p_rdfirst_lag;
 	unsigned	p_control;
 } AXIPERF;
 

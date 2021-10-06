@@ -15,7 +15,7 @@
 // Copyright (C) 2020-2021, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
-// modify it under the terms of  the GNU General Public License as published
+// modify it under the terms of the GNU General Public License as published
 // by the Free Software Foundation, either version 3 of the License, or (at
 // your option) any later version.
 //
@@ -93,7 +93,7 @@ module	axilfetch #(
 	reg	[W:0]			new_flushcount, outstanding,
 					next_outstanding, flushcount;
 	reg				flushing, flush_request, full_bus;
-	reg	[((AXILLSB>INSN_LSB) ? (AXILLSB-INSN_LSB-1):0):0]	shift;
+	wire	[((AXILLSB>INSN_LSB) ? (AXILLSB-INSN_LSB-1):0):0]	shift;
 	wire				fifo_reset, fifo_wr, fifo_rd;
 	wire				ign_fifo_full, fifo_empty;
 	wire	[LGFIFO:0]		ign_fifo_fill;
@@ -281,13 +281,11 @@ module	axilfetch #(
 	generate if (AXILLSB > INSN_LSB)
 	begin : BIG_WORD
 		// {{{
-		always @(*)
-			shift = o_pc[AXILLSB-1:INSN_LSB];
+		assign	shift = o_pc[AXILLSB-1:INSN_LSB];
 		// }}}
 	end else begin : NO_SHIFT
 		// {{{
-		always @(*)
-			shift = 0;
+		assign	shift = 0;
 		// }}}
 	end endgenerate
 

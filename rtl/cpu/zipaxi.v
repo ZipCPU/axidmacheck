@@ -26,7 +26,7 @@
 // Copyright (C) 2015-2021, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
-// modify it under the terms of  the GNU General Public License as published
+// modify it under the terms of the GNU General Public License as published
 // by the Free Software Foundation, either version 3 of the License, or (at
 // your option) any later version.
 //
@@ -725,6 +725,7 @@ module	zipaxi #(
 		// {{{
 		.i_clk(cpu_clock), .i_reset(cmd_reset),
 			.i_interrupt(i_interrupt),
+		.o_clken(cpu_clken),
 		// Debug interface
 		// {{{
 		.i_halt(cmd_halt), .i_clear_cache(cmd_clear_cache),
@@ -738,7 +739,7 @@ module	zipaxi #(
 		.o_pf_new_pc(pf_new_pc), .o_clear_icache(clear_icache),
 		.o_pf_ready(pf_ready),
 			.o_pf_request_address(pf_request_address),
-		.i_pf_valid(pf_valid && cpu_clken),
+		.i_pf_valid(pf_valid),
 			.i_pf_illegal(pf_illegal),
 			.i_pf_instruction(pf_instruction),
 			.i_pf_instruction_pc(pf_instruction_pc),
@@ -762,7 +763,6 @@ module	zipaxi #(
 		// Accounting/CPU usage interface
 		.o_op_stall(o_op_stall), .o_pf_stall(o_pf_stall),
 		.o_i_count(o_i_count),
-		.o_clken(cpu_clken),
 		.o_debug(cpu_debug)
 		// }}}
 	);
@@ -815,7 +815,7 @@ module	zipaxi #(
 			.i_cpu_reset(cmd_reset),
 			.i_new_pc(pf_new_pc),
 			.i_clear_cache(clear_icache),
-			.i_ready(pf_ready && cpu_clken),
+			.i_ready(pf_ready),
 			.i_pc(pf_request_address),
 			.o_insn(pf_instruction),
 			.o_pc(pf_instruction_pc),
@@ -864,7 +864,7 @@ module	zipaxi #(
 			.i_cpu_reset(cmd_reset),
 			.i_new_pc(pf_new_pc),
 			.i_clear_cache(clear_icache),
-			.i_ready(pf_ready && cpu_clken),
+			.i_ready(pf_ready),
 			.i_pc(pf_request_address),
 			.o_insn(pf_instruction),
 			.o_pc(pf_instruction_pc),
@@ -1249,7 +1249,7 @@ module	zipaxi #(
 	generate if (OPT_GATE_CLOCK)
 	begin : GATE_CPU_CLOCK
 
-		reg	gatep, gaten, gated;
+		reg	gatep, gaten;
 
 		always @(posedge S_AXI_ACLK)
 		if (!S_AXI_ARESETN)
@@ -1263,14 +1263,8 @@ module	zipaxi #(
 		else
 			gaten <= gatep;
 
-		always @(posedge S_AXI_ACLK)
-		if (!S_AXI_ARESETN)
-			gated <= 1'b1;
-		else
-			gated <= gatep;
-
 		assign	cpu_clock = S_AXI_ACLK && gaten;
-		assign	clk_gate = gated;
+		assign	clk_gate = gaten;
 
 	end else begin : NO_CLOCK_GATE
 
@@ -1291,7 +1285,7 @@ module	zipaxi #(
 			M_INSN_AWREADY, M_INSN_WREADY,
 			M_INSN_BVALID, M_INSN_BID, M_INSN_BRESP,
 			mem_lock_pc
-		 };
+		};
 	// Verilator lint_on  UNUSED
 	// }}}
 ////////////////////////////////////////////////////////////////////////////////

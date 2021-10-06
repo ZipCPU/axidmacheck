@@ -17,7 +17,7 @@
 // Copyright (C) 2020-2021, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
-// modify it under the terms of  the GNU General Public License as published
+// modify it under the terms of the GNU General Public License as published
 // by the Free Software Foundation, either version 3 of the License, or (at
 // your option) any later version.
 //
@@ -304,8 +304,9 @@ module	axilpipe #(
 `ifdef	FORMAL
 		always @(*)
 		if (beats_outstanding + ((M_AXI_AWVALID || M_AXI_WVALID || M_AXI_ARVALID) ? 1:0) >= (1<<LGPIPE))
+		begin
 			assert(r_pipe_stalled || r_flushing);
-		else if (beats_outstanding + (M_AXI_AWVALID || M_AXI_WVALID || M_AXI_ARVALID) < (1<<LGPIPE)-1)
+		end else if (beats_outstanding + (M_AXI_AWVALID || M_AXI_WVALID || M_AXI_ARVALID) < (1<<LGPIPE)-1)
 			assert(!r_pipe_stalled);
 `endif
 		// }}}
@@ -349,8 +350,9 @@ module	axilpipe #(
 				+ (M_AXI_AWVALID || M_AXI_WVALID || M_AXI_ARVALID)
 				+ (misaligned_aw_request || misaligned_request)
 				>= (1<<LGPIPE)))
+		begin
 			assert(r_pipe_stalled);
-		else if (!r_flushing && !o_err
+		end else if (!r_flushing && !o_err
 				&& !M_AXI_AWVALID && !M_AXI_WVALID
 				&& !M_AXI_ARVALID
 				&& beats_outstanding <= ((1<<LGPIPE)-4))
@@ -789,7 +791,7 @@ module	axilpipe #(
 	always @(posedge S_AXI_ACLK)
 	if ((M_AXI_ARVALID && M_AXI_ARREADY) || (M_AXI_WVALID && M_AXI_WREADY))
 		fifo_data[wraddr[LGPIPE-1:0]] <= { M_AXI_ARVALID, ar_oreg,ar_op,
-				misaligned_request, M_AXI_ARADDR[AXILLSB-1:0] };
+				misaligned_request, adr_lsb };
 
 	always @(*)
 		fifo_read_data = fifo_data[rdaddr[LGPIPE-1:0]];
@@ -831,11 +833,38 @@ module	axilpipe #(
 	// wide_return
 	// {{{
 	always @(*)
-	if (fifo_misaligned && !OPT_ALIGNMENT_ERR)
-		wide_return = { M_AXI_RDATA, misdata } >> (8*fifo_lsb);
-	else
-		wide_return = { {(C_AXI_DATA_WIDTH){1'b0}}, M_AXI_RDATA }
+	begin
+		if (SWAP_WSTRB)
+		begin
+			if (fifo_misaligned && !OPT_ALIGNMENT_ERR)
+				wide_return = { misdata, M_AXI_RDATA }
+							<< (8*fifo_lsb);
+			else
+				wide_return = { M_AXI_RDATA, {(DW){1'b0}} }
+							<< (8*fifo_lsb);
+
+			casez(fifo_op[1:0])
+			2'b10: wide_return = { {(16){1'b0}},
+					wide_return[(2*DW)-1:(2*DW)-16],
+					{(2*DW-32){1'b0}} };
+			2'b11: wide_return = { {(24){1'b0}},
+						wide_return[(2*DW)-1:(2*DW)-8],
+					{(2*DW-32){1'b0}} };
+			default: begin end
+			endcase
+
+			wide_return[31:0] = wide_return[(2*DW-1):(2*DW-32)];
+		end else begin
+			if (fifo_misaligned && !OPT_ALIGNMENT_ERR)
+				wide_return = { M_AXI_RDATA, misdata } >> (8*fifo_lsb);
+			else
+				wide_return = { {(C_AXI_DATA_WIDTH){1'b0}}, M_AXI_RDATA }
 					>> (8*fifo_lsb);
+		end
+
+		if (OPT_LOWPOWER && (!M_AXI_RVALID || M_AXI_RRESP[1]))
+			wide_return = 0;
+	end
 	// }}}
 
 	// misdata
@@ -1074,8 +1103,9 @@ module	axilpipe #(
 
 		if (OPT_ALIGNMENT_ERR && !r_flushing
 				&& (faxil_rd_outstanding > 0 || M_AXI_ARVALID))
+		begin
 			assert(f_fifo_fill == faxil_rd_outstanding);
-		else if (OPT_ALIGNMENT_ERR && !r_flushing
+		end else if (OPT_ALIGNMENT_ERR && !r_flushing
 				&& (faxil_wr_outstanding > 0 || M_AXI_WVALID))
 			assert(f_fifo_fill == faxil_wr_outstanding);
 
@@ -1110,14 +1140,18 @@ module	axilpipe #(
 	if (f_past_valid)
 	begin
 		if ($past(i_cpu_reset || r_flushing || o_err))
+		begin
 			`ASSERT(!o_err);
-		else if ($past(M_AXI_BVALID && M_AXI_BRESP[1]))
+		end else if ($past(M_AXI_BVALID && M_AXI_BRESP[1]))
+		begin
 			`ASSERT(o_err);
-		else if ($past(M_AXI_RVALID && M_AXI_RRESP[1]))
+		end else if ($past(M_AXI_RVALID && M_AXI_RRESP[1]))
+		begin
 			`ASSERT(o_err);
-		else if (OPT_ALIGNMENT_ERR && $past(i_stb && w_misaligned))
+		end else if (OPT_ALIGNMENT_ERR && $past(i_stb && w_misaligned))
+		begin
 			`ASSERT(o_err);
-		else if (!$past(pending_err))
+		end else if (!$past(pending_err))
 			`ASSERT(!o_err);
 	end
 	// }}}
@@ -1261,11 +1295,11 @@ module	axilpipe #(
 
 	always @(posedge S_AXI_ACLK)
 	if (f_wrfifo && wraddr == f_first_addr)
-		f_first_data <= { M_AXI_ARVALID, ar_oreg, ar_op, misaligned_request, M_AXI_ARADDR[AXILLSB-1:0] };
+		f_first_data <= { M_AXI_ARVALID, ar_oreg, ar_op, misaligned_request, adr_lsb };
 
 	always @(posedge S_AXI_ACLK)
 	if (f_wrfifo && wraddr == f_next_addr)
-		f_next_data <= { M_AXI_ARVALID, ar_oreg, ar_op, misaligned_request, M_AXI_ARADDR[AXILLSB-1:0] };
+		f_next_data <= { M_AXI_ARVALID, ar_oreg, ar_op, misaligned_request, adr_lsb };
 
 	// f_fsmfifo
 	// {{{
@@ -1352,8 +1386,9 @@ module	axilpipe #(
 	if (!f_clrfifo && f_fifo_fill != 0)
 	begin
 		if ((M_AXI_ARVALID || (rdaddr != f_last_written)))
+		begin
 			`ASSERT(f_this_misaligned || !cpu_read_cycle || !(&f_return_reg[3:1]));
-		else if (f_fifo_fill > 0 && !M_AXI_ARVALID)
+		end else if (f_fifo_fill > 0 && !M_AXI_ARVALID)
 			`ASSERT(f_this_misaligned || !cpu_read_cycle || cpu_pc == (&f_return_reg[3:1]));
 
 		if ((!f_first_in_fifo || rdaddr != f_first_addr)
@@ -1361,10 +1396,12 @@ module	axilpipe #(
 			&& cpu_read_cycle)
 		begin
 			if (M_AXI_ARVALID) // && (&ar_oreg[3:1]))
+			begin
 				`ASSUME(!(&f_return_reg[3:1]));
-			else if (rdaddr != f_last_written)
+			end else if (rdaddr != f_last_written)
+			begin
 				`ASSUME(!(&f_return_reg[3:1]));
-			else if (!M_AXI_ARVALID && !o_err)
+			end else if (!M_AXI_ARVALID && !o_err)
 				`ASSUME(cpu_pc == (&f_return_reg[3:1])); // Not last written
 		end
 
@@ -1372,8 +1409,9 @@ module	axilpipe #(
 		begin
 			if (!cpu_pc || M_AXI_ARVALID
 					|| (f_last_written != f_first_addr))
+			begin
 				`ASSERT(f_first_misaligned || !cpu_read_cycle || !(&f_first_return_reg[3:1]));
-			else if (!M_AXI_ARVALID && !o_err)
+			end else if (!M_AXI_ARVALID && !o_err)
 				`ASSERT(&f_first_return_reg[3:1]);
 		end
 
@@ -1381,8 +1419,9 @@ module	axilpipe #(
 		begin
 			if (!cpu_pc || M_AXI_ARVALID
 					|| (f_last_written != f_next_addr))
+			begin
 				`ASSERT(f_next_misaligned || !(&f_next_return_reg[3:1]));
-			else if (!M_AXI_ARVALID && !o_err)
+			end else if (!M_AXI_ARVALID && !o_err)
 				`ASSERT(&f_next_return_reg[3:1]);
 		end
 
@@ -1424,8 +1463,9 @@ module	axilpipe #(
 			if (f_first_in_fifo && f_first_misaligned)
 			begin
 				if (f_next_in_fifo)
+				begin
 					`ASSERT(!f_next_misaligned);
-				else begin
+				end else begin
 					`ASSERT(!misaligned_request);
 					`ASSERT(M_AXI_ARVALID || M_AXI_WVALID);
 				end
@@ -1435,8 +1475,9 @@ module	axilpipe #(
 				&& (!f_first_in_fifo || rdaddr != f_first_addr))
 			begin
 				if (f_fifo_fill > 1)
+				begin
 					`BMC_ASSERT(!f_penu_misaligned);
-				else if (f_fifo_fill == 1)
+				end else if (f_fifo_fill == 1)
 					`BMC_ASSERT(!misaligned_request);
 			end
 			// }}}
@@ -1518,8 +1559,9 @@ module	axilpipe #(
 	// {{{
 	always @(*)
 	if (M_AXI_WVALID || M_AXI_ARVALID)
+	begin
 		assert(cpu_last_reg == ar_oreg);
-	else if (!f_clrfifo && f_fifo_fill > 0)
+	end else if (!f_clrfifo && f_fifo_fill > 0)
 	begin
 		if (f_first_in_fifo && f_first_addr == f_last_written)
 			assert(f_first_return_reg == cpu_last_reg);
@@ -1610,10 +1652,12 @@ module	axilpipe #(
 
 	always @(*)
 	if (flush_request)
+	begin
 		`ASSERT(cpu_outstanding == 0 || o_err);
-	else if (r_flushing)
+	end else if (r_flushing)
+	begin
 		`ASSERT(o_err || cpu_outstanding == 0);
-	else if (OPT_ALIGNMENT_ERR)
+	end else if (OPT_ALIGNMENT_ERR)
 	begin
 		if (!o_err)
 		`ASSERT(cpu_outstanding == (beats_outstanding - flushcount)
@@ -1630,8 +1674,9 @@ module	axilpipe #(
 	if (!o_err && cpu_outstanding > 0)
 	begin
 		if (faxil_rd_outstanding > 0 || M_AXI_ARVALID || o_rdbusy)
+		begin
 			assert(cpu_read_cycle);
-		else if (faxil_awr_outstanding > 0 || faxil_wr_outstanding > 0
+		end else if (faxil_awr_outstanding > 0 || faxil_wr_outstanding > 0
 				|| M_AXI_AWVALID || M_AXI_WVALID)
 			assert(!cpu_read_cycle);
 	end
