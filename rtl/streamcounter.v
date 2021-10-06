@@ -58,7 +58,6 @@ module	streamcounter #(
 		parameter	C_AXI_ADDR_WIDTH = 4,
 		localparam	C_AXI_DATA_WIDTH = 32,
 		parameter	C_AXIS_DATA_WIDTH = 32,
-		parameter [0:0]	OPT_SKIDBUFFER = 1'b1,
 		parameter [0:0]	OPT_LOWPOWER = 0,
 		localparam	ADDRLSB = $clog2(C_AXI_DATA_WIDTH)-3
 		// }}}
@@ -356,7 +355,6 @@ module	streamcounter #(
 		);
 
 	always @(*)
-	if (OPT_SKIDBUFFER)
 	begin
 		assert(faxil_awr_outstanding== (S_AXI_BVALID ? 1:0)
 			+(S_AXI_AWREADY ? 0:1));
@@ -365,11 +363,6 @@ module	streamcounter #(
 
 		assert(faxil_rd_outstanding == (S_AXI_RVALID ? 1:0)
 			+(S_AXI_ARREADY ? 0:1));
-	end else begin
-		assert(faxil_wr_outstanding == (S_AXI_BVALID ? 1:0));
-		assert(faxil_awr_outstanding == faxil_wr_outstanding);
-
-		assert(faxil_rd_outstanding == (S_AXI_RVALID ? 1:0));
 	end
 
 	always @(posedge S_AXI_ACLK)
