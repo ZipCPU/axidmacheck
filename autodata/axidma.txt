@@ -1,7 +1,7 @@
 ################################################################################
 ##
 ## Filename: 	autodata/axidma.txt
-##
+## {{{
 ## Project:	AXI DMA Check: A utility to measure AXI DMA speeds
 ##
 ## Purpose:	
@@ -10,9 +10,9 @@
 ##		Gisselquist Technology, LLC
 ##
 ################################################################################
-##
+## }}}
 ## Copyright (C) 2020-2021, Gisselquist Technology, LLC
-##
+## {{{
 ## This program is free software (firmware): you can redistribute it and/or
 ## modify it under the terms of the GNU General Public License as published
 ## by the Free Software Foundation, either version 3 of the License, or (at
@@ -27,14 +27,14 @@
 ## with this program.  (It's in the $(ROOT)/doc directory.  Run make with no
 ## target there if the PDF file isn't present.)  If not, see
 ## <http://www.gnu.org/licenses/> for a copy.
-##
+## }}}
 ## License:	GPL, v3, as defined and found on www.gnu.org,
+## {{{
 ##		http://www.gnu.org/licenses/gpl.html
-##
 ##
 ################################################################################
 ##
-##
+## }}}
 @PREFIX=dma
 @DEVID=AXIDMA
 @NADDR=8
@@ -44,22 +44,39 @@
 @SLAVE.TYPE=DOUBLE
 @INT.DMA.WIRE=@$(PREFIX)_int
 @SLAVE.ANSPREFIX=S_AXIL_
+@MAIN.DEFNS=
+	// Verilator lint_off UNUSED
+	wire	@$(PREFIX)_cactive, @$(PREFIX)_csysack;
+	// Verilator lint_on  UNUSED
 @MAIN.INSERT=
+	////////////////////////////////////////////////////////////////////////
+	//
+	// AXI DMA
+	// {{{
+	//
 	axidma #(
+		// {{{
 		.C_AXI_ADDR_WIDTH(@$MASTER.BUS.AWID),
 		.C_AXI_DATA_WIDTH(@$MASTER.BUS.WIDTH),
 		.C_AXI_ID_WIDTH(@$MASTER.BUS.IDWIDTH),
+`ifdef	VERILATOR
+		.OPT_LOWPOWER(1'b1),
+		.OPT_CLKGATE(1'b1),
+`endif
 		.AXI_READ_ID(3'b010),
-		.AXI_WRITE_ID(3'b011),
+		.AXI_WRITE_ID(3'b011)
+		// }}}
 	) @$(PREFIX)i (
+		// {{{
 		.S_AXI_ACLK(@$(SLAVE.BUS.CLOCK.WIRE)),
 		.S_AXI_ARESETN(@$(SLAVE.BUS.RESET)),
 		@$(SLAVE.ANSIPORTLIST),
 		@$(MASTER.ANSIPORTLIST),
 		.o_int(@$(PREFIX)_int)
+		// }}}
 	);
 
-
+	// }}}
 @REGS.N=7
 @REGS.0=0 R_@$(DEVID)CTRL @$(DEVID)CTRL
 @REGS.1=2 R_@$(DEVID)SRCLO  @$(DEVID)SRCLO
@@ -68,3 +85,23 @@
 @REGS.4=5 R_@$(DEVID)DSTHI  @$(DEVID)DSTHI
 @REGS.5=6 R_@$(DEVID)LENLO  @$(DEVID)LENLO
 @REGS.6=7 R_@$(DEVID)LENHI  @$(DEVID)LENHI
+##
+@BDEF.DEFN=
+
+#define DMA_START_CMD           0x00000011
+#define DMA_BUSY_BIT            0x00000001
+
+typedef struct  @$(DEVID)_S {
+        unsigned	a_control;
+        unsigned	a_unused1;
+        char		*a_src;
+        unsigned	a_unused2;
+        char		*a_dest;
+        unsigned	a_unused3;
+        unsigned	a_len;
+        unsigned	a_unused4;
+} @$(DEVID);
+
+@BDEF.IOTYPE=@$(DEVID)
+@BDEF.OSDEF=_BOARD_HAS_@$(DEVID)
+@BDEF.OSVAL=static volatile @$(DEVID) * const _@$(PREFIX)=((@$(BDEF.IOTYPE) *)@$[0x%08x](REGBASE));

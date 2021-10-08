@@ -1,20 +1,22 @@
 ################################################################################
 ##
 ## Filename: 	autodata/streamsink.txt
-##
+## {{{
 ## Project:	AXI DMA Check: A utility to measure AXI DMA speeds
 ##
-## Purpose:	
+## Purpose:	An AXI stream destination.  This destination is also a slave,
+##		allowing a certain amount of performance measurements to be
+##	made regarding the stream transfer..
 ##
 ## Creator:	Dan Gisselquist, Ph.D.
 ##		Gisselquist Technology, LLC
 ##
 ################################################################################
-##
+## }}}
 ## Copyright (C) 2020-2021, Gisselquist Technology, LLC
-##
+## {{{
 ## This program is free software (firmware): you can redistribute it and/or
-## modify it under the terms of  the GNU General Public License as published
+## modify it under the terms of the GNU General Public License as published
 ## by the Free Software Foundation, either version 3 of the License, or (at
 ## your option) any later version.
 ##
@@ -27,14 +29,15 @@
 ## with this program.  (It's in the $(ROOT)/doc directory.  Run make with no
 ## target there if the PDF file isn't present.)  If not, see
 ## <http://www.gnu.org/licenses/> for a copy.
-##
+## }}}
 ## License:	GPL, v3, as defined and found on www.gnu.org,
+## {{{
 ##		http://www.gnu.org/licenses/gpl.html
 ##
 ##
 ################################################################################
 ##
-##
+## }}}
 @PREFIX=streamsink
 @NADDR=4
 @SLAVE.BUS=axil
@@ -44,6 +47,11 @@
 	wire	@$(STREAM)_tvalid, @$(STREAM)_tready, @$(STREAM)_tlast;
 	wire	[31:0]	@$(PREFIX)_tdata;
 @MAIN.INSERT=
+	////////////////////////////////////////////////////////////////////////
+	//
+	// Streamsink (streamcounter) : @$(PREFIX)
+	// {{{
+	//
 	streamcounter #(
 		.C_AXIS_DATA_WIDTH(32),
 		.OPT_LOWPOWER(1'b1)
@@ -59,7 +67,7 @@
 		@$(SLAVE.ANSIPORTLIST)
 	);
 
-
+	// }}}
 @REGS.N=3
 @REGS.0=0 R_STREAMSINK_BEATS   BEATS
 @REGS.1=1 R_STREAMSINK_PACKETS PACKETS

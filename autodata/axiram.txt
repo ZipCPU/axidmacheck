@@ -1,7 +1,7 @@
 ################################################################################
 ##
 ## Filename: 	autodata/axiram.txt
-##
+## {{{
 ## Project:	AXI DMA Check: A utility to measure AXI DMA speeds
 ##
 ## Purpose:	Create/connect a block RAM via the demofull controller and
@@ -11,11 +11,11 @@
 ##		Gisselquist Technology, LLC
 ##
 ################################################################################
-##
+## }}}
 ## Copyright (C) 2020-2021, Gisselquist Technology, LLC
-##
+## {{{
 ## This program is free software (firmware): you can redistribute it and/or
-## modify it under the terms of  the GNU General Public License as published
+## modify it under the terms of the GNU General Public License as published
 ## by the Free Software Foundation, either version 3 of the License, or (at
 ## your option) any later version.
 ##
@@ -28,34 +28,48 @@
 ## with this program.  (It's in the $(ROOT)/doc directory.  Run make with no
 ## target there if the PDF file isn't present.)  If not, see
 ## <http://www.gnu.org/licenses/> for a copy.
-##
+## }}}
 ## License:	GPL, v3, as defined and found on www.gnu.org,
+## {{{
 ##		http://www.gnu.org/licenses/gpl.html
 ##
 ##
 ################################################################################
 ##
-##
+## }}}
 @PREFIX=axiram
 @$LGRAM=24
-@$NADDR=(1<<@$(LGRAM))/4
+@LGRAMW=@$(LGRAM)-$clog2(@$(SLAVE.BUS.WIDTH)/8)
+@$NADDR=(1<<@$(LGRAM))/(@$(SLAVE.BUS.WIDTH)/8)
 @SLAVE.BUS=axi
-@SLAVE.TYPE=OTHER
+@SLAVE.TYPE=MEMORY
+@CLOCK=clk
+@LD.PERM=wx
 @MAIN.DEFNS=
+	// AXI RAM definitions
+	// {{{
 	wire	@$(PREFIX)_we, @$(PREFIX)_rd;
 	wire	[@$(SLAVE.BUS.WIDTH)-1:0]	@$(PREFIX)_wdata;
 	wire	[@$(SLAVE.BUS.WIDTH)/8-1:0]	@$(PREFIX)_wstrb;
 	reg	[@$(SLAVE.BUS.WIDTH)-1:0]	@$(PREFIX)_rdata;
-	wire	[@$(LGRAM)-2-1:0]		@$(PREFIX)_waddr, @$(PREFIX)_raddr;
+	wire	[@$(LGRAMW)-1:0]		@$(PREFIX)_waddr, @$(PREFIX)_raddr;
 	reg	[@$(SLAVE.BUS.WIDTH)-1:0]	@$(PREFIX)_mem [0:(@$(NADDR)-1)];
 	integer	@$(PREFIX)_ik;
-
+	// }}}
 @MAIN.INSERT=
+	////////////////////////////////////////////////////////////////////////
+	//
+	// AXI RAM
+	// {{{
+	//
 	demofull #(
+		// {{{
 		.C_S_AXI_ADDR_WIDTH(@$LGRAM),
 		.C_S_AXI_DATA_WIDTH(@$(SLAVE.BUS.WIDTH)),
 		.C_S_AXI_ID_WIDTH(@$(SLAVE.BUS.IDWIDTH))
+		// }}}
 	) @$(PREFIX)i (
+		// {{{
 		.S_AXI_ACLK(@$(SLAVE.BUS.CLOCK.WIRE)),
 		.S_AXI_ARESETN(@$(SLAVE.BUS.RESET)),
 		//
@@ -68,11 +82,14 @@
 		.i_rdata(@$(PREFIX)_rdata),
 		//
 		@$(SLAVE.ANSIPORTLIST)
+		// }}}
 	);
 
+	// The companion SRAM implementation itself
+	// {{{
 	always @(posedge i_clk)
 	if (@$(PREFIX)_we)
-	for(@$(PREFIX)_ik=0; @$(PREFIX)_ik < @$(SLAVE.BUS.WIDTH)/4;
+	for(@$(PREFIX)_ik=0; @$(PREFIX)_ik < @$(SLAVE.BUS.WIDTH)/8;
 			@$(PREFIX)_ik = @$(PREFIX)_ik + 1)
 	begin
 		if (@$(PREFIX)_wstrb[@$(PREFIX)_ik])
@@ -83,10 +100,36 @@
 	if (@$(PREFIX)_rd)
 		@$(PREFIX)_rdata <= @$(PREFIX)_mem[@$(PREFIX)_raddr];
 
+	// }}}
+	// }}}
 @REGS.N=1
 @REGS.0=0 R_AXIRAM AXIRAM RAM
+@REGDEFS.H.INSERT=
+
+#define	RAMSIZE	(1u<<@$(LGRAM))
+
+@SIM.INCLUDE=
+#include "byteswap.h"
 @SIM.DEFINES=
 
+#ifdef	ROOT_VERILATOR
+#define	AXIRAM	VVAR(_axiram_mem.m_storage)
+#else
 #define	AXIRAM	VVAR(_axiram_mem)
-#define	RAMSIZE	(1<<@$(LGRAM))
+#endif
 
+#ifndef	RAMSIZE
+#define	RAMSIZE	(1<<@$(LGRAM))
+#endif
+
+#define	block_ram	VVAR(_@$(PREFIX)_mem)
+@SIM.LOAD=
+			start = start & (-4);
+			wlen = (wlen+3)&(-4);
+
+			// Need to byte swap data to get it into the memory
+			char	*bswapd = new char[len+8];
+			memcpy(bswapd, &buf[offset], wlen);
+			byteswapbuf(len>>2, (uint32_t *)bswapd);
+			memcpy(&m_core->block_ram[start], bswapd, wlen);
+			delete	bswapd;

@@ -1,12 +1,12 @@
 ################################################################################
 ##
-## Filename:	autodata/Makefile
+## Filename: 	mem_flash_bkram.txt
 ## {{{
-## Project:	AXI DMA Check: A utility to measure AXI DMA speeds
+## Project:	ZBasic, a generic toplevel impl using the full ZipCPU
 ##
-## Purpose:	To direct the build of the autofpga automatically generated
-##		files.  The various configuration files are the *.txt files
-##	found in this directory.
+## Purpose:	Describes a memory model containing nothing more than flash
+##		and block RAM.  This will be used to create a board.ld linker
+##	script that can be used to link ZipCPU programs.
 ##
 ##
 ## Creator:	Dan Gisselquist, Ph.D.
@@ -14,7 +14,7 @@
 ##
 ################################################################################
 ## }}}
-## Copyright (C) 2020-2021, Gisselquist Technology, LLC
+## Copyright (C) 2017-2021, Gisselquist Technology, LLC
 ## {{{
 ## This program is free software (firmware): you can redistribute it and/or
 ## modify it under the terms of the GNU General Public License as published
@@ -35,38 +35,41 @@
 ## {{{
 ##		http://www.gnu.org/licenses/gpl.html
 ##
-##
 ################################################################################
 ##
 ## }}}
-.PHONY: all
-all:	data
+@PREFIX=mem_bkram_only
+@MASTER.TYPE=SCRIPT
+@MASTER.BUS=axi
+@LD.FILE=board.ld
+@LD.DEFNS=
+/* LD.DEFNS from @$(PREFIX) */
+_kram  = 0; /* No high-speed kernel RAM */
+_ram   = ORIGIN(axiram);
+_rom   = 0;
+_top_of_stack = ORIGIN(axiram) + LENGTH(axiram);
+
+@LD.SCRIPT=
+/* LD.SCRIPT from @$(PREFIX) */
+SECTIONS
+{
+       .ramcode ORIGIN(axiram) : ALIGN(4) {
+               _boot_address = .;
+               _kram_start = .;
+               _kram_end = .;
+       		_ram_image_start = . ;
+               *(.start) *(.boot)
+               *(.kernel)
+               *(.text.startup)
+               *(.text*)
+               *(.rodata*) *(.strings)
+               *(.data) *(COMMON)
+               }> axiram
+       _ram_image_end = . ;
+       .bss : ALIGN_WITH_INPUT {
+               *(.bss)
+               _bss_image_end = . ;
+               } > axiram
+       _top_of_heap = .;
+}
 #
-# Could also depend upon load, if desired, but not necessary
-#
-# This is the list of components that will form our project.  Each file consists
-# of parts and pieces of our project that autofpga will copy/paste into our
-# main project files.
-#
-DATA := global.txt axibus.txt axiram.txt axidma.txt aximm2s.txt axis2mm.txt \
-	controlbus.txt streamsink.txt streamsrc.txt vibus.txt noconsole.txt
-
-AUTOFPGA?=$(shell which autofpga)
-
-.PHONY: data
-## {{{
-data: $(DATA)
-	$(AUTOFPGA) -d autofpga.dbg -o ./ $(DATA)
-## }}}
-
-define	notify-on-change
-	@bash -c 'cmp $(1) $(2)/$(1); if [[ $$? != 0 ]]; then echo "Files $(1) and $(2)/$(1) differ"; fi'
-endef
-
-.PHONY: clean
-## {{{
-clean:
-	# rm -f toplevel.v main.v regdefs.h regdefs.cpp board.h board.ld
-	# rm -f rtl.make.inc main_tb.cpp
-	rm -f autofpga.dbg
-## }}}

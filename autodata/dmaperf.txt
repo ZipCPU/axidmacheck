@@ -1,13 +1,10 @@
 ################################################################################
 ##
-## Filename:	autodata/Makefile
+## Filename: 	autodata/dmaperf.txt
 ## {{{
 ## Project:	AXI DMA Check: A utility to measure AXI DMA speeds
 ##
-## Purpose:	To direct the build of the autofpga automatically generated
-##		files.  The various configuration files are the *.txt files
-##	found in this directory.
-##
+## Purpose:	
 ##
 ## Creator:	Dan Gisselquist, Ph.D.
 ##		Gisselquist Technology, LLC
@@ -35,38 +32,13 @@
 ## {{{
 ##		http://www.gnu.org/licenses/gpl.html
 ##
-##
 ################################################################################
 ##
 ## }}}
-.PHONY: all
-all:	data
-#
-# Could also depend upon load, if desired, but not necessary
-#
-# This is the list of components that will form our project.  Each file consists
-# of parts and pieces of our project that autofpga will copy/paste into our
-# main project files.
-#
-DATA := global.txt axibus.txt axiram.txt axidma.txt aximm2s.txt axis2mm.txt \
-	controlbus.txt streamsink.txt streamsrc.txt vibus.txt noconsole.txt
-
-AUTOFPGA?=$(shell which autofpga)
-
-.PHONY: data
-## {{{
-data: $(DATA)
-	$(AUTOFPGA) -d autofpga.dbg -o ./ $(DATA)
-## }}}
-
-define	notify-on-change
-	@bash -c 'cmp $(1) $(2)/$(1); if [[ $$? != 0 ]]; then echo "Files $(1) and $(2)/$(1) differ"; fi'
-endef
-
-.PHONY: clean
-## {{{
-clean:
-	# rm -f toplevel.v main.v regdefs.h regdefs.cpp board.h board.ld
-	# rm -f rtl.make.inc main_tb.cpp
-	rm -f autofpga.dbg
-## }}}
+@PREFIX=dmaperf
+@DEVID=DMAPERF
+@INCLUDEFILE=axiperf.txt
+@TARGETPFX=@$(dma.MASTER.PREFIX)
+@TARGETAWID=@$(dma.MASTER.BUS.AWID)
+@TARGETDWID=@$(dma.MASTER.BUS.WIDTH)
+@TARGETIWID=@$(dma.MASTER.BUS.IDWIDTH)
