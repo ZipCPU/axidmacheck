@@ -70,9 +70,6 @@
 		// {{{
 		.S_AXI_ACLK(@$(SLAVE.BUS.CLOCK.WIRE)),
 		.S_AXI_ARESETN(@$(SLAVE.BUS.RESET)),
-		.S_AXI_CSYSREQ(1'b0),
-		.S_AXI_CACTIVE(@$(PREFIX)_cactive),
-		.S_AXI_CSYSACK(@$(PREFIX)_csysack),
 		@$(SLAVE.ANSIPORTLIST),
 		@$(MASTER.ANSIPORTLIST),
 		.o_int(@$(PREFIX)_int)
