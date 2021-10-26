@@ -87,7 +87,11 @@
 #define	cpu_gie		CPUVAR(_SET_GIE__DOT__r_gie)
 #define	cpu_iflags	CPUVAR(_w_iflags)
 #define	cpu_uflags	CPUVAR(_w_uflags)
+#ifdef	ROOT_VERILATOR
 #define	cpu_regs	CPUVAR(_regset.m_storage)
+#else
+#define	cpu_regs	CPUVAR(_regset)
+#endif
 #define	cpu_cmd_addr	VVAR(_swic__DOT__cmd_addr)
 #define	cpu_bus_err	CPUVAR(_bus_err)
 #define	cpu_ibus_err	CPUVAR(_ibus_err_flag)
@@ -419,7 +423,7 @@ public:
 				rcode = m_core->cpu_wr_gpreg;
 			printf("%c", rcode&0x0ff);
 		} else if ((imm & 0x0fffe0)==0x00220) {
-			// SOUT[User Reg]
+			// SOUT[Reg]
 			int	rcode, rnum;
 			rnum  = (imm&0x0f)+rbase;
 			rcode = regp[rnum];

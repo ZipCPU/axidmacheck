@@ -59,6 +59,7 @@ module	idecode #(
 		parameter	[0:0]	OPT_SIM    = 1'b0,
 		parameter	[0:0]	OPT_SUPPRESS_NULL_BRANCHES = 1'b0,
 		parameter	[0:0]	OPT_NO_USERMODE = 1'b0,
+		parameter	[0:0]	OPT_LOWPOWER = 1'b0,
 		localparam		AW = ADDRESS_WIDTH
 		// }}}
 	) (
@@ -89,7 +90,8 @@ module	idecode #(
 		output	reg	[22:0]	o_sim_immv /* verilator public_flat */
 `ifdef	FORMAL
 		, output	reg	[31:0]	f_insn_word,
-		output	reg		f_insn_gie
+		output	reg		f_insn_gie,
+		output	wire		f_insn_is_pipeable
 `endif
 		// }}}
 	);
@@ -125,8 +127,7 @@ module	idecode #(
 	wire		w_Iz;
 
 	reg	[1:0]	w_immsrc;
-	reg	r_valid, r_insn_is_pipeable;
-
+	reg		r_valid, insn_is_pipeable;
 	// }}}
 
 	assign	pf_valid = (i_pf_valid)&&(!o_early_branch_stb);
@@ -556,17 +557,25 @@ module	idecode #(
 		// o_FP plus these four bits uniquely defines the FP
 		// instruction, o_DV plus the bottom of these defines
 		// the divide, etc.
-		o_op <= w_cis_op[3:0];
-		if ((w_ldi)||(w_noop)||(w_lock))
-			o_op <= 4'hd;
+		if (!OPT_OPIPE || i_pf_valid || o_phase)
+		begin
+			o_op <= w_cis_op[3:0];
+			if ((w_ldi)||(w_noop)||(w_lock))
+				o_op <= 4'hd;
+		end
 		// }}}
 
-		o_dcdR <= { w_dcdR_cc, w_dcdR_pc, w_dcdR};
-		o_dcdA <= { w_dcdA_cc, w_dcdA_pc, w_dcdA};
-		o_dcdB <= { w_dcdB_cc, w_dcdB_pc, w_dcdB};
-		o_wR  <= w_wR;
+		if (!OPT_OPIPE || i_pf_valid || o_phase)
+		begin
+			o_dcdR <= { w_dcdR_cc, w_dcdR_pc, w_dcdR};
+			o_dcdA <= { w_dcdA_cc, w_dcdA_pc, w_dcdA};
+			o_dcdB <= { w_dcdB_cc, w_dcdB_pc, w_dcdB};
+
+			o_rB  <= w_rB;
+			o_wR  <= w_wR;
+		end
+
 		o_rA  <= w_rA;
-		o_rB  <= w_rB;
 		r_I    <= w_I;
 		o_zI   <= w_Iz;
 
@@ -577,11 +586,14 @@ module	idecode #(
 		// as it doesn't take longer than one clock.  Note
 		// also that this depends upon not setting any registers
 		// or flags, which should already be true.
-		o_ALU  <=  (w_ALU)||(w_ldi)||(w_cmptst)||(w_noop)
+		if (!OPT_OPIPE || i_pf_valid || o_phase)
+		begin
+			o_ALU  <=  (w_ALU)||(w_ldi)||(w_cmptst)||(w_noop)
 				||((!OPT_LOCK)&&(w_lock));
-		o_M    <=  w_mem;
-		o_DV   <=  (OPT_DIVIDE)&&(w_div);
-		o_FP   <=  (OPT_FPU)&&(w_fpu);
+			o_M    <=  w_mem;
+			o_DV   <=  (OPT_DIVIDE)&&(w_div);
+			o_FP   <=  (OPT_FPU)&&(w_fpu);
+		end
 		// }}}
 
 		// o_break, o_lock
@@ -602,6 +614,8 @@ module	idecode #(
 			// Support the SIM instruction(s)
 			o_sim <= (w_sim)||(w_noop);
 			o_sim_immv <= iword[22:0];
+			if (OPT_LOWPOWER && !w_sim && !w_noop)
+				o_sim_immv <= 0;
 		end else begin
 			o_sim <= 1'b0;
 			o_sim_immv <= 0;
@@ -685,18 +699,27 @@ module	idecode #(
 
 		initial	r_branch_pc = 0;
 		always @(posedge i_clk)
-		if (i_ce)
+		if (OPT_LOWPOWER && i_reset)
+			r_branch_pc <= 0;
+		else if (i_ce)
 		begin
 			if (r_ljmp)
 				r_branch_pc <= { iword[(AW+1):2],
 						2'b00 };
-			else begin
-			// Add x,PC
-			r_branch_pc[AW+1:2] <= i_pc[AW+1:2]
-				+ {{(AW-15){iword[17]}},iword[16:2]}
-				+ {{(AW-1){1'b0}},1'b1};
-			r_branch_pc[1:0] <= 2'b00;
-			end
+			else if (!OPT_LOWPOWER
+				|| (!iword[CISBIT]&&(iword[30:27]==CPU_PC_REG)
+					&&w_cond[3]&& w_add && !iword[IMMSEL]))
+			begin
+				// Add x,PC
+				r_branch_pc[AW+1:2] <= i_pc[AW+1:2]
+					+ {{(AW-15){iword[17]}},iword[16:2]}
+					+ {{(AW-1){1'b0}},1'b1};
+				r_branch_pc[1:0] <= 2'b00;
+			end else if (OPT_LOWPOWER)
+				r_branch_pc <= 0;
+
+			if (OPT_LOWPOWER && !pf_valid)
+				r_branch_pc <= 0;
 		end
 
 		assign	w_ljmp_dly         = r_ljmp;
@@ -735,7 +758,7 @@ module	idecode #(
 	generate if (OPT_OPIPE)
 	begin : GEN_OPIPE
 		// {{{
-		reg	r_pipe;
+		reg	r_pipe, r_insn_is_pipeable;
 
 		// Pipeline logic is too extreme for a single clock.
 		// Let's break it into two clocks, using r_insn_is_pipeable
@@ -747,14 +770,9 @@ module	idecode #(
 		always @(posedge i_clk)
 		if (i_reset)
 			r_insn_is_pipeable <= 1'b0;
-		else if ((i_ce)&&((!pf_valid)||(i_illegal))&&(!o_phase))
-			// Pipeline bubble, can't pipe through it
-			r_insn_is_pipeable <= 1'b0;
 		else if (o_ljmp)
 			r_insn_is_pipeable <= 1'b0;
-		else if ((i_ce)&&((!OPT_CIS)&&(i_instruction[CISBIT])))
-			r_insn_is_pipeable <= 1'b0;
-		else if (i_ce)
+		else if (i_ce && (pf_valid || o_phase))
 		begin	// This is a valid instruction
 			r_insn_is_pipeable <= (w_mem)&&(w_rB)
 				// PC (and CC) registers can change
@@ -772,19 +790,25 @@ module	idecode #(
 				// as they could then be used to violate
 				// our rule(s)
 				&&((w_cis_op[0])||(w_dcdB != w_dcdA));
+
+			if (i_illegal && !o_phase)
+				r_insn_is_pipeable <= 1'b0;
+			// if (!OPT_CIS && i_instruction[CISBIT])
+			//	r_insn_is_pipeable <= 1'b0;
 		end // else
 			// The pipeline is stalled
 
+		assign	insn_is_pipeable = r_insn_is_pipeable;
 
 		initial	r_pipe = 1'b0;
 		always @(posedge i_clk)
 		if (i_reset)
 			r_pipe <= 1'b0;
-		else if (i_ce)
-			r_pipe <= ((pf_valid)||(o_phase))
+		else if (i_ce && (pf_valid || o_phase))
+			r_pipe <=
 				// The last operation must be capable of
 				// being followed by a pipeable memory op
-				&&(r_insn_is_pipeable)
+				(r_insn_is_pipeable)
 				// Both must be memory operations
 				&&(w_mem)
 				// Both must be writes, or both stores
@@ -792,7 +816,7 @@ module	idecode #(
 				// Both must be register ops
 				&&(w_rB)
 				// Both must use the same register for B
-				&&(w_dcdB[3:0] == o_dcdB[3:0]);
+				&&(w_dcdB[4:0] == o_dcdB[4:0]);
 		//		// CC or PC registers are not valid addresses
 		//		//   Captured above
 		//		// But ... the result can never be B
@@ -811,13 +835,12 @@ module	idecode #(
 		// }}}
 	end else begin
 		// {{{
-		assign o_pipe = 1'b0;
-		always @(*)
-			r_insn_is_pipeable = 1'b0;
+		assign	o_pipe = 1'b0;
+		assign	insn_is_pipeable = 1'b0;
 
 		// verilator lint_off UNUSED
 		wire	unused_pipable;
-		assign	unused_pipable = r_insn_is_pipeable;
+		assign	unused_pipable = insn_is_pipeable;
 		// verilator lint_on  UNUSED
 		// }}}
 	end endgenerate
@@ -885,8 +908,10 @@ module	idecode #(
 `define	ASSUME	assert
 `endif
 	always @(posedge i_clk)
-	if ((i_ce)&&(i_pf_valid)&&(!o_phase))
+	if (i_ce && i_pf_valid && !o_phase)
 		f_insn_word <= i_instruction;
+
+	assign	f_insn_is_pipeable = insn_is_pipeable;
 
 	always @(posedge i_clk)
 	if ((i_ce)&&(i_pf_valid)&&(!o_phase))
@@ -1869,10 +1894,10 @@ module	idecode #(
 				end else if ($past(o_op[0])!=o_op[0])
 				begin
 					`ASSERT(!o_pipe);
-				end else if ($past(o_rB)!=o_rB)
+				end else if (!o_rB || !$past(o_rB))
 				begin
 					`ASSERT(!o_pipe);
-				end else if ((o_rB)&&($past(o_dcdB) != o_dcdB))
+				end else if ($past(o_dcdB) != o_dcdB)
 				begin
 					`ASSERT(!o_pipe);
 				end else if (($past(o_wR))
@@ -1906,7 +1931,7 @@ module	idecode #(
 		//			`ASSERT(!o_pipe);
 		//		else if (r_I[22:0] - $past(r_I[22:0])>23'h4)
 		//			`ASSERT(!o_pipe);
-				end else if (!$past(o_valid))
+				end else if (!$past(insn_is_pipeable))
 					`ASSERT(!o_pipe);
 				// else
 					// assert(o_pipe);
@@ -2042,11 +2067,11 @@ module	idecode #(
 		fc_wR, fc_rA, fc_rB, fc_prepipe, fc_sim, fc_sim_immv);
 
 	always @(posedge i_clk)
-	if ((o_valid)&&(fc_illegal))
+	if (o_valid && fc_illegal)
 		assert(o_illegal);
 
 	always @(posedge i_clk)
-	if ((o_valid)&&(!o_illegal))
+	if (o_valid && !o_illegal)
 	begin
 		if (i_reset)
 		begin
@@ -2074,9 +2099,18 @@ module	idecode #(
 		`ASSERT(fc_rB  == o_rB);
 		`ASSERT(fc_sim  == o_sim);
 		`ASSERT(fc_sim_immv  == o_sim_immv);
-		`ASSERT(fc_prepipe == r_insn_is_pipeable);
-	end else
-		`ASSERT((i_reset)||(!r_insn_is_pipeable));
+		`ASSERT(fc_prepipe == insn_is_pipeable);
+	end
+
+	always @(posedge i_clk)
+	if (!o_illegal && insn_is_pipeable)
+	begin
+		`ASSERT(fc_prepipe);
+		`ASSERT(fc_M == o_M);
+		`ASSERT(fc_dcdR== o_dcdR);
+		`ASSERT(fc_dcdA== o_dcdA);
+		`ASSERT(fc_dcdB== o_dcdB);
+	end
 
 	always @(*)
 	if (o_phase)
@@ -2092,8 +2126,23 @@ module	idecode #(
 	end
 
 	always @(posedge i_clk)
-	if ((!o_valid)||(o_illegal))
-		`ASSERT(!r_insn_is_pipeable);
+	if (insn_is_pipeable)
+	begin
+		// Last instruction must have been a memory op
+		assert(o_M && o_op[2:1] != 2'b00);
+		// Must read from register B
+		assert(o_rB);
+		// Neither reg B nor reg R can reference either CC or PC
+		assert(o_dcdB[3:1] != 3'h7);
+		assert(o_dcdR[3:1] != 3'h7);
+		// Loads to the current address cannot be piped
+		//	Write || Load to other register
+		assert(o_op[0] || (o_dcdR[4:0] != o_dcdB[4:0]));
+
+		assert(o_op[0] != o_wR);
+		assert(o_dcdB[6] == (o_rB && o_dcdB[3:0] == CPU_CC_REG));
+		assert(o_dcdB[5] == (o_rB && o_dcdB[3:0] == CPU_PC_REG));
+	end
 
 	generate if ((OPT_CIS)&&(OPT_EARLY_BRANCHING))
 	begin

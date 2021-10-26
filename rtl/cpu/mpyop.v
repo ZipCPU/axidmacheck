@@ -44,7 +44,8 @@ module	mpyop #(
 		// {{{
 		// The following parameter selects which multiply algorithm we
 		// use.  Timing performance is strictly dependent upon it.
-		parameter	IMPLEMENT_MPY = 1
+		parameter	IMPLEMENT_MPY = 1,
+		parameter [0:0]	OPT_LOWPOWER  = 1'b0
 		// }}}
 	) (
 		// {{{
@@ -99,7 +100,7 @@ module	mpyop #(
 		assign	w_mpy_a_input = {{(32){(i_a[31])&(i_op[0])}},i_a[31:0]};
 		assign	w_mpy_b_input = {{(32){(i_b[31])&(i_op[0])}},i_b[31:0]};
 
-		assign	o_result = w_mpy_a_input * w_mpy_b_input;
+		assign	o_result = (OPT_LOWPOWER && !i_stb) ? 0 : (w_mpy_a_input * w_mpy_b_input);
 
 		assign	o_busy  = 1'b0;
 		assign	o_valid = i_stb;
@@ -116,15 +117,23 @@ module	mpyop #(
 	if (IMPLEMENT_MPY == 2)
 	begin : MPY2CK // Our two clock option (ALU must pause for 1 clock)
 		// {{{
+
+		// Declarations
+		// {{{
 		reg	signed	[63:0]	r_mpy_a_input, r_mpy_b_input;
-		reg	mpypipe;
+		reg			mpypipe, r_hi;
+		// }}}
 
 		// r_mpy_?_input: Register the inputs
 		// {{{
 		always @(posedge i_clk)
+		if (!OPT_LOWPOWER || i_stb)
 		begin
 			r_mpy_a_input <={{(32){(i_a[31])&(i_op[0])}},i_a[31:0]};
 			r_mpy_b_input <={{(32){(i_b[31])&(i_op[0])}},i_b[31:0]};
+		end else begin
+			r_mpy_a_input <= 0;
+			r_mpy_b_input <= 0;
 		end
 		// }}}
 
@@ -145,8 +154,6 @@ module	mpyop #(
 
 		// o_hi
 		// {{{
-		reg	r_hi;
-
 		always @(posedge i_clk)
 		if (i_stb)
 			r_hi  <= i_op[1];
@@ -166,6 +173,7 @@ module	mpyop #(
 		reg	signed	[31:0]	r_mpy_a_input, r_mpy_b_input;
 		reg		[1:0]	mpypipe;
 		reg		[1:0]	r_sgn;
+		reg			r_hi;
 		// }}}
 
 		// mpypipe (FSM state)
@@ -181,10 +189,15 @@ module	mpyop #(
 		// First clock : register r_mpy_?_input, r_sgn
 		// {{{
 		always @(posedge i_clk)
+		if (!OPT_LOWPOWER || i_stb)
 		begin
 			r_mpy_a_input <= i_a[31:0];
 			r_mpy_b_input <= i_b[31:0];
 			r_sgn <= { r_sgn[0], i_op[0] };
+		end else begin
+			r_mpy_a_input <= 0;
+			r_mpy_b_input <= 0;
+			r_sgn <= 0;
 		end
 		// }}}
 
@@ -201,8 +214,10 @@ module	mpyop #(
 		assign	u_mpy_a_input = {32'h00,r_mpy_a_input};
 		assign	u_mpy_b_input = {32'h00,r_mpy_b_input};
 		always @(posedge i_clk)
+		if (!OPT_LOWPOWER || mpypipe[0])
 			r_smpy_result <= s_mpy_a_input * s_mpy_b_input;
 		always @(posedge i_clk)
+		if (!OPT_LOWPOWER || mpypipe[0])
 			r_umpy_result <= u_mpy_a_input * u_mpy_b_input;
 		// }}}
 `else
@@ -214,13 +229,14 @@ module	mpyop #(
 		assign	u_mpy_b_input = r_mpy_b_input;
 
 		always @(posedge i_clk)
+		if (!OPT_LOWPOWER || mpypipe[0])
 			r_smpy_result <= r_mpy_a_input * r_mpy_b_input;
 		always @(posedge i_clk)
+		if (!OPT_LOWPOWER || mpypipe[0])
 			r_umpy_result <= u_mpy_a_input * u_mpy_b_input;
 		// }}}
 `endif
 
-		reg	r_hi;
 		always @(posedge i_clk)
 		if (i_stb)
 			r_hi  <= i_op[1];
@@ -281,6 +297,12 @@ module	mpyop #(
 
 			if (i_stb)
 				r_hi  <= i_op[1];
+			else if (OPT_LOWPOWER)
+			begin
+				r_mpy_a_input <= 0;
+				r_mpy_b_input <= 0;
+				r_mpy_signed  <= 0;
+			end
 		end
 		// }}}
 
@@ -322,6 +344,7 @@ module	mpyop #(
 		//		- 2^31 (2^16 bh+bl + 2^16 ah+al + 2^31)
 		//
 		always @(posedge i_clk)
+		if (!OPT_LOWPOWER || mpypipe[0])
 		begin
 			pp_f<=r_mpy_a_input[31:16]*r_mpy_b_input[31:16];
 			pp_oi<=r_mpy_a_input[31:16]*r_mpy_b_input[15: 0]
@@ -340,6 +363,7 @@ module	mpyop #(
 		// Third clock, add the results and get a product: r_mpy_result
 		// {{{
 		always @(posedge i_clk)
+		if (!OPT_LOWPOWER || mpypipe[1])
 		begin
 			r_mpy_result[15:0] <= pp_l[15:0];
 			r_mpy_result[63:16] <=
@@ -358,11 +382,15 @@ module	mpyop #(
 		// Use an external multiply implementation, for when DSPs aren't
 		// available.
 		//
+
+		// Declarations
+		// {{{
 		reg		r_hi;
 		// verilator lint_off UNUSED
 		wire		unused_aux;
 		wire	[65:0]	full_result;
 		// verilator lint_on  UNUSED
+		// }}}
 
 		slowmpy #(.LGNA(6), .NA(33)) slowmpyi(i_clk, i_reset, i_stb,
 			{ (i_op[0])&(i_a[31]), i_a },

@@ -107,8 +107,9 @@ module	main(i_clk, i_reset,
 		S_AXI_RVALID,
 		S_AXI_RREADY,
 		S_AXI_RDATA,
-		S_AXI_RRESP	// }}}
-);
+		S_AXI_RRESP
+	// }}}
+	);
 ////////////////////////////////////////////////////////////////////////////////
 //
 // Any parameter definitions
@@ -2720,7 +2721,8 @@ module	main(i_clk, i_reset,
 		// {{{
 		.C_AXI_ADDR_WIDTH(25),
 		.C_AXI_DATA_WIDTH(32),
-		.C_AXI_ID_WIDTH(3)
+		.C_AXI_ID_WIDTH(3),
+		.OPT_LOWPOWER(1'b1)
 		// }}}
 	) ramperfi(
 		// {{{
@@ -2803,7 +2805,8 @@ module	main(i_clk, i_reset,
 		// {{{
 		.C_AXI_ADDR_WIDTH(25),
 		.C_AXI_DATA_WIDTH(32),
-		.C_AXI_ID_WIDTH(3)
+		.C_AXI_ID_WIDTH(3),
+		.OPT_LOWPOWER(1'b1)
 		// }}}
 	) cpuiperfi(
 		// {{{
@@ -2886,7 +2889,8 @@ module	main(i_clk, i_reset,
 		// {{{
 		.C_AXI_ADDR_WIDTH(25),
 		.C_AXI_DATA_WIDTH(32),
-		.C_AXI_ID_WIDTH(3)
+		.C_AXI_ID_WIDTH(3),
+		.OPT_LOWPOWER(1'b1)
 		// }}}
 	) mm2sperfi(
 		// {{{
@@ -2969,7 +2973,8 @@ module	main(i_clk, i_reset,
 		// {{{
 		.C_AXI_ADDR_WIDTH(25),
 		.C_AXI_DATA_WIDTH(32),
-		.C_AXI_ID_WIDTH(3)
+		.C_AXI_ID_WIDTH(3),
+		.OPT_LOWPOWER(1'b1)
 		// }}}
 	) dmaperfi(
 		// {{{
@@ -3169,6 +3174,13 @@ module	main(i_clk, i_reset,
 		.LGICACHE(12),.OPT_LGDCACHE(12),
 		.START_HALTED(ZIP_START_HALTED),
 		.RESET_DURATION(20),
+		.OPT_SIM(1'b1),
+`ifdef	VERILATOR
+		.OPT_LOWPOWER(1'b1),
+		.OPT_GATE_CLOCK(1'b1),
+`else
+		.OPT_GATE_CLOCK(1'b0),
+`endif
 		.SWAP_WSTRB(1)
 		// }}}
 	) swic(
@@ -3328,6 +3340,13 @@ module	main(i_clk, i_reset,
 		.C_AXI_ADDR_WIDTH(25),
 		.C_AXI_DATA_WIDTH(32),
 		.C_AXI_ID_WIDTH(3),
+`ifdef	VERILATOR
+		.OPT_LOWPOWER(1'b1),
+		.OPT_CLKGATE(1'b1),
+`else
+		.OPT_LOWPOWER(1'b0),
+		.OPT_CLKGATE(1'b0),
+`endif
 		.AXI_ID(3'b001)
 		// }}}
 	) s2mmi (
@@ -3418,6 +3437,9 @@ module	main(i_clk, i_reset,
 `ifdef	VERILATOR
 		.OPT_LOWPOWER(1'b1),
 		.OPT_CLKGATE(1'b1),
+`else
+		.OPT_LOWPOWER(1'b1),
+		.OPT_CLKGATE(1'b0),
 `endif
 		.AXI_READ_ID(3'b010),
 		.AXI_WRITE_ID(3'b011)
@@ -3718,7 +3740,8 @@ module	main(i_clk, i_reset,
 		// {{{
 		.C_AXI_ADDR_WIDTH(25),
 		.C_AXI_DATA_WIDTH(32),
-		.C_AXI_ID_WIDTH(3)
+		.C_AXI_ID_WIDTH(3),
+		.OPT_LOWPOWER(1'b1)
 		// }}}
 	) s2mmperfi(
 		// {{{
@@ -3827,7 +3850,8 @@ module	main(i_clk, i_reset,
 	// {{{
 	axilconsole #(
 		// {{{
-		.LGFLEN(6)
+		.LGFLEN(6),
+		.OPT_LOWPOWER(1'b1)
 		// }}}
 	) console(
 		// {{{
@@ -3975,7 +3999,8 @@ module	main(i_clk, i_reset,
 		// {{{
 		.C_AXI_ADDR_WIDTH(25),
 		.C_AXI_DATA_WIDTH(32),
-		.C_AXI_ID_WIDTH(3)
+		.C_AXI_ID_WIDTH(3),
+		.OPT_LOWPOWER(1'b1)
 		// }}}
 	) cpudperfi(
 		// {{{
@@ -4248,6 +4273,13 @@ module	main(i_clk, i_reset,
 		.C_AXI_ADDR_WIDTH(25),
 		.C_AXI_DATA_WIDTH(32),
 		.C_AXI_ID_WIDTH(3),
+`ifdef	VERILATOR
+		.OPT_LOWPOWER(1'b1),
+		.OPT_CLKGATE(1'b1),
+`else
+		.OPT_LOWPOWER(1'b0),
+		.OPT_CLKGATE(1'b0),
+`endif
 		.AXI_ID(3'b00)
 		// }}}
 	) mm2si (

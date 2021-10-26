@@ -53,7 +53,8 @@
 		// {{{
 		.C_AXI_ADDR_WIDTH(@$(TARGETAWID)),
 		.C_AXI_DATA_WIDTH(@$(TARGETDWID)),
-		.C_AXI_ID_WIDTH(@$(TARGETIWID))
+		.C_AXI_ID_WIDTH(@$(TARGETIWID)),
+		.OPT_LOWPOWER(1'b1)
 		// }}}
 	) @$(PREFIX)i(
 		// {{{

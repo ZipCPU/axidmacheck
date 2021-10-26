@@ -87,6 +87,12 @@ module	zipaxi #(
 `else
 		parameter [0:0]	EARLY_BRANCHING = 0,
 `endif
+		parameter [0:0]	OPT_LOWPOWER = 1'b0,
+`ifdef	VERILATOR
+		parameter [0:0]	OPT_SIM = 1'b1,
+`else
+		parameter [0:0]	OPT_SIM = 1'b0,
+`endif
 `ifdef	OPT_CIS
 		parameter [0:0]	OPT_CIS = 1'b1,
 `else
@@ -115,9 +121,9 @@ module	zipaxi #(
 		// localparam [0:0]	WITH_LOCAL_BUS = 1'b0,
 		localparam	AW=ADDRESS_WIDTH-2,
 `ifdef	VERILATOR
-		localparam	[0:0]	OPT_GATE_CLOCK = 1'b1
+		parameter	[0:0]	OPT_GATE_CLOCK = 1'b1
 `else
-		localparam	[0:0]	OPT_GATE_CLOCK = 1'b0
+		parameter	[0:0]	OPT_GATE_CLOCK = 1'b0
 `endif
 `ifdef	FORMAL
 		, parameter	F_LGDEPTH=8
@@ -276,7 +282,6 @@ module	zipaxi #(
 			STEP_BIT = 8,
 			HALT_BIT = 10,
 			CLEAR_CACHE_BIT = 11;
-	localparam [0:0]	OPT_LOWPOWER = 1'b0;
 	localparam [0:0]	OPT_ALIGNMENT_ERR = 1'b0;
 	localparam [0:0]	SWAP_ENDIANNESS = 1'b0;
 
@@ -288,6 +293,7 @@ module	zipaxi #(
 	wire	[31:0]	wskd_data;
 	wire	[3:0]	wskd_strb;
 	reg		dbg_write_valid, dbg_read_valid;
+	wire		w_dbg_write_valid;
 	reg	[4:0]	dbg_write_reg;
 	wire	[4:0]	dbg_read_reg;
 	reg	[31:0]	dbg_write_data;
@@ -380,14 +386,13 @@ module	zipaxi #(
 
 	// dbg_write_valid
 	// {{{
+	assign	w_dbg_write_valid = dbg_write_ready && (|wskd_strb) && !awskd_addr[5];
 	initial	dbg_write_valid = 0;
 	always @(posedge S_AXI_ACLK)
 	if (!S_AXI_ARESETN)
 		dbg_write_valid <= 1'b0;
 	else if (!dbg_write_stall)
-	begin
-		dbg_write_valid <= dbg_write_ready && (|wskd_strb) && !awskd_addr[5];
-	end
+		dbg_write_valid <= w_dbg_write_valid;
 	// }}}
 
 	// dbg_write_reg
@@ -396,7 +401,7 @@ module	zipaxi #(
 	if (!dbg_write_stall)
 	begin
 		dbg_write_reg <= awskd_addr[4:0];
-		if (OPT_LOWPOWER && !dbg_write_valid)
+		if (OPT_LOWPOWER && !w_dbg_write_valid)
 			dbg_write_reg <= 0;
 	end
 	// }}}
@@ -407,7 +412,7 @@ module	zipaxi #(
 	if (!dbg_write_stall)
 	begin
 		dbg_write_data <= wskd_data;
-		if (OPT_LOWPOWER && !dbg_write_ready)
+		if (OPT_LOWPOWER && !w_dbg_write_valid)
 			dbg_write_data <= 0;
 	end
 	// }}}
@@ -708,12 +713,14 @@ module	zipaxi #(
 		.IMPLEMENT_FPU(IMPLEMENT_FPU),
 		.OPT_EARLY_BRANCHING(EARLY_BRANCHING),
 		.OPT_CIS(OPT_CIS),
+		.OPT_SIM(OPT_SIM),
 		// .OPT_NO_USERMODE(OPT_NO_USERMODE),
 		.OPT_PIPELINED(OPT_PIPELINED),
 		.OPT_PIPELINED_BUS_ACCESS(OPT_PIPELINED_BUS_ACCESS),
 		// localparam	[0:0]	OPT_MEMPIPE = OPT_PIPELINED_BUS_ACCESS;
 		.IMPLEMENT_LOCK(IMPLEMENT_LOCK),
 		.OPT_DCACHE(OPT_LGDCACHE != 0),
+		.OPT_LOWPOWER(OPT_LOWPOWER),
 		// localparam	[0:0]	OPT_LOCK=(IMPLEMENT_LOCK)&&(OPT_PIPELINED);
 		// parameter [0:0]	WITH_LOCAL_BUS = 1'b1;
 		.OPT_GATE_CLOCK(OPT_GATE_CLOCK)
@@ -802,6 +809,7 @@ module	zipaxi #(
 			.AXI_ID(INSN_ID),
 			.LGCACHESZ(LGICACHE),
 			.LGLINESZ(LGILINESZ),
+			.OPT_LOWPOWER(OPT_LOWPOWER),
 			// Instruction fetches don't need subword access,
 			// so SWAPWSTRB doesn't make any sense here.
 			// .SWAP_WSTRB(SWAP_WSTRB),
@@ -1249,7 +1257,8 @@ module	zipaxi #(
 	generate if (OPT_GATE_CLOCK)
 	begin : GATE_CPU_CLOCK
 
-		reg	gatep, gaten;
+		reg	gatep;
+		reg	gaten /* verilator clock_enable */;
 
 		always @(posedge S_AXI_ACLK)
 		if (!S_AXI_ARESETN)

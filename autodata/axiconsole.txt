@@ -177,7 +177,8 @@
 @MAIN.INSERT=
 	axilconsole #(
 		// {{{
-		.LGFLEN(6)
+		.LGFLEN(6),
+		.OPT_LOWPOWER(1'b1)
 		// }}}
 	) console(
 		// {{{

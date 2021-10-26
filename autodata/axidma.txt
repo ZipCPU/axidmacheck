@@ -62,6 +62,9 @@
 `ifdef	VERILATOR
 		.OPT_LOWPOWER(1'b1),
 		.OPT_CLKGATE(1'b1),
+`else
+		.OPT_LOWPOWER(1'b1),
+		.OPT_CLKGATE(1'b0),
 `endif
 		.AXI_READ_ID(3'b010),
 		.AXI_WRITE_ID(3'b011)
