@@ -5,6 +5,8 @@ obj_dir
 obj-pc
 obj-zip
 20*-build.v
+unused
+*.dia.autosave
 *.o
 *.a
 *.vcd
