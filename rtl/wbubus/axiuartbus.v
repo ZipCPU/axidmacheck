@@ -26,7 +26,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 // }}}
-// Copyright (C) 2015-2021, Gisselquist Technology, LLC
+// Copyright (C) 2015-2022, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
 // modify it under the terms of  the GNU General Public License as published
@@ -143,16 +143,17 @@ module	axiuartbus #(
 	wire		i_reset = !S_AXI_ARESETN;
 	wire		soft_reset;
 	wire		cmd_port_active;
-	wire		in_stb;
+	wire		in_stb, in_active, in_busy;
 	wire	[35:0]	in_word;
-	wire	w_bus_busy, fifo_in_stb, exec_stb, w_bus_reset;
-	wire	[35:0]	fifo_in_word, exec_word;
+	wire		w_bus_busy, fifo_in_stb, exec_stb, w_bus_reset;
+	wire	[35:0]	fifo_in_word, exec_word, ofifo_word;
 	reg		ps_full;
 	reg	[7:0]	ps_data;
-	wire		wbu_tx_stb;
+	wire		wbu_tx_stb, wbu_tx_active, out_busy;
 	wire	[7:0]	wbu_tx_data;
-	wire		ofifo_err;
 	wire		bus_active;
+
+	wire		ofifo_empty_n, ofifo_err, ofifo_wr, ofifo_rd;
 	// }}}
 	////////////////////////////////////////////////////////////////////////
 	//
@@ -201,9 +202,11 @@ module	axiuartbus #(
 	getinput(
 		// {{{
 		.i_clk(i_clk), .i_reset(i_reset),
-		.i_stb(i_rx_stb && i_rx_data[7]), .i_byte({ 1'b0, i_rx_data[6:0] }),
+		.i_stb(i_rx_stb && i_rx_data[7]), .o_busy(in_busy),
+			.i_byte({ 1'b0, i_rx_data[6:0] }),
 		.o_soft_reset(soft_reset),
-		.o_stb(in_stb), .o_codword(in_word)
+		.o_stb(in_stb), .i_busy(1'b0),
+			.o_codword(in_word), .o_active(in_active)
 		// }}}
 	);
 	// }}}
@@ -320,6 +323,34 @@ module	axiuartbus #(
 	// }}}
 	////////////////////////////////////////////////////////////////////////
 	//
+	// Output FIFO
+	// {{{
+	////////////////////////////////////////////////////////////////////////
+	//
+	//
+
+	assign	ofifo_wr    = ofifo_empty_n;
+	assign	ofifo_rd    = ofifo_empty_n && !out_busy;
+		// .i_stb(exec_stb), .o_busy(out_busy), .i_codword(exec_word),
+	assign	w_bus_reset = soft_reset;
+
+	wbufifo	#(
+		// {{{
+		.BW(36),.LGFLEN(LGOUTPUT_FIFO)
+		// }}}
+	) ofifo (
+		// {{{
+		.i_clk(i_clk), .i_reset(w_bus_reset),
+		.i_wr(exec_stb), .i_data(exec_word),
+		.i_rd(ofifo_rd),
+			.o_data(ofifo_word),
+		.o_empty_n(ofifo_empty_n), .o_err(ofifo_err)
+		// }}}
+	);
+
+	// }}}
+	////////////////////////////////////////////////////////////////////////
+	//
 	// Encode the outputs
 	// {{{
 	////////////////////////////////////////////////////////////////////////
@@ -327,14 +358,14 @@ module	axiuartbus #(
 	//
 
 	wbuoutput #(
-		LGOUTPUT_FIFO
+		.OPT_COMPRESSION(1'b1), .OPT_IDLES(1'b1)
 	) wroutput(
 		// {{{
 		.i_clk(i_clk), .i_reset(i_reset), .i_soft_reset(w_bus_reset),
-		.i_stb(exec_stb), .i_codword(exec_word),
+		.i_stb(ofifo_rd), .o_busy(out_busy), .i_codword(ofifo_word),
 		.i_wb_cyc(bus_active), .i_int(i_interrupt), .i_bus_busy(exec_stb),
-		.o_stb(wbu_tx_stb), .o_char(wbu_tx_data), .i_tx_busy(ps_full),
-		.o_fifo_err(ofifo_err)
+		.o_stb(wbu_tx_stb), .o_active(wbu_tx_active),
+		.o_char(wbu_tx_data), .i_tx_busy(ps_full)
 		// }}}
 	);
 	// }}}
@@ -367,9 +398,12 @@ module	axiuartbus #(
 	// }}}
 
 	// Make verilator happy
+	// {{{
 	// verilator lint_off UNUSED
-	wire	[1:0]	unused;
-	assign	unused = { ofifo_err, wbu_tx_data[7] };
+	wire	unused;
+	assign	unused = &{ 1'b0, wbu_tx_data[7], in_active,
+				out_busy, wbu_tx_active };
 	// verilator lint_on  UNUSED
+	// }}}
 endmodule
 

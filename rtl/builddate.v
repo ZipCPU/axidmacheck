@@ -14,7 +14,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 // }}}
-// Copyright (C) 2020-2021, Gisselquist Technology, LLC
+// Copyright (C) 2020-2022, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as published
@@ -39,6 +39,6 @@
 //
 // }}}
 `ifndef	DATESTAMP
-`define DATESTAMP 32'h20211025
-`define BUILDTIME 32'h00053655
+`define DATESTAMP 32'h20220505
+`define BUILDTIME 32'h00182833
 `endif

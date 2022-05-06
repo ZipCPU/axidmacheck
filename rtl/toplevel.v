@@ -15,7 +15,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 // }}}
-// Copyright (C) 2020-2021, Gisselquist Technology, LLC
+// Copyright (C) 2020-2022, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as published
@@ -85,6 +85,42 @@ module	toplevel(
 		S_AXI_RDATA,
 		S_AXI_RRESP);
 	//
+	// Declaring any top level parameters.
+	//
+	// These declarations just copy data from the @TOP.PARAM key,
+	// or from the @MAIN.PARAM key if @TOP.PARAM is absent.  For
+	// those peripherals that don't do anything at the top level,
+	// the @MAIN.PARAM key should be sufficient, so the @TOP.PARAM
+	// key may be left undefined.
+	//
+	//
+	// (AXI) WBUBUS parameters
+	// {{{
+	// Baudrate :   1000000
+	// Clock    : 100000000
+	localparam [23:0] BUSUART = 24'h64;	//   1000000 baud
+	localparam	DBGBUSBITS = $clog2(BUSUART);
+	// }}}
+	//
+	//
+	// Variables/definitions needed by the ZipCPU BUS master
+	//
+	//
+	// The number of valid bits on the bus
+	localparam	ZIP_ADDRESS_WIDTH = 25; // Zip-CPU address width
+	//
+	// A 32-bit address indicating where the ZipCPU should start running
+	// from
+	localparam	[ZIP_ADDRESS_WIDTH-1:0]	RESET_ADDRESS = 25'h1000000;
+	//
+	// Number of ZipCPU interrupts
+	localparam	ZIP_INTS = 16;
+	//
+	// ZIP_START_HALTED
+	//
+	// A boolean, indicating whether or not the ZipCPU be halted on startup?
+	localparam	ZIP_START_HALTED=1'b1;
+	//
 	// Declaring our input and output ports.  We listed these above,
 	// now we are declaring them here.
 	//
@@ -133,6 +169,14 @@ module	toplevel(
 	// These declarations just copy data from the @TOP.DEFNS key
 	// within the component data files.
 	//
+	// Profiler wires--unneeded in all but simulation
+	// {{{
+	// Verilator lint_off UNUSED
+	// Verilator lint_on  UNUSED
+	wire				cpu_prof_stb;
+	wire [25-1:0]	cpu_prof_addr;
+	wire	[31:0]			cpu_prof_ticks;
+	// }}}
 
 
 	//
@@ -155,6 +199,7 @@ module	toplevel(
 		i_wbu_uart_rx, o_wbu_uart_tx,
 		// Reset wire for the ZipCPU
 		(!i_cpu_resetn),
+		cpu_prof_stb, cpu_prof_addr, cpu_prof_ticks,
 		//
 		// Drive the AXI bus from an AXI-lite control
 		//

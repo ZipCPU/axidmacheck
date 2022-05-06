@@ -16,7 +16,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 // }}}
-// Copyright (C) 2020-2021, Gisselquist Technology, LLC
+// Copyright (C) 2020-2022, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as published
@@ -84,6 +84,7 @@ module	main(i_clk, i_reset,
 		// UART/host to wishbone interface
 		i_wbu_uart_rx, o_wbu_uart_tx,
 		i_cpu_reset,
+		cpu_prof_stb, cpu_prof_addr, cpu_prof_ticks,
 		//
 		// Drive the AXI bus from an AXI-lite control
 		//
@@ -163,6 +164,9 @@ module	main(i_clk, i_reset,
 	input	wire		i_wbu_uart_rx;
 	output	wire		o_wbu_uart_tx;
 	input	wire		i_cpu_reset;
+	output	wire				cpu_prof_stb;
+	output	wire [25-1:0]	cpu_prof_addr;
+	output	wire	[31:0]			cpu_prof_ticks;
 	//
 	// Drive the AXI bus from an AXI-lite control
 	// {{{
@@ -3169,17 +3173,17 @@ module	main(i_clk, i_reset,
 		// {{{
 		.RESET_ADDRESS(RESET_ADDRESS),
 		.C_AXI_ID_WIDTH(3),
-		.C_AXI_ADDR_WIDTH(ZIP_ADDRESS_WIDTH),
+		.ADDRESS_WIDTH(ZIP_ADDRESS_WIDTH),
 		.C_AXI_DATA_WIDTH(32),
-		.LGICACHE(12),.OPT_LGDCACHE(12),
+		.OPT_LGICACHE(12),.OPT_LGDCACHE(12),
 		.START_HALTED(ZIP_START_HALTED),
 		.RESET_DURATION(20),
 		.OPT_SIM(1'b1),
 `ifdef	VERILATOR
 		.OPT_LOWPOWER(1'b1),
-		.OPT_GATE_CLOCK(1'b1),
+		.OPT_CLKGATE(1'b1),
 `else
-		.OPT_GATE_CLOCK(1'b0),
+		.OPT_CLKGATE(1'b0),
 `endif
 		.SWAP_WSTRB(1)
 		// }}}
@@ -3308,7 +3312,11 @@ module	main(i_clk, i_reset,
 		.o_op_stall(axilp_opstall),
 		.o_pf_stall(axilp_pfstall),
 		.o_i_count(axilp_icount),
-		.o_debug(zip_debug)
+		.o_debug(zip_debug),
+		//
+		.o_prof_stb(cpu_prof_stb),
+		.o_prof_addr(cpu_prof_addr),
+		.o_prof_ticks(cpu_prof_ticks)
 		// }}}
 	);
 
@@ -3526,7 +3534,8 @@ module	main(i_clk, i_reset,
 		// {{{
 		.C_S_AXI_ADDR_WIDTH(24),
 		.C_S_AXI_DATA_WIDTH(32),
-		.C_S_AXI_ID_WIDTH(3)
+		.C_S_AXI_ID_WIDTH(3),
+		.OPT_LOCK(1'b1)
 		// }}}
 	) axirami (
 		// {{{

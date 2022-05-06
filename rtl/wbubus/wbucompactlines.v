@@ -15,10 +15,10 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 // }}}
-// Copyright (C) 2015-2021, Gisselquist Technology, LLC
+// Copyright (C) 2015-2022, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
-// modify it under the terms of  the GNU General Public License as published
+// modify it under the terms of the GNU General Public License as published
 // by the Free Software Foundation, either version 3 of the License, or (at
 // your option) any later version.
 //
@@ -59,12 +59,13 @@
 module	wbucompactlines (
 		// {{{
 		input	wire		i_clk, i_reset, i_stb,
-		input	wire [6:0]	i_nl_hexbits,
+		input	wire	[6:0]	i_nl_hexbits,
 		output	reg		o_stb,
 		output	reg	[6:0]	o_nl_hexbits,
 		input	wire		i_bus_busy,
 		input	wire		i_tx_busy,
-		output	wire		o_busy
+		output	wire		o_busy,
+		output	wire		o_active
 		// }}}
 	);
 
@@ -82,8 +83,8 @@ module	wbucompactlines (
 	always @(posedge i_clk)
 	if (i_reset)
 		last_out_nl <= 1'b1;
-	else if ((!i_tx_busy)&&(o_stb))
-		last_out_nl <= (o_nl_hexbits[6]);
+	else if (!i_tx_busy && o_stb)
+		last_out_nl <= o_nl_hexbits[6];
 	// }}}
 
 	// last_in_nl
@@ -92,8 +93,8 @@ module	wbucompactlines (
 	always @(posedge i_clk)
 	if (i_reset)
 		last_in_nl <= 1'b1;
-	else if ((i_stb)&&(!o_busy))
-		last_in_nl <= (i_nl_hexbits[6]);
+	else if (i_stb && !o_busy)
+		last_in_nl <= i_nl_hexbits[6];
 	// }}}
 
 	// linelen
@@ -103,7 +104,7 @@ module	wbucompactlines (
 	always @(posedge i_clk)
 	if (i_reset)
 		linelen <= 0;
-	else if ((!i_tx_busy)&&(o_stb))
+	else if (!i_tx_busy && o_stb)
 	begin
 		if (o_nl_hexbits[6])
 			linelen <= 0;
@@ -118,7 +119,7 @@ module	wbucompactlines (
 	always @(posedge i_clk)
 	if (i_reset)
 		full_line <= 0;
-	else if ((!i_tx_busy)&&(o_stb))
+	else if (!i_tx_busy && o_stb)
 	begin
 		if (o_nl_hexbits[6])
 			full_line <= 0;
@@ -136,7 +137,7 @@ module	wbucompactlines (
 	initial	o_stb = 1'b0;
 	always @(posedge i_clk)
 	begin
-		if ((i_stb)&&(!o_busy))
+		if (i_stb && !o_busy)
 		begin
 			// Only accept incoming newline requests if our line is
 			// already full, otherwise quietly suppress them
@@ -166,15 +167,30 @@ module	wbucompactlines (
 	// {{{
 	initial	r_busy = 1'b0;
 	always @(posedge i_clk)
-		r_busy <= (o_stb)&&(i_tx_busy);
+	if (i_reset)
+		r_busy <= 1'b0;
+	else
+		r_busy <= o_stb && i_tx_busy;
+
 	assign	o_busy = (r_busy)||(o_stb);
 	// }}}
 
+	assign	o_active = i_stb || (i_tx_busy && !last_out_nl && last_in_nl);
 	/*
 	output	wire	[27:0]	o_dbg;
 	assign o_dbg = { o_stb, o_nl_hexbits, o_busy, r_busy, full_line,
 			i_bus_busy, linelen, i_tx_busy, i_stb, i_nl_hexbits };
 	*/
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//
+// Formal properties
+// {{{
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 `ifdef	FORMAL
 `endif
+// }}}
 endmodule

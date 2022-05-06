@@ -26,10 +26,10 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 // }}}
-// Copyright (C) 2015-2021, Gisselquist Technology, LLC
+// Copyright (C) 2015-2022, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
-// modify it under the terms of  the GNU General Public License as published
+// modify it under the terms of the GNU General Public License as published
 // by the Free Software Foundation, either version 3 of the License, or (at
 // your option) any later version.
 //
@@ -56,7 +56,8 @@ module	wbuconsole #(
 		parameter	LGWATCHDOG=19,
 				LGINPUT_FIFO=6,
 				LGOUTPUT_FIFO=10,
-		parameter [0:0] CMD_PORT_OFF_UNTIL_ACCESSED = 1'b1
+		parameter [0:0] CMD_PORT_OFF_UNTIL_ACCESSED = 1'b1,
+		parameter	AW = 30
 		// }}}
 	) (
 		// {{{
@@ -70,7 +71,8 @@ module	wbuconsole #(
 		// Wishbone master
 		// {{{
 		output	wire		o_wb_cyc, o_wb_stb, o_wb_we,
-		output	wire	[31:0]	o_wb_addr, o_wb_data,
+		output	wire	[AW-1:0]	o_wb_addr,
+		output	wire	[31:0]	o_wb_data,
 		input	wire		i_wb_stall, i_wb_ack,
 		input	wire	[31:0]	i_wb_data,
 		input	wire		i_wb_err,
@@ -100,16 +102,37 @@ module	wbuconsole #(
 	wire		soft_reset;
 	reg		r_wdt_reset;
 	wire		cmd_port_active;
-	wire		in_stb;
+
+	// RX byte
+	wire		rx_valid;
+	wire	[7:0]	rx_data;
+
+	// Incoming code word, once processed
+	wire		in_stb, in_active;
 	wire	[35:0]	in_word;
-	wire	w_bus_busy, fifo_in_stb, exec_stb, w_bus_reset;
-	wire	[35:0]	fifo_in_word, exec_word;
+
 	reg		ps_full;
 	reg	[7:0]	ps_data;
 	wire		wbu_tx_stb;
 	wire	[7:0]	wbu_tx_data;
-	wire		ofifo_err;
+
+	// Input FIFO
+	wire		ififo_valid;
+	wire	[35:0]	ififo_codword;
+
+	// Code word outputs from running the bus
+	wire		exec_stb;
+	wire	[35:0]	exec_word;
+
+	// Output FIFO
+	wire		ofifo_rd;
+	wire	[35:0]	ofifo_codword;
+	wire		ofifo_err, ofifo_empty_n;
+
+	wire				w_bus_busy, w_bus_reset;
 	reg	[(LGWATCHDOG-1):0]	r_wdt_timer;
+	wire				ign_input_busy;
+	wire				output_busy, out_active;
 	// }}}
 	////////////////////////////////////////////////////////////////////////
 	//
@@ -129,7 +152,7 @@ module	wbuconsole #(
 	// cmd_port_active
 	// {{{
 	generate if (CMD_PORT_OFF_UNTIL_ACCESSED)
-	begin
+	begin : GEN_DEACTIVATEPORT
 
 		reg	r_cmd_port_active;
 
@@ -140,7 +163,7 @@ module	wbuconsole #(
 
 		assign	cmd_port_active = r_cmd_port_active;
 
-	end else begin
+	end else begin : GEN_ALWAYSON
 
 		assign	cmd_port_active = 1'b1;
 
@@ -154,13 +177,19 @@ module	wbuconsole #(
 	////////////////////////////////////////////////////////////////////////
 	//
 	//
+
+	assign	rx_valid = i_rx_stb && i_rx_data[7];
+	assign	rx_data  = { 1'b0, i_rx_data[6:0] };
+
 	wbuinput
 	getinput(
 		// {{{
 		.i_clk(i_clk), .i_reset(i_reset),
-		.i_stb(i_rx_stb && i_rx_data[7]), .i_byte({ 1'b0, i_rx_data[6:0] }),
+		.i_stb(rx_valid), .o_busy(ign_input_busy),
+			.i_byte(rx_data),
 		.o_soft_reset(soft_reset),
-		.o_stb(in_stb), .o_codword(in_word)
+		.o_stb(in_stb), .i_busy(1'b0), .o_codword(in_word),
+			.o_active(in_active)
 		// }}}
 	);
 	// }}}
@@ -174,15 +203,16 @@ module	wbuconsole #(
 	generate if (LGINPUT_FIFO < 2)
 	begin : NO_INPUT_FIFO
 
-		assign	fifo_in_stb = in_stb;
-		assign	fifo_in_word = in_word;
+		assign	ififo_valid = in_stb;
+		assign	ififo_codword = in_word;
 		assign	w_bus_reset = soft_reset;
 
 	end else begin : INPUT_FIFO
 
-		wire		ififo_empty_n, ififo_err;
+		wire		ififo_empty_n, ififo_err, ififo_rd;
 
-		assign	fifo_in_stb = (~w_bus_busy)&&(ififo_empty_n);
+		assign	ififo_rd    = (!w_bus_busy)&&(ififo_empty_n);
+		assign	ififo_valid = (ififo_empty_n);
 		assign	w_bus_reset = r_wdt_reset;
 
 		wbufifo	#(
@@ -193,14 +223,14 @@ module	wbuconsole #(
 			// {{{
 			.i_clk(i_clk), .i_reset(w_bus_reset),
 			.i_wr(in_stb), .i_data(in_word),
-			.i_rd(fifo_in_stb), .o_data(fifo_in_word),
+			.i_rd(ififo_rd), .o_data(ififo_codword),
 			.o_empty_n(ififo_empty_n), .o_err(ififo_err)
 			// }}}
 		);
 
 		// verilator lint_off UNUSED
 		wire	gen_unused;
-		assign	gen_unused = ififo_err;
+		assign	gen_unused = &{ 1'b0, ififo_err };
 		// verilator lint_on  UNUSED
 	end endgenerate
 	// }}}
@@ -215,33 +245,82 @@ module	wbuconsole #(
 	// Take requests in, Run the bus, send results out
 	// This only works if no requests come in while requests
 	// are pending.
-	wbuexec
-	runwb(
+	wbuexec #(
+		// .LGFIFO(LGOUTPUT_FIFO)
+		.AW(AW)
+	) runwb(
 		// {{{
 		.i_clk(i_clk), .i_reset(r_wdt_reset),
-		.i_stb(fifo_in_stb), .i_codword(fifo_in_word),
+		//
+		.i_valid(ififo_valid), .i_codword(ififo_codword),
 			.o_busy(w_bus_busy),
+		//
 		.o_wb_cyc(o_wb_cyc), .o_wb_stb(o_wb_stb), .o_wb_we(o_wb_we),
 			.o_wb_addr(o_wb_addr), .o_wb_data(o_wb_data),
 		.i_wb_stall(i_wb_stall), .i_wb_ack(i_wb_ack),
 			.i_wb_data(i_wb_data), .i_wb_err(i_wb_err),
-		.o_stb(exec_stb), .o_codword(exec_word)
+		//
+		.o_stb(exec_stb), .o_codword(exec_word), .i_fifo_rd(ofifo_rd)
+		// }}}
+	);
+
+	// }}}
+	////////////////////////////////////////////////////////////////////////
+	//
+	// Output FIFO
+	// {{{
+	////////////////////////////////////////////////////////////////////////
+	//
+	//
+
+	generate if (LGOUTPUT_FIFO < 2)
+	begin : NO_OUTBOUND_FIFO
+
+		assign	ofifo_rd = exec_stb;
+		assign	ofifo_codword = exec_word;
+		assign	ofifo_err = 1'b0;
+		assign	ofifo_empty_n = exec_stb;
+
+	end else begin : GEN_OUTBOUND_FIFO
+
+		assign	ofifo_rd = ofifo_empty_n && !output_busy;
+		wbufifo #(
+			.BW(36), .LGFLEN(LGOUTPUT_FIFO)
+		) busoutfifo (
+			// {{{
+			.i_clk(i_clk), .i_reset(r_wdt_reset),
+			.i_wr(exec_stb), .i_data(exec_word),
+			.i_rd(ofifo_rd), .o_data(ofifo_codword),
+				.o_empty_n(ofifo_empty_n),
+				.o_err(ofifo_err)
+			// }}}
+		);
+
+	end endgenerate
+
+	// }}}
+	////////////////////////////////////////////////////////////////////////
+	//
+	// Encode bus outputs into a serial data stream
+	// {{{
+	////////////////////////////////////////////////////////////////////////
+	//
+	//
+
+	wbuoutput
+	wroutput(
+		// {{{
+		.i_clk(i_clk), .i_reset(i_reset), .i_soft_reset(w_bus_reset),
+		.i_stb(ofifo_rd), .i_codword(ofifo_codword),
+			.o_busy(output_busy),
+		//
+		.i_wb_cyc(o_wb_cyc), .i_int(i_interrupt),
+			.i_bus_busy(exec_stb || ofifo_empty_n),
+		.o_stb(wbu_tx_stb), .o_char(wbu_tx_data), .i_tx_busy(ps_full),
+			.o_active(out_active)
 		// }}}
 	);
 	// }}}
-
-	wbuoutput #(
-		LGOUTPUT_FIFO
-	) wroutput(
-		// {{{
-		.i_clk(i_clk), .i_reset(i_reset), .i_soft_reset(w_bus_reset),
-		.i_stb(exec_stb), .i_codword(exec_word),
-		.i_wb_cyc(o_wb_cyc), .i_int(i_interrupt), .i_bus_busy(exec_stb),
-		.o_stb(wbu_tx_stb), .o_char(wbu_tx_data), .i_tx_busy(ps_full),
-		.o_fifo_err(ofifo_err)
-		// }}}
-	);
-
 	////////////////////////////////////////////////////////////////////////
 	//
 	// Arbitrate between the two outputs, console and dbg bus
@@ -249,6 +328,7 @@ module	wbuconsole #(
 	////////////////////////////////////////////////////////////////////////
 	//
 	//
+
 	initial	ps_full = 1'b0;
 	always @(posedge i_clk)
 	if (!ps_full)
@@ -271,11 +351,13 @@ module	wbuconsole #(
 	// }}}
 	////////////////////////////////////////////////////////////////////////
 	//
-	// Add in a watchdog timer to the bus
+	// Watchdog timer
 	// {{{
 	////////////////////////////////////////////////////////////////////////
 	//
 	//
+
+	// Add in a watchdog timer to the bus
 	initial	r_wdt_reset = 1'b1;
 	initial	r_wdt_timer = 0;
 	always @(posedge i_clk)
@@ -283,7 +365,7 @@ module	wbuconsole #(
 	begin
 		r_wdt_timer <= 0;
 		r_wdt_reset <= 1'b1;
-	end else if ((~o_wb_cyc)||(i_wb_ack))
+	end else if ((!o_wb_cyc)||(i_wb_ack))
 	begin
 		// We're inactive, or the bus has responded: reset the timer
 		// {{{
@@ -304,10 +386,13 @@ module	wbuconsole #(
 
 	assign	o_dbg = w_bus_reset;
 
-	// Make verilator happy
+	// Make Verilator happy
+	// {{{
 	// verilator lint_off UNUSED
-	wire	[1:0]	unused;
-	assign	unused = { ofifo_err, wbu_tx_data[7] };
+	wire	unused;
+	assign	unused = &{ 1'b0, ofifo_err, ign_input_busy, wbu_tx_data[7],
+				out_active, in_active };
 	// verilator lint_on  UNUSED
+	// }}}
 endmodule
 

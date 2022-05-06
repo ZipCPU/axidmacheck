@@ -19,7 +19,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 // }}}
-// Copyright (C) 2015-2021, Gisselquist Technology, LLC
+// Copyright (C) 2015-2022, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as published
@@ -49,6 +49,7 @@ module	idecode #(
 		// {{{
 		parameter		ADDRESS_WIDTH=24,
 		parameter	[0:0]	OPT_MPY = 1'b1,
+		parameter	[0:0]	OPT_SHIFTS = 1'b1,
 		parameter	[0:0]	OPT_EARLY_BRANCHING = 1'b1,
 		parameter	[0:0]	OPT_PIPELINED = 1'b1,
 		parameter	[0:0]	OPT_DIVIDE = (OPT_PIPELINED),
@@ -58,7 +59,7 @@ module	idecode #(
 		parameter	[0:0]	OPT_OPIPE  = (OPT_PIPELINED),
 		parameter	[0:0]	OPT_SIM    = 1'b0,
 		parameter	[0:0]	OPT_SUPPRESS_NULL_BRANCHES = 1'b0,
-		parameter	[0:0]	OPT_NO_USERMODE = 1'b0,
+		parameter	[0:0]	OPT_USERMODE = 1'b1,
 		parameter	[0:0]	OPT_LOWPOWER = 1'b0,
 		localparam		AW = ADDRESS_WIDTH
 		// }}}
@@ -127,7 +128,8 @@ module	idecode #(
 	wire		w_Iz;
 
 	reg	[1:0]	w_immsrc;
-	reg		r_valid, insn_is_pipeable;
+	reg		r_valid;
+	wire		insn_is_pipeable, illegal_shift;
 	// }}}
 
 	assign	pf_valid = (i_pf_valid)&&(!o_early_branch_stb);
@@ -240,7 +242,7 @@ module	idecode #(
 	// moves in iword[18] but only for the supervisor, and the other
 	// four bits encoded in the instruction.
 	//
-	assign	w_dcdR = { ((!iword[CISBIT])&&(!OPT_NO_USERMODE)&&(w_mov)&&(!i_gie))?iword[IMMSEL]:i_gie,
+	assign	w_dcdR = { ((!iword[CISBIT])&&(OPT_USERMODE)&&(w_mov)&&(!i_gie))?iword[IMMSEL]:i_gie,
 				iword[30:27] };
 
 	// 0 LUTs
@@ -255,7 +257,7 @@ module	idecode #(
 
 	// dcdB - What register is used in the opB?
 	// {{{
-	assign w_dcdB[4] = ((!iword[CISBIT])&&(w_mov)&&(!OPT_NO_USERMODE)&&(!i_gie))?iword[13]:i_gie;
+	assign w_dcdB[4] = ((!iword[CISBIT])&&(w_mov)&&(OPT_USERMODE)&&(!i_gie))?iword[13]:i_gie;
 	assign w_dcdB[3:0]= (iword[CISBIT])
 				? (((!iword[CISIMMSEL])&&(iword[26:25]==2'b10))
 					? CPU_SP_REG : iword[22:19])
@@ -364,10 +366,9 @@ module	idecode #(
 	// {{{
 	generate if (OPT_CIS)
 	begin : GEN_CIS_IMMEDIATE
-		wire	[7:0]	w_halfbits;
-		assign	w_halfbits = iword[CISIMMSEL:16];
+		wire	[7:0]	w_halfI, w_halfbits;
 
-		wire	[7:0]	w_halfI;
+		assign	w_halfbits = iword[CISIMMSEL:16];
 		assign	w_halfI = (iword[26:24]==3'h6) ? w_halfbits[7:0] // 8'b for LDI
 				:(w_halfbits[7])?
 					{ {(6){w_halfbits[2]}}, w_halfbits[1:0]}
@@ -430,6 +431,32 @@ module	idecode #(
 	end endgenerate
 	// }}}
 
+	// illegal_shift
+	// {{{
+	generate if (OPT_SHIFTS)
+	begin : LEGAL_SHIFTS
+		assign	illegal_shift = 1'b0;
+	end else begin : GEN_ILLEGAL_SHIFT
+		reg	r_illegal_shift;
+
+		always @(*)
+		begin
+			r_illegal_shift = 1'b1;
+			if (i_instruction[CISBIT])
+				r_illegal_shift = 1'b0;
+			else if ((i_instruction[26:22] != 5'h5)
+				&&(i_instruction[26:22] != 5'h6)
+				&&(i_instruction[26:22] != 5'h7))
+				r_illegal_shift = 1'b0;
+			else if (!i_instruction[18]
+					&& (i_instruction[17:0] == 18'h1))
+				r_illegal_shift = 1'b0;
+		end
+
+		assign	illegal_shift = r_illegal_shift;
+	end endgenerate
+	// }}}
+
 	// o_illegal
 	// {{{
 	initial	o_illegal = 1'b0;
@@ -450,6 +477,9 @@ module	idecode #(
 	begin
 		// {{{
 		o_illegal <= 1'b0;
+
+		if (illegal_shift)
+			o_illegal <= 1'b1;
 
 		if ((!OPT_CIS)&&(i_instruction[CISBIT]))
 			o_illegal <= 1'b1;
@@ -557,25 +587,17 @@ module	idecode #(
 		// o_FP plus these four bits uniquely defines the FP
 		// instruction, o_DV plus the bottom of these defines
 		// the divide, etc.
-		if (!OPT_OPIPE || i_pf_valid || o_phase)
-		begin
-			o_op <= w_cis_op[3:0];
-			if ((w_ldi)||(w_noop)||(w_lock))
-				o_op <= 4'hd;
-		end
+		o_op <= w_cis_op[3:0];
+		if ((w_ldi)||(w_noop)||(w_lock))
+			o_op <= 4'hd;
 		// }}}
 
-		if (!OPT_OPIPE || i_pf_valid || o_phase)
-		begin
-			o_dcdR <= { w_dcdR_cc, w_dcdR_pc, w_dcdR};
-			o_dcdA <= { w_dcdA_cc, w_dcdA_pc, w_dcdA};
-			o_dcdB <= { w_dcdB_cc, w_dcdB_pc, w_dcdB};
-
-			o_rB  <= w_rB;
-			o_wR  <= w_wR;
-		end
-
+		o_dcdR <= { w_dcdR_cc, w_dcdR_pc, w_dcdR};
+		o_dcdA <= { w_dcdA_cc, w_dcdA_pc, w_dcdA};
+		o_dcdB <= { w_dcdB_cc, w_dcdB_pc, w_dcdB};
+		o_wR  <= w_wR;
 		o_rA  <= w_rA;
+		o_rB  <= w_rB;
 		r_I    <= w_I;
 		o_zI   <= w_Iz;
 
@@ -586,14 +608,11 @@ module	idecode #(
 		// as it doesn't take longer than one clock.  Note
 		// also that this depends upon not setting any registers
 		// or flags, which should already be true.
-		if (!OPT_OPIPE || i_pf_valid || o_phase)
-		begin
-			o_ALU  <=  (w_ALU)||(w_ldi)||(w_cmptst)||(w_noop)
+		o_ALU  <=  (w_ALU)||(w_ldi)||(w_cmptst)||(w_noop)
 				||((!OPT_LOCK)&&(w_lock));
-			o_M    <=  w_mem;
-			o_DV   <=  (OPT_DIVIDE)&&(w_div);
-			o_FP   <=  (OPT_FPU)&&(w_fpu);
-		end
+		o_M    <=  w_mem;
+		o_DV   <=  (OPT_DIVIDE)&&(w_div);
+		o_FP   <=  (OPT_FPU)&&(w_fpu);
 		// }}}
 
 		// o_break, o_lock
@@ -726,6 +745,11 @@ module	idecode #(
 		assign	o_early_branch     = r_early_branch;
 		assign	o_early_branch_stb = r_early_branch_stb;
 		assign	o_branch_pc        = r_branch_pc;
+`ifdef	FORMAL
+		always @(*)
+		if (OPT_LOWPOWER && !r_early_branch)
+			assert(r_branch_pc == 0);
+`endif
 		// }}}
 	end else begin : NO_EARLY_BRANCHING
 		// {{{
@@ -770,9 +794,14 @@ module	idecode #(
 		always @(posedge i_clk)
 		if (i_reset)
 			r_insn_is_pipeable <= 1'b0;
+		else if ((i_ce)&&((!pf_valid)||(i_illegal))&&(!o_phase))
+			// Pipeline bubble, can't pipe through it
+			r_insn_is_pipeable <= 1'b0;
 		else if (o_ljmp)
 			r_insn_is_pipeable <= 1'b0;
-		else if (i_ce && (pf_valid || o_phase))
+		else if ((i_ce)&&((!OPT_CIS)&&(i_instruction[CISBIT])))
+			r_insn_is_pipeable <= 1'b0;
+		else if (i_ce)
 		begin	// This is a valid instruction
 			r_insn_is_pipeable <= (w_mem)&&(w_rB)
 				// PC (and CC) registers can change
@@ -790,11 +819,6 @@ module	idecode #(
 				// as they could then be used to violate
 				// our rule(s)
 				&&((w_cis_op[0])||(w_dcdB != w_dcdA));
-
-			if (i_illegal && !o_phase)
-				r_insn_is_pipeable <= 1'b0;
-			// if (!OPT_CIS && i_instruction[CISBIT])
-			//	r_insn_is_pipeable <= 1'b0;
 		end // else
 			// The pipeline is stalled
 
@@ -804,11 +828,11 @@ module	idecode #(
 		always @(posedge i_clk)
 		if (i_reset)
 			r_pipe <= 1'b0;
-		else if (i_ce && (pf_valid || o_phase))
-			r_pipe <=
+		else if (i_ce)
+			r_pipe <= ((pf_valid)||(o_phase))
 				// The last operation must be capable of
 				// being followed by a pipeable memory op
-				(r_insn_is_pipeable)
+				&&(r_insn_is_pipeable)
 				// Both must be memory operations
 				&&(w_mem)
 				// Both must be writes, or both stores
@@ -816,7 +840,7 @@ module	idecode #(
 				// Both must be register ops
 				&&(w_rB)
 				// Both must use the same register for B
-				&&(w_dcdB[4:0] == o_dcdB[4:0]);
+				&&(w_dcdB[3:0] == o_dcdB[3:0]);
 		//		// CC or PC registers are not valid addresses
 		//		//   Captured above
 		//		// But ... the result can never be B
@@ -875,14 +899,14 @@ module	idecode #(
 	assign	o_valid = r_valid;
 	// }}}
 
-
 	assign	o_I = { {(32-22){r_I[22]}}, r_I[21:0] };
 
 	// Make Verilator happy across all our various options
 	// {{{
 	// verilator lint_off  UNUSED
-	wire	[5:0] possibly_unused;
-	assign	possibly_unused = { w_lock, w_ljmp, w_ljmp_dly, w_cis_ljmp, i_pc[1:0] };
+	wire	possibly_unused;
+	assign	possibly_unused = &{ 1'b0, w_lock, w_ljmp, w_ljmp_dly,
+			insn_is_pipeable, w_cis_ljmp, i_pc[1:0] };
 	// verilator lint_on  UNUSED
 	// }}}
 ////////////////////////////////////////////////////////////////////////////////
@@ -908,7 +932,7 @@ module	idecode #(
 `define	ASSUME	assert
 `endif
 	always @(posedge i_clk)
-	if (i_ce && i_pf_valid && !o_phase)
+	if ((i_ce)&&(i_pf_valid)&&(!o_phase))
 		f_insn_word <= i_instruction;
 
 	assign	f_insn_is_pipeable = insn_is_pipeable;
@@ -1894,10 +1918,10 @@ module	idecode #(
 				end else if ($past(o_op[0])!=o_op[0])
 				begin
 					`ASSERT(!o_pipe);
-				end else if (!o_rB || !$past(o_rB))
+				end else if ($past(o_rB)!=o_rB)
 				begin
 					`ASSERT(!o_pipe);
-				end else if ($past(o_dcdB) != o_dcdB)
+				end else if ((o_rB)&&($past(o_dcdB) != o_dcdB))
 				begin
 					`ASSERT(!o_pipe);
 				end else if (($past(o_wR))
@@ -1931,7 +1955,7 @@ module	idecode #(
 		//			`ASSERT(!o_pipe);
 		//		else if (r_I[22:0] - $past(r_I[22:0])>23'h4)
 		//			`ASSERT(!o_pipe);
-				end else if (!$past(insn_is_pipeable))
+				end else if (!$past(o_valid))
 					`ASSERT(!o_pipe);
 				// else
 					// assert(o_pipe);
@@ -2052,19 +2076,30 @@ module	idecode #(
 	wire	[22:0]	fc_sim_immv;
 
 	f_idecode #(
+		// {{{
 		.OPT_MPY(OPT_MPY),
 		.OPT_DIVIDE(OPT_DIVIDE),
 		.OPT_FPU(OPT_FPU),
 		.OPT_CIS(OPT_CIS),
 		.OPT_LOCK(OPT_LOCK),
 		.OPT_OPIPE(OPT_OPIPE),
+		.OPT_LOWPOWER(OPT_LOWPOWER),
+		.OPT_USERMODE(OPT_USERMODE),
 		.OPT_SIM(OPT_SIM)
-		) formal_decoder(
-			f_insn_word, o_phase, f_insn_gie,
-		fc_illegal,
-		fc_dcdR, fc_dcdA,fc_dcdB, fc_I, fc_cond, fc_wF, fc_op,
-		fc_ALU, fc_M, fc_DV, fc_FP, fc_break, fc_lock,
-		fc_wR, fc_rA, fc_rB, fc_prepipe, fc_sim, fc_sim_immv);
+		// }}}
+	) formal_decoder(
+		// {{{
+		.i_instruction(f_insn_word), .i_phase(o_phase),
+			.i_gie(f_insn_gie),
+		.o_illegal(fc_illegal),
+		.o_dcdR(fc_dcdR), .o_dcdA(fc_dcdA), .o_dcdB(fc_dcdB),
+		.o_I(fc_I), .o_cond(fc_cond), .o_wF(fc_wF), .o_op(fc_op),
+		.o_ALU(fc_ALU), .o_M(fc_M), .o_DV(fc_DV), .o_FP(fc_FP),
+		.o_break(fc_break), .o_lock(fc_lock),
+		.o_wR(fc_wR), .o_rA(fc_rA), .o_rB(fc_rB),
+		.o_prepipe(fc_prepipe), .o_sim(fc_sim), .o_sim_immv(fc_sim_immv)
+		// }}}
+	);
 
 	always @(posedge i_clk)
 	if (o_valid && fc_illegal)
@@ -2100,17 +2135,8 @@ module	idecode #(
 		`ASSERT(fc_sim  == o_sim);
 		`ASSERT(fc_sim_immv  == o_sim_immv);
 		`ASSERT(fc_prepipe == insn_is_pipeable);
-	end
-
-	always @(posedge i_clk)
-	if (!o_illegal && insn_is_pipeable)
-	begin
-		`ASSERT(fc_prepipe);
-		`ASSERT(fc_M == o_M);
-		`ASSERT(fc_dcdR== o_dcdR);
-		`ASSERT(fc_dcdA== o_dcdA);
-		`ASSERT(fc_dcdB== o_dcdB);
-	end
+	end else
+		`ASSERT((i_reset)||(!insn_is_pipeable));
 
 	always @(*)
 	if (o_phase)
@@ -2126,23 +2152,8 @@ module	idecode #(
 	end
 
 	always @(posedge i_clk)
-	if (insn_is_pipeable)
-	begin
-		// Last instruction must have been a memory op
-		assert(o_M && o_op[2:1] != 2'b00);
-		// Must read from register B
-		assert(o_rB);
-		// Neither reg B nor reg R can reference either CC or PC
-		assert(o_dcdB[3:1] != 3'h7);
-		assert(o_dcdR[3:1] != 3'h7);
-		// Loads to the current address cannot be piped
-		//	Write || Load to other register
-		assert(o_op[0] || (o_dcdR[4:0] != o_dcdB[4:0]));
-
-		assert(o_op[0] != o_wR);
-		assert(o_dcdB[6] == (o_rB && o_dcdB[3:0] == CPU_CC_REG));
-		assert(o_dcdB[5] == (o_rB && o_dcdB[3:0] == CPU_PC_REG));
-	end
+	if ((!o_valid)||(o_illegal))
+		`ASSERT(!insn_is_pipeable);
 
 	generate if ((OPT_CIS)&&(OPT_EARLY_BRANCHING))
 	begin

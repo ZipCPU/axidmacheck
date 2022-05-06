@@ -13,7 +13,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 // }}}
-// Copyright (C) 2015-2021, Gisselquist Technology, LLC
+// Copyright (C) 2015-2022, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as published
@@ -37,12 +37,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
 `default_nettype	none
-//
-`include "cpudefs.v"
 // }}}
 module	cpuops #(
 		// {{{
-		parameter		IMPLEMENT_MPY = `OPT_MULTIPLY,
+		parameter		OPT_MPY = 0,
 		parameter	[0:0]	OPT_SHIFTS = 1'b1,
 		parameter	[0:0]	OPT_LOWPOWER = 1'b1
 		// }}}
@@ -150,7 +148,7 @@ module	cpuops #(
 `endif
 	`MPYOP #(
 		// {{{
-		.IMPLEMENT_MPY(IMPLEMENT_MPY),
+		.OPT_MPY(OPT_MPY),
 		.OPT_LOWPOWER(OPT_LOWPOWER)
 		// }}}
 	) thempy(
@@ -198,12 +196,12 @@ module	cpuops #(
 	always @(posedge i_clk)
 	if (i_reset)
 		r_busy <= 1'b0;
-	else if (IMPLEMENT_MPY > 1)
+	else if (OPT_MPY > 1)
 		r_busy <= ((i_stb)&&(this_is_a_multiply_op))||mpybusy;
 	else
 		r_busy <= 1'b0;
 
-	assign	o_busy = (r_busy); // ||((IMPLEMENT_MPY>1)&&(this_is_a_multiply_op));
+	assign	o_busy = (r_busy); // ||((OPT_MPY>1)&&(this_is_a_multiply_op));
 	// }}}
 
 	// Flags assignment and determination
@@ -222,7 +220,7 @@ module	cpuops #(
 	always @(posedge i_clk)
 	if (i_reset)
 		o_valid <= 1'b0;
-	else if (IMPLEMENT_MPY <= 1)
+	else if (OPT_MPY <= 1)
 		o_valid <= (i_stb);
 	else
 		o_valid <=((i_stb)&&(!this_is_a_multiply_op))||(mpydone);

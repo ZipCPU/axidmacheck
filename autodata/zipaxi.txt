@@ -14,7 +14,7 @@
 ##
 ################################################################################
 ## }}}
-## Copyright (C) 2017-2021, Gisselquist Technology, LLC
+## Copyright (C) 2017-2022, Gisselquist Technology, LLC
 ## {{{
 ## This program is free software (firmware): you can redistribute it and/or
 ## modify it under the terms of the GNU General Public License as published
@@ -72,13 +72,27 @@
 @TOP.IODECL=
 	// A reset wire for the ZipCPU
 	input	wire		i_cpu_resetn;
+@TOP.DEFNS=
+	// Profiler wires--unneeded in all but simulation
+	// {{{
+	// Verilator lint_off UNUSED
+	// Verilator lint_on  UNUSED
+	wire				cpu_prof_stb;
+	wire [@$(MASTER.BUS.AWID)-1:0]	cpu_prof_addr;
+	wire	[31:0]			cpu_prof_ticks;
+	// }}}
 @TOP.MAIN=
 		// Reset wire for the ZipCPU
-		(!i_cpu_resetn)
+		(!i_cpu_resetn),
+		cpu_prof_stb, cpu_prof_addr, cpu_prof_ticks
 @MAIN.PORTLIST=
-		@$(CPURESET)
+		@$(CPURESET),
+		cpu_prof_stb, cpu_prof_addr, cpu_prof_ticks
 @MAIN.IODECL=
 	input	wire		@$(CPURESET);
+	output	wire				cpu_prof_stb;
+	output	wire [@$(MASTER.BUS.AWID)-1:0]	cpu_prof_addr;
+	output	wire	[31:0]			cpu_prof_ticks;
 @MAIN.PARAM=
 	//
 	//
@@ -118,17 +132,17 @@
 		// {{{
 		.RESET_ADDRESS(RESET_ADDRESS),
 		.C_AXI_ID_WIDTH(@$(MASTER.BUS.IDWIDTH)),
-		.C_AXI_ADDR_WIDTH(ZIP_ADDRESS_WIDTH),
+		.ADDRESS_WIDTH(ZIP_ADDRESS_WIDTH),
 		.C_AXI_DATA_WIDTH(@$(MASTER.BUS.WIDTH)),
-		.LGICACHE(@$(LGICACHE)),.OPT_LGDCACHE(@$(LGDCACHE)),
+		.OPT_LGICACHE(@$(LGICACHE)),.OPT_LGDCACHE(@$(LGDCACHE)),
 		.START_HALTED(ZIP_START_HALTED),
 		.RESET_DURATION(20),
 		.OPT_SIM(1'b1),
 `ifdef	VERILATOR
 		.OPT_LOWPOWER(1'b1),
-		.OPT_GATE_CLOCK(1'b1),
+		.OPT_CLKGATE(1'b1),
 `else
-		.OPT_GATE_CLOCK(1'b0),
+		.OPT_CLKGATE(1'b0),
 `endif
 		.SWAP_WSTRB(1)
 		// }}}
@@ -155,7 +169,11 @@
 		.o_op_stall(@$(axilp.OPSTALL)),
 		.o_pf_stall(@$(axilp.PFSTALL)),
 		.o_i_count(@$(axilp.ICOUNT)),
-		.o_debug(zip_debug)
+		.o_debug(zip_debug),
+		//
+		.o_prof_stb(cpu_prof_stb),
+		.o_prof_addr(cpu_prof_addr),
+		.o_prof_ticks(cpu_prof_ticks)
 		// }}}
 	);
 
@@ -365,45 +383,51 @@
 			// exit(rcode);
 		} else if ((imm & 0x0fffff)==0x002ff) {
 			// Full/unconditional dump
-			printf("SIM-DUMP\n");
-			dump(regp);
+			// This is now handled via $write() w/in Verilog
+			//printf("SIM-DUMP\n");
+			// dump(regp);
 		} else if ((imm & 0x0ffff0)==0x00200) {
 			// Dump a register
-			int	rcode, rnum;
-			rnum  = (imm&0x0f)+rbase;
-			rcode = regp[rnum];
-			if ((m_core->cpu_wr_ce)&&(m_core->cpu_wr_reg_id==rnum))
-				rcode = m_core->cpu_wr_gpreg;
-			printf("%8lu @%08x R[%2d] = 0x%08x\n", m_time_ps/1000,
-				m_core->cpu_ipc, rnum, rcode);
+			// This is now handled via $write() w/in Verilog
+			// int	rcode, rnum;
+			// rnum  = (imm&0x0f)+rbase;
+			// rcode = regp[rnum];
+			// if ((m_core->cpu_wr_ce)&&(m_core->cpu_wr_reg_id==rnum))
+			//	rcode = m_core->cpu_wr_gpreg;
+			// printf("%8lu @%08x R[%2d] = 0x%08x\n", m_time_ps/1000,
+			//	m_core->cpu_ipc, rnum, rcode);
 		} else if ((imm & 0x0ffff0)==0x00210) {
 			// Dump a user register
-			int	rcode, rnum;
-			rnum  = (imm&0x0f)+16;
-			rcode = regp[rnum] & 0x0ff;
-			if ((m_core->cpu_wr_ce)&&(m_core->cpu_wr_reg_id==rnum))
-				rcode = m_core->cpu_wr_gpreg;
-			printf("%8lu @%08x uR[%2d] = 0x%08x\n", m_time_ps/1000,
-				m_core->cpu_ipc, rnum, rcode);
+			// This is now handled via $write() w/in Verilog
+			// int	rcode, rnum;
+			// rnum  = (imm&0x0f)+16;
+			// rcode = regp[rnum] & 0x0ff;
+			// if ((m_core->cpu_wr_ce)&&(m_core->cpu_wr_reg_id==rnum))
+			//	rcode = m_core->cpu_wr_gpreg;
+			// printf("%8lu @%08x uR[%2d] = 0x%08x\n", m_time_ps/1000,
+			//	m_core->cpu_ipc, rnum, rcode);
 		} else if ((imm & 0x0ffff0)==0x00230) {
 			// SOUT[User Reg]
-			int	rcode, rnum;
-			rnum  = (imm&0x0f)+16;
-			rcode = regp[rnum];
-			if ((m_core->cpu_wr_ce)&&(m_core->cpu_wr_reg_id==rnum))
-				rcode = m_core->cpu_wr_gpreg;
-			printf("%c", rcode&0x0ff);
+			// This is now handled via $write() w/in Verilog
+			// int	rcode, rnum;
+			// rnum  = (imm&0x0f)+16;
+			// rcode = regp[rnum];
+			// if ((m_core->cpu_wr_ce)&&(m_core->cpu_wr_reg_id==rnum))
+			//	rcode = m_core->cpu_wr_gpreg;
+			// printf("%c", rcode&0x0ff);
 		} else if ((imm & 0x0fffe0)==0x00220) {
 			// SOUT[Reg]
-			int	rcode, rnum;
-			rnum  = (imm&0x0f)+rbase;
-			rcode = regp[rnum];
-			if ((m_core->cpu_wr_ce)&&(m_core->cpu_wr_reg_id==rnum))
-				rcode = m_core->cpu_wr_gpreg;
-			printf("%c", rcode&0x0ff);
+			// This is now handled via $write() w/in Verilog
+			// int	rcode, rnum;
+			// rnum  = (imm&0x0f)+rbase;
+			// rcode = regp[rnum];
+			// if ((m_core->cpu_wr_ce)&&(m_core->cpu_wr_reg_id==rnum))
+			//	rcode = m_core->cpu_wr_gpreg;
+			// printf("%c", rcode&0x0ff);
 		} else if ((imm & 0x0fff00)==0x00400) {
 			// SOUT[Imm]
-			printf("%c", imm&0x0ff);
+			// This is now handled via $write() w/in Verilog
+			// printf("%c", imm&0x0ff);
 		} else { // if ((insn & 0x0f7c00000)==0x77800000)
 			uint32_t	immv = imm & 0x03fffff;
 			// Simm instruction that we dont recognize

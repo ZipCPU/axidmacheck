@@ -16,10 +16,10 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 // }}}
-// Copyright (C) 2015-2021, Gisselquist Technology, LLC
+// Copyright (C) 2015-2022, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
-// modify it under the terms of  the GNU General Public License as published
+// modify it under the terms of the GNU General Public License as published
 // by the Free Software Foundation, either version 3 of the License, or (at
 // your option) any later version.
 //
@@ -48,7 +48,8 @@ module	wbudeword (
 		input	wire		i_tx_busy,
 		output	reg		o_stb,
 		output	reg	[6:0]	o_nl_hexbits,
-		output	reg		o_busy
+		output	wire		o_busy,
+		output	wire		o_active
 		// }}}
 	);
 
@@ -59,19 +60,11 @@ module	wbudeword (
 	reg	[29:0]	r_word;
 	// }}}
 
-	assign w_len = (i_word[35:33]==3'b000)? 3'b001
-			: (i_word[35:32]==4'h2)? 3'b110
-			: (i_word[35:32]==4'h3)? (3'b010+{1'b0,i_word[31:30]})
-			: (i_word[35:34]==2'b01)? 3'b010
-			: (i_word[35:34]==2'b10)? 3'b001
-			:  3'b110;
-
-	initial o_stb  = 1'b0;
-	initial o_busy = 1'b0;
+	// r_word, o_nl_hexbits
+	// {{{
 	initial	o_nl_hexbits = 7'h40;
-	initial	r_len = 0;
 	always @(posedge i_clk)
-	if ((i_stb)&&(!o_busy)) // Only accept when not busy
+	if (i_stb && !o_busy) // Only accept when not busy
 	begin
 		r_word <= i_word[29:0];
 		o_nl_hexbits <= { 1'b0, i_word[35:30] }; // No newline ... yet
@@ -87,7 +80,10 @@ module	wbudeword (
 			o_nl_hexbits <= 7'h40;
 		end
 	end
+	// }}}
 
+	// o_stb
+	// {{{
 	initial	o_stb = 1'b0;
 	always @(posedge i_clk)
 	if (i_reset)
@@ -96,19 +92,41 @@ module	wbudeword (
 		o_stb <= 1'b1;
 	else if (r_len == 0 && !i_tx_busy)
 		o_stb <= 1'b0;
+	// }}}
+
+	// r_len
+	// {{{
+	assign w_len = (i_word[35:33]==3'b000)? 3'b001
+			: (i_word[35:32]==4'h2)? 3'b110
+			: (i_word[35:32]==4'h3)? (3'b010+{1'b0,i_word[31:30]})
+			: (i_word[35:34]==2'b01)? 3'b010
+			: (i_word[35:34]==2'b10)? 3'b001
+			:  3'b110;
 
 	initial	r_len = 0;
 	always @(posedge i_clk)
-	if (i_stb && !o_busy)
+	if (i_reset)
+		r_len <= 0;
+	else if (i_stb && !o_busy)
 		r_len <= w_len;
 	else if (!i_tx_busy && (r_len > 0))
 		r_len <= r_len - 1;
+	// }}}
 
-	always @(*)
-		o_busy = o_stb;
-
+	assign	o_busy   = o_stb;
+	assign	o_active = i_stb || o_stb;
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//
+// Formal properties
+// {{{
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 `ifdef	FORMAL
 // Formal properties for this module are maintained elsewhere
 `endif
+// }}}
 endmodule
 

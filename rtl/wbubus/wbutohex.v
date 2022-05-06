@@ -16,16 +16,15 @@
 //
 //		Note that decoding is stateless, yet requires one clock.
 //
-//
 // Creator:	Dan Gisselquist, Ph.D.
 //		Gisselquist Technology, LLC
 //
 ////////////////////////////////////////////////////////////////////////////////
 // }}}
-// Copyright (C) 2015-2021, Gisselquist Technology, LLC
+// Copyright (C) 2015-2022, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
-// modify it under the terms of  the GNU General Public License as published
+// modify it under the terms of the GNU General Public License as published
 // by the Free Software Foundation, either version 3 of the License, or (at
 // your option) any later version.
 //
@@ -50,9 +49,11 @@
 module	wbutohex (
 		// {{{
 		input	wire		i_clk, i_reset, i_stb,
+		output	wire		o_busy,
 		input	wire	[7:0]	i_byte,
 		output	reg		o_soft_reset,
 		output	reg		o_stb, o_valid,
+		input	wire		i_busy,
 		output	reg	[5:0]	o_hexbits
 		// }}}
 	);
@@ -64,11 +65,16 @@ module	wbutohex (
 	reg	[6:0]	newv;
 	// }}}
 
+	assign	o_busy = o_stb && i_busy;
+
 	// o_stb
 	// {{{
 	initial	o_stb = 1'b0;
 	always @(posedge i_clk)
-		o_stb <= i_stb && !i_reset;
+	if (i_reset)
+		o_stb <= 1'b0;
+	else if (!o_stb || !i_busy)
+		o_stb <= i_stb;
 	// }}}
 
 	// newv, remap
@@ -106,6 +112,7 @@ module	wbutohex (
 	// o_valid
 	// {{{
 	always @(posedge i_clk)
+	if (!o_stb || !i_busy)
 	begin
 		{ o_valid, o_hexbits } <= remap[i_byte[6:0]];
 		if (i_byte[7])
@@ -119,7 +126,7 @@ module	wbutohex (
 	always @(posedge i_clk)
 	if (i_reset)
 		o_soft_reset <= 1;
-	else
+	else if (!o_stb || !i_busy)
 		o_soft_reset <= i_stb && (i_byte[6:0] == 7'h3);
 	// }}}
 endmodule

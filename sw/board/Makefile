@@ -11,7 +11,7 @@
 ##
 ################################################################################
 ## }}}
-## Copyright (C) 2016-2021, Gisselquist Technology, LLC
+## Copyright (C) 2016-2022, Gisselquist Technology, LLC
 ## {{{
 ## This program is free software (firmware): you can redistribute it and/or
 ## modify it under the terms of the GNU General Public License as published
@@ -36,7 +36,7 @@
 ##
 ## }}}
 .PHONY: all
-PROGRAMS := hello cputest # contest
+PROGRAMS := hello cputest lockcheck hellostep # contest
 all:	$(PROGRAMS)
 #
 #
@@ -51,7 +51,7 @@ SUBMAKE:= $(MAKE) --no-print-directory -C
 #
 #
 TTTT    := tttt
-SOURCES := hello.c cputest.c contest.c dmatest.c
+SOURCES := hello.c cputest.c contest.c dmatest.c lockcheck.c hellostep.c
 HEADERS := board.h
 DUMPRTL := -fdump-rtl-all
 DUMPTREE:= -fdump-tree-all
@@ -126,6 +126,12 @@ sdtest: $(OBJDIR)/sdtest.o board.ld $(LIB)
 
 gpiotoggle: $(OBJDIR)/gpiotoggle.o bkram.ld $(LIB)
 	$(CC) $(CFLAGS) $(LFLAGS) $< $(LIBS) -o $@
+
+hellostep: $(OBJDIR)/hellostep.o board.ld $(OBJDIR)/txfns.o $(LIB)
+	$(CC) $(CFLAGS) $(LFLAGS) $< $(OBJDIR)/txfns.o $(LIBS) -o $@
+
+lockcheck: $(OBJDIR)/lockcheck.o board.ld $(OBJDIR)/txfns.o $(LIB)
+	$(CC) $(CFLAGS) $(LFLAGS) $< $(OBJDIR)/txfns.o $(LIBS) -o $@
 
 .PHONY: iftttt
 ifeq (,$(wildcard tttt/))

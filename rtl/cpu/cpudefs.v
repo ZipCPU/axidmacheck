@@ -28,7 +28,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 // }}}
-// Copyright (C) 2015-2021, Gisselquist Technology, LLC
+// Copyright (C) 2015-2022, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as published
@@ -76,7 +76,7 @@
 // have two delay cycles, and 4 (or more) will have 3 delay cycles.
 //
 //
-`define	OPT_MULTIPLY	3
+`define	OPT_MULTIPLY	1
 // }}}
 //
 // OPT_DIVIDE

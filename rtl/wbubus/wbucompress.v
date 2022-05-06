@@ -26,10 +26,10 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 // }}}
-// Copyright (C) 2015-2021, Gisselquist Technology, LLC
+// Copyright (C) 2015-2022, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
-// modify it under the terms of  the GNU General Public License as published
+// modify it under the terms of the GNU General Public License as published
 // by the Free Software Foundation, either version 3 of the License, or (at
 // your option) any later version.
 //
@@ -63,7 +63,8 @@ module	wbucompress #(
 		input	wire			i_busy,
 		output	reg			o_stb,
 		output	wire	[(CW-1):0]	o_cword,
-		output	wire			o_busy
+		output	wire			o_busy,
+		output	wire			o_active
 		// }}}
 	);
 
@@ -85,48 +86,8 @@ module	wbucompress #(
 	reg	[35:0]	a_addrword;
 	wire	[31:0]	w_addr;
 	wire	[3:0]	addr_zcheck;
-	reg		tbl_busy;
-	// }}}
-	////////////////////////////////////////////////////////////////////////
-	//
-	// Address compression stage
-	//
-	////////////////////////////////////////////////////////////////////////
-	//
-	//
-	assign	w_addr = i_codword[31:0];
-	assign	addr_zcheck[0] = (w_addr[11: 6] == 0);
-	assign	addr_zcheck[1] = (w_addr[17:12] == 0);
-	assign	addr_zcheck[2] = (w_addr[23:18] == 0);
-	assign	addr_zcheck[3] = (w_addr[31:24] == 0);
+	wire		tbl_busy;
 
-	assign	o_busy = aword_valid && tbl_busy;
-
-	always @(posedge i_clk)
-	if (!aword_valid || !tbl_busy)
-	begin
-		if (i_codword[35:32] != 4'h2)
-			a_addrword <= i_codword;
-		else casez(addr_zcheck)
-		4'b1111: a_addrword <= { 6'hc, w_addr[ 5:0], 24'h00 };
-		4'b1110: a_addrword <= { 6'hd, w_addr[11:0], 18'h00 };
-		4'b110?: a_addrword <= { 6'he, w_addr[17:0], 12'h00 };
-		4'b10??: a_addrword <= { 6'hf, w_addr[23:0],  6'h00 };
-		default: a_addrword <= i_codword;
-		endcase
-	end
-
-	// aword_valid is the output of the address compression stage
-	initial	aword_valid = 1'b0;
-	always @(posedge i_clk)
-	if (i_reset)
-		aword_valid <= 1'b0;
-	else if (i_stb)
-		aword_valid <= 1'b1;
-	else if (!tbl_busy)
-		aword_valid <= 1'b0;
-
-	////////////////////////////////////////////////////////////////////////
 	wire			w_accepted;
 	reg	[35:0]		r_word;
 	reg	[(TBITS-1):0]	tbl_addr;
@@ -148,9 +109,49 @@ module	wbucompress #(
 	reg			addr_within_table;
 	wire			w_match;
 
-
-
 	integer	k;
+
+	// }}}
+	////////////////////////////////////////////////////////////////////////
+	//
+	// Address compression stage
+	// {{{
+	////////////////////////////////////////////////////////////////////////
+	//
+	//
+	assign	w_addr = i_codword[31:0];
+	assign	addr_zcheck[0] = (w_addr[11: 6] == 0);
+	assign	addr_zcheck[1] = (w_addr[17:12] == 0);
+	assign	addr_zcheck[2] = (w_addr[23:18] == 0);
+	assign	addr_zcheck[3] = (w_addr[31:24] == 0);
+
+	assign	o_busy = aword_valid && tbl_busy;
+
+	always @(posedge i_clk)
+	if (!o_busy)
+	begin
+		if (i_codword[35:32] != 4'h2)
+			a_addrword <= i_codword;
+		else casez(addr_zcheck)
+		4'b1111: a_addrword <= { 6'hc, w_addr[ 5:0], 24'h00 };
+		4'b1110: a_addrword <= { 6'hd, w_addr[11:0], 18'h00 };
+		4'b110?: a_addrword <= { 6'he, w_addr[17:0], 12'h00 };
+		4'b10??: a_addrword <= { 6'hf, w_addr[23:0],  6'h00 };
+		default: a_addrword <= i_codword;
+		endcase
+	end
+
+	// aword_valid is the output of the address compression stage
+	initial	aword_valid = 1'b0;
+	always @(posedge i_clk)
+	if (i_reset)
+		aword_valid <= 1'b0;
+	else if (i_stb && !o_busy)
+		aword_valid <= 1'b1;
+	else if (!tbl_busy)
+		aword_valid <= 1'b0;
+	// }}}
+	////////////////////////////////////////////////////////////////////////
 
 	//
 	//
@@ -168,14 +169,12 @@ module	wbucompress #(
 	// i_clr value comes through (i.e., ~i_cyc or new
 	// address)
 
-	assign	w_accepted = (o_stb)&&(!tbl_busy);
-	always @(*)
-		tbl_busy = (o_stb && i_busy);
+	assign	w_accepted = (o_stb && !tbl_busy);
+	assign	tbl_busy = (o_stb && i_busy);
 
 	always @(posedge i_clk)
 	if (!tbl_busy)
 		r_word <= a_addrword;
-
 
 	//
 	// First step of the compression is keeping track of a compression
@@ -185,6 +184,8 @@ module	wbucompress #(
 	//
 	// First part, write the compression table
 
+	// clear_table
+	// {{{
 	always @(*)
 	if (i_reset)
 		clear_table = 1;
@@ -197,7 +198,10 @@ module	wbucompress #(
 
 		clear_table = (o_stb && !i_busy && (o_cword[35:33] == 3'b001));
 	end
+	// }}}
 
+	// tbl_addr (Table write address)
+	// {{{
 	initial	tbl_addr = 0;
 	always @(posedge i_clk)
 	if (clear_table)
@@ -211,14 +215,20 @@ module	wbucompress #(
 		if (o_cword[35:33] == 3'b111)
 			tbl_addr <= tbl_addr + {{(TBITS-1){1'b0}},1'b1};
 	end
+	// }}}
 
+	// tbl_filled
+	// {{{
 	initial	tbl_filled = 1'b0;
 	always @(posedge i_clk)
 	if (clear_table)
 		tbl_filled <= 1'b0;
 	else if (tbl_addr == 10'h3ff)
 		tbl_filled <= 1'b1;
+	// }}}
 
+	// compression_tbl[] -- write to the table
+	// {{{
 	// Now that we know where we are writing into the table, and what
 	// values of the table are valid, we need to actually write into
 	// the table.
@@ -236,6 +246,7 @@ module	wbucompress #(
 	// Write new values into the compression table
 	always @(posedge i_clk)
 		compression_tbl[tbl_addr] <= { r_word[32:31], r_word[29:0] };
+	// }}}
 
 	// Now that we have a working table, can we use it?
 	// On any new word, we'll start looking through our codewords.
@@ -243,6 +254,8 @@ module	wbucompress #(
 	// make it through the table first.  That's irrelevant.  We just look
 	// while we can.
 
+	// rd_addr
+	// {{{
 	initial	rd_addr = 0;
 	always @(posedge i_clk)
 	if (clear_table)
@@ -254,6 +267,7 @@ module	wbucompress #(
 	end else begin
 		rd_addr <= rd_addr - 1;
 	end
+	// }}}
 
 	initial	dmatch = 0;
 	always @(posedge i_clk)
@@ -270,7 +284,8 @@ module	wbucompress #(
 			dmatch <= 1'b0;
 	end
 
-	//
+	// dffaddr -- what we encode when we find a match
+	// {{{
 	// The address difference is what we'll use to encode our table
 	// address.  It's designed to match tbl_addr - rd_addr.  The smallest
 	// valid dffaddr is 1, since tbl_addr is a junk address written on
@@ -281,8 +296,10 @@ module	wbucompress #(
 		dffaddr <= 1;
 	else
 		dffaddr <= dffaddr + 1;
+	// }}}
 
-	//
+	// vaddr -- is our value, from within the table, now, a valid entry?
+	// {{{
 	// Is the value within the table even valid?  Let's check that here.
 	// It will be valid if the read address is strictly less than the
 	// table address (in an unsigned way).  However, our table address
@@ -295,8 +312,10 @@ module	wbucompress #(
 		vaddr <= 0;
 	else
 		vaddr <= ( {1'b0, rd_addr} < {tbl_filled, tbl_addr} );
+	// }}}
 
-	//
+	// addr_within_table
+	// {{{
 	// Is our address (indicated by the address difference, dffaddr),
 	// within the realm of what we can represent/return?  Likewise, if we
 	// wander outside of the realms of our table, make sure we don't
@@ -307,8 +326,10 @@ module	wbucompress #(
 		addr_within_table <= 1;
 	else if (addr_within_table)
 		addr_within_table <= (dffaddr <= 10'd521);
+	// }}}
 
-
+	// pmatch -- is the match even *possible*
+	// {{{
 	// pmatch indicates a *possible* match.  It's basically a shift
 	// register indicating what/when things are valid--or at least it
 	// was.  As of the last round of editing, pmatch is now only a single
@@ -324,10 +345,12 @@ module	wbucompress #(
 		// cword is set on the next clock, pmatch = 3'b001
 		// dmatch is set on the next clock, pmatch = 3'b011
 		pmatch <= 1;
+	// }}}
 
 	assign	w_match = (addr_within_table && dmatch && r_word[35:33]==3'b111);
 
-	//
+	// matched -- have we found a match yet?
+	// {{{
 	// matched records whether or not we've already matched, and so we
 	// shouldn't therefore match again.
 	//
@@ -340,8 +363,10 @@ module	wbucompress #(
 	else if (!matched)
 		// To be a match, the table must not be empty,
 		matched <= w_match;
+	// }}}
 
-	//
+	// zmatch, hmatch
+	// {{{
 	// zmatch and hmatch are address helper values.  They tell us if the
 	// current item we are matching is the last item written (zmatch), one
 	// of the last nine items written (hmatch), or none of the above--since
@@ -354,6 +379,7 @@ module	wbucompress #(
 		zmatch    <= (dffaddr == 10'h2);
 		hmatch    <= (dffaddr < 10'd11);
 	end
+	// }}}
 
 	//
 	// matchaddr holds the value we intend to encode into the table
@@ -370,6 +396,8 @@ module	wbucompress #(
 		adr_dbld <= maddr - 10'd10;
 	end
 
+	// r_cword -- the final code word output
+	// {{{
 	always @(posedge i_clk)
 	if (!tbl_busy)		// Reset whenever word gets written
 		r_cword <= a_addrword;
@@ -384,7 +412,10 @@ module	wbucompress #(
 			r_cword[35:24] <= { 2'b01, adr_dbld[8:6],
 					r_word[30], adr_dbld[5:0] };
 	end
+	// }}}
 
+	// o_stb
+	// {{{
 	initial	o_stb = 0;
 	always @(posedge i_clk)
 	if (i_reset)
@@ -393,17 +424,29 @@ module	wbucompress #(
 		o_stb <= 1;
 	else if (!i_busy)
 		o_stb <= 0;
+	// }}}
 
-	assign	o_cword = r_cword;
-
+	assign	o_cword  = r_cword;
+	assign	o_active = i_stb || o_stb || aword_valid;
 	// Make verilator happy
+	// {{{
 	// verilator lint_off UNUSED
 	wire	unused;
 	assign	unused = adr_dbld[9];
 	// verilator lint_on  UNUSED
-
+	// }}}
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//
+// Formal properties
+// {{{
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 `ifdef	FORMAL
 
 `endif
+// }}}
 endmodule
 

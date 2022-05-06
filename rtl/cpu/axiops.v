@@ -12,7 +12,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 // }}}
-// Copyright (C) 2020-2021, Gisselquist Technology, LLC
+// Copyright (C) 2020-2022, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as published
@@ -1554,7 +1554,7 @@ module	axiops #(
 
 	fmem #(
 		// {{{
-		.IMPLEMENT_LOCK(OPT_LOCK),
+		.OPT_LOCK(OPT_LOCK),
 		.OPT_AXI_LOCK(1)
 		// }}}
 	) fcheck(

@@ -1,54 +1,41 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Filename: 	streamcounter
+// Filename: 	rtl/streamcounter.v
 // {{{
-// Project:	WB2AXIPSP: bus bridges and other odds and ends
+// Project:	AXI DMA Check: A utility to measure AXI DMA speeds
 //
-// Purpose:	Demonstrates a simple AXI-Lite interface.
-//
-//	This was written in light of my last demonstrator, for which others
-//	declared that it was much too complicated to understand.  The goal of
-//	this demonstrator is to have logic that's easier to understand, use,
-//	and copy as needed.
-//
-//	Since there are two basic approaches to AXI-lite signaling, both with
-//	and without skidbuffers, this example demonstrates both so that the
-//	differences can be compared and contrasted.
+// Purpose:	
 //
 // Creator:	Dan Gisselquist, Ph.D.
 //		Gisselquist Technology, LLC
 //
 ////////////////////////////////////////////////////////////////////////////////
 // }}}
-// Copyright (C) 2020-2021, Gisselquist Technology, LLC
+// Copyright (C) 2020-2022, Gisselquist Technology, LLC
 // {{{
+// This program is free software (firmware): you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or (at
+// your option) any later version.
 //
-// This digital logic component is the proprietary property of Gisselquist
-// Technology, LLC.  It may only be distributed and/or re-distributed by the
-// express permission of Gisselquist Technology.
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+// FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+// for more details.
 //
-// Permission has been granted to the Patreon sponsors of the ZipCPU blog
-// to use this logic component as they see fit, but not to redistribute it
-// beyond their individual personal or commercial use.
-//
-// This component is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY
-// or FITNESS FOR A PARTICULAR PURPOSE.
-//
-// Please feel free to contact me should you have any questions, or even if you
-// just want to ask about what you find within here.
-//
-// Yours,
-//
-// Dan Gisselquist
-// Owner
-// Gisselquist Technology, LLC
+// You should have received a copy of the GNU General Public License along
+// with this program.  (It's in the $(ROOT)/doc directory.  Run make with no
+// target there if the PDF file isn't present.)  If not, see
+// <http://www.gnu.org/licenses/> for a copy.
+// }}}
+// License:	GPL, v3, as defined and found on www.gnu.org,
+// {{{
+//		http://www.gnu.org/licenses/gpl.html
 //
 ////////////////////////////////////////////////////////////////////////////////
-// }}}
 //
 `default_nettype none
-//
+// }}}
 module	streamcounter #(
 		// {{{
 		//

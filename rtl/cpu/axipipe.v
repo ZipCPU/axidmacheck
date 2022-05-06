@@ -14,7 +14,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 // }}}
-// Copyright (C) 2020-2021, Gisselquist Technology, LLC
+// Copyright (C) 2020-2022, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as published
@@ -2089,7 +2089,7 @@ module	axipipe #(
 	fmem #(
 		// {{{
 		.F_LGDEPTH(LGPIPE+1),
-		.IMPLEMENT_LOCK(OPT_LOCK),
+		.OPT_LOCK(OPT_LOCK),
 		.OPT_AXI_LOCK(OPT_LOCK),
 		.OPT_MAXDEPTH(FMEM_OPT_MAXDEPTH[LGPIPE:0])
 		// }}}

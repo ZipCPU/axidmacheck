@@ -15,7 +15,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 // }}}
-// Copyright (C) 2015-2021, Gisselquist Technology, LLC
+// Copyright (C) 2015-2022, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as published
@@ -44,7 +44,7 @@ module	mpyop #(
 		// {{{
 		// The following parameter selects which multiply algorithm we
 		// use.  Timing performance is strictly dependent upon it.
-		parameter	IMPLEMENT_MPY = 1,
+		parameter	OPT_MPY = 1,
 		parameter [0:0]	OPT_LOWPOWER  = 1'b0
 		// }}}
 	) (
@@ -76,7 +76,7 @@ module	mpyop #(
 // o_busy
 // o_done
 	generate
-	if (IMPLEMENT_MPY == 0)
+	if (OPT_MPY == 0)
 	begin : MPYNONE // No multiply support.
 		// {{{
 		assign	o_result   = 64'h00;
@@ -92,7 +92,7 @@ module	mpyop #(
 `endif
 		// }}}
 	end else begin : IMPY
-	if (IMPLEMENT_MPY == 1)
+	if (OPT_MPY == 1)
 	begin : MPY1CK // Our single clock option (no extra clocks)
 		// {{{
 		wire	signed	[63:0]	w_mpy_a_input, w_mpy_b_input;
@@ -114,7 +114,7 @@ module	mpyop #(
 `endif
 		// }}}
 	end else begin: MPN1
-	if (IMPLEMENT_MPY == 2)
+	if (OPT_MPY == 2)
 	begin : MPY2CK // Our two clock option (ALU must pause for 1 clock)
 		// {{{
 
@@ -162,7 +162,7 @@ module	mpyop #(
 		// }}}
 		// }}}
 	end else begin : MPN2
-	if (IMPLEMENT_MPY == 3)
+	if (OPT_MPY == 3)
 	begin : MPY3CK // Our three clock option (ALU pauses for 2 clocks)
 		// {{{
 
@@ -189,15 +189,17 @@ module	mpyop #(
 		// First clock : register r_mpy_?_input, r_sgn
 		// {{{
 		always @(posedge i_clk)
+			r_sgn <= { r_sgn[0],
+				(i_op[0] && (!OPT_LOWPOWER || i_stb)) };
+
+		always @(posedge i_clk)
 		if (!OPT_LOWPOWER || i_stb)
 		begin
 			r_mpy_a_input <= i_a[31:0];
 			r_mpy_b_input <= i_b[31:0];
-			r_sgn <= { r_sgn[0], i_op[0] };
 		end else begin
 			r_mpy_a_input <= 0;
 			r_mpy_b_input <= 0;
-			r_sgn <= 0;
 		end
 		// }}}
 
@@ -250,7 +252,7 @@ module	mpyop #(
 		// Results are then available and registered on the third clock
 		// }}}
 	end else begin : MPN3
-	if (IMPLEMENT_MPY == 4)
+	if (OPT_MPY == 4)
 	begin : MPY4CK // The four clock option, polynomial multiplication
 		// {{{
 		// Declarations

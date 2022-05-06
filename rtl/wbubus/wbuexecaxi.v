@@ -13,10 +13,10 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 // }}}
-// Copyright (C) 2015-2021, Gisselquist Technology, LLC
+// Copyright (C) 2015-2022, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
-// modify it under the terms of  the GNU General Public License as published
+// modify it under the terms of the GNU General Public License as published
 // by the Free Software Foundation, either version 3 of the License, or (at
 // your option) any later version.
 //
@@ -430,12 +430,12 @@ module	wbuexecaxi #(
 		// {{{
 		if (!M_AXI_ARVALID || M_AXI_ARREADY)
 		begin
+			// Verilator lint_off WIDTH
 			if (no_additional_reads)
-				// Verilator lint_off WIDTH
-				M_AXI_ARLEN <= initial_read_length-1'b1;
-				// Verilator lint_on  WIDTH
+				M_AXI_ARLEN <= initial_read_length-8'h1;
 			else
-				M_AXI_ARLEN <= next_read_length[7:0]-1'b1;
+				M_AXI_ARLEN <= next_read_length[7:0]-8'h1;
+			// Verilator lint_on  WIDTH
 		end
 		// }}}
 
