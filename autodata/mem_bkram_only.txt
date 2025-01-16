@@ -1,8 +1,8 @@
 ################################################################################
 ##
-## Filename: 	mem_flash_bkram.txt
+## Filename:	autodata/mem_bkram_only.txt
 ## {{{
-## Project:	ZBasic, a generic toplevel impl using the full ZipCPU
+## Project:	AXI DMA Check: A utility to measure AXI DMA speeds
 ##
 ## Purpose:	Describes a memory model containing nothing more than flash
 ##		and block RAM.  This will be used to create a board.ld linker
@@ -14,7 +14,7 @@
 ##
 ################################################################################
 ## }}}
-## Copyright (C) 2017-2021, Gisselquist Technology, LLC
+## Copyright (C) 2017-2025, Gisselquist Technology, LLC
 ## {{{
 ## This program is free software (firmware): you can redistribute it and/or
 ## modify it under the terms of the GNU General Public License as published

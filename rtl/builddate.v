@@ -1,8 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Filename: 	builddate.v
+// Filename:	rtl/builddate.v
 // {{{
-// Project:	AutoFPGA basic peripheral demonstration project
+// Project:	AXI DMA Check: A utility to measure AXI DMA speeds
 //
 // Purpose:	This file records the date of the last build.  Running "make"
 //		in the main directory will create this file.  The `define found
@@ -14,10 +14,10 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 // }}}
-// Copyright (C) 2020-2021, Gisselquist Technology, LLC
+// Copyright (C) 2020-2025, Gisselquist Technology, LLC
 // {{{
 // This program is free software (firmware): you can redistribute it and/or
-// modify it under the terms of  the GNU General Public License as published
+// modify it under the terms of the GNU General Public License as published
 // by the Free Software Foundation, either version 3 of the License, or (at
 // your option) any later version.
 //
@@ -34,7 +34,6 @@
 // License:	GPL, v3, as defined and found on www.gnu.org,
 // {{{
 //		http://www.gnu.org/licenses/gpl.html
-//
 //
 ////////////////////////////////////////////////////////////////////////////////
 //

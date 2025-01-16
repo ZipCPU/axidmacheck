@@ -1,7 +1,7 @@
 #!/bin/bash
 ################################################################################
 ##
-## Filename:	vversion.sh
+## Filename:	sim/vversion.sh
 ## {{{
 ## Project:	AXI DMA Check: A utility to measure AXI DMA speeds
 ##
@@ -15,7 +15,7 @@
 ##
 ################################################################################
 ## }}}
-## Copyright (C) 2020-2021, Gisselquist Technology, LLC
+## Copyright (C) 2020-2025, Gisselquist Technology, LLC
 ## {{{
 ## This program is free software (firmware): you can redistribute it and/or
 ## modify it under the terms of the GNU General Public License as published
