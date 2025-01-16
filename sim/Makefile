@@ -48,11 +48,11 @@ RTLD	:= ../rtl
 VOBJDR	:= $(RTLD)/obj_dir
 VERILATOR_ROOT ?= $(shell bash -c 'verilator -V|grep VERILATOR_ROOT | head -1 | sed -e " s/^.*=\s*//"')
 VROOT	:= $(VERILATOR_ROOT)
-VDEFS   := $(shell ./vversion.sh)
+VDEFS   := $(shell bash -c ./vversion.sh)
 VINCD   := $(VROOT)/include
 VINC	:= -I$(VINCD) -I$(VINCD)/vltstd -I$(VOBJDR)
 INCS	:= -I../sw -I$(RTLD) $(VINC)
-VOBJS   := $(OBJDIR)/verilated.o $(OBJDIR)/verilated_vcd_c.o $(OBJDIR)/verilated_cov.o
+VOBJS   := $(OBJDIR)/verilated.o $(OBJDIR)/verilated_vcd_c.o $(OBJDIR)/verilated_cov.o $(OBJDIR)/verilated_threads.o
 CFLAGS	:= -Og -g -Wall $(INCS) $(VDEFS) -DVM_COVERAGE=1 -D__WORDSIZE=64
 
 SOURCES := $(SIMSOURCES) main_tb.cpp automaster_tb.cpp
@@ -74,7 +74,7 @@ MAINOBJS := $(OBJDIR)/automaster_tb.o
 $(OBJDIR)/automaster_tb.o: automaster_tb.cpp main_tb.cpp axi_tb.h testb.h ../rtl/obj_dir/Vmain.h
 
 main_tb: $(MAINOBJS) $(VOBJS) $(VOBJDR)/Vmain__ALL.a
-	$(CXX) $(CFLAGS) $(INCS) $(VDEFS) $^ $(VOBJDR)/Vmain__ALL.a -o $@
+	$(CXX) $(CFLAGS) $(INCS) $(VDEFS) $^ $(VOBJDR)/Vmain__ALL.a -lpthread -o $@
 
 .PHONY: clean
 clean:

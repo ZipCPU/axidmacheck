@@ -1,7 +1,7 @@
 `timescale	1ps / 1ps
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Filename:	rtl/main.v
+// Filename:	./main.v
 // {{{
 // Project:	AXI DMA Check: A utility to measure AXI DMA speeds
 //
@@ -197,7 +197,9 @@ module	main(i_clk, i_reset,
 	// Verilator lint_off UNUSED
 	wire	dma_cactive, dma_csysack;
 	// Verilator lint_on  UNUSED
+	// Verilator lint_off UNUSED
 	wire	axi_s2mm_wuser;
+	// Verilator lint_on  UNUSED
 
 // }}}
 	////////////////////////////////////////////////////////////////////////

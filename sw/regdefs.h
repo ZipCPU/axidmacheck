@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Filename:	sw/regdefs.h
+// Filename:	./regdefs.h
 // {{{
 // Project:	AXI DMA Check: A utility to measure AXI DMA speeds
 //

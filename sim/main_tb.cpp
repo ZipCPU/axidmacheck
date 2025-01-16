@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Filename:	sim/main_tb.cpp
+// Filename:	./main_tb.cpp
 // {{{
 // Project:	AXI DMA Check: A utility to measure AXI DMA speeds
 //

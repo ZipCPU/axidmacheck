@@ -501,7 +501,7 @@ public:
 		while(!poll())
 			tick();
 #else
-		assert(("No interrupt defined",0));
+		assert("No interrupt defined");
 #endif
 	}
 	// }}}

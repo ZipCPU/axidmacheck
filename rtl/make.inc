@@ -1,6 +1,6 @@
 ################################################################################
 ##
-## Filename:	rtl/make.inc
+## Filename:	./rtl.make.inc
 ## {{{
 ## Project:	AXI DMA Check: A utility to measure AXI DMA speeds
 ##

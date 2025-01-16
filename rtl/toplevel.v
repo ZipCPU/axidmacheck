@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Filename:	rtl/toplevel.v
+// Filename:	./toplevel.v
 // {{{
 // Project:	AXI DMA Check: A utility to measure AXI DMA speeds
 //

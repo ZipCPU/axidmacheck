@@ -47,7 +47,9 @@
 @INT.DMA.WIRE=@$(PREFIX)_int
 @STREAM=streamsrc
 @MAIN.DEFNS=
+	// Verilator lint_off UNUSED
 	wire	@$(MASTER.PREFIX)_wuser;
+	// Verilator lint_on  UNUSED
 @MAIN.INSERT=
 	////////////////////////////////////////////////////////////////////////
 	//

@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Filename:	rtl/builddate.v
+// Filename: 	builddate.v
 // {{{
 // Project:	AXI DMA Check: A utility to measure AXI DMA speeds
 //
@@ -38,5 +38,5 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
 // }}}
-`define DATESTAMP 32'h20211008
-`define BUILDTIME 32'h00083727
+`define DATESTAMP 32'h20250116
+`define BUILDTIME 32'h00102734

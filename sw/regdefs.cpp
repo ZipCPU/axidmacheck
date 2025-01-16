@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Filename:	sw/regdefs.cpp
+// Filename:	./regdefs.cpp
 // {{{
 // Project:	AXI DMA Check: A utility to measure AXI DMA speeds
 //
