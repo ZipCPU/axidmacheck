@@ -62,6 +62,7 @@
 #define	MM2S_START_CMD		0xc0000000
 #define	MM2S_ABORT_CMD		0x6d000000
 #define	MM2S_CONTINUOUS		0x10000000
+#define	MM2S_BUSY		0x80000000
 
 #define	S2MM_START_ADDR		0x30
 #define	S2MM_LENGTH		32768 // 262144
@@ -69,6 +70,9 @@
 #define	S2MM_LENGTHW		(MM2S_LENGTH/4)
 #define	S2MM_START_CMD		0xc0000000
 #define	S2MM_ABORT_CMD		0x26000000
+#define	S2MM_CONTINUOUS		0x10000000
+#define	S2MM_ERR		0x40000000
+#define	S2MM_BUSY		0x80000000
 
 #define	DMA_START_CMD		0x00000011
 #define	DMA_BUSY_BIT		0x00000001
@@ -83,6 +87,7 @@
 #define	DMA_LENGTH		0x00000403
 
 void	usage(void) {
+	// {{{
 	fprintf(stderr, "USAGE: main_tb <options>\n");
 	fprintf(stderr,
 "\t-d\tSets the debugging flag\n"
@@ -91,15 +96,22 @@ void	usage(void) {
 "\t\tbe a vcd file\n"
 );
 }
+// }}}
 
 int	main(int argc, char **argv) {
+	// Variable declaration and initialization
+	// {{{
+	Verilated::commandArgs(argc, argv);
+
 	const	char *trace_file = NULL; // "trace.vcd";
 	bool	debug_flag = false;
 	bool	fail = false;
-	Verilated::commandArgs(argc, argv);
 	AXI_TB<MAINTB>	*tb = new AXI_TB<MAINTB>;
 	unsigned long	start_counts;
+	// }}}
 
+	// Process arguments
+	// {{{
 	for(int argn=1; argn < argc; argn++) {
 		if (argv[argn][0] == '-') for(int j=1;
 					(j<512)&&(argv[argn][j]);j++) {
@@ -122,19 +134,22 @@ int	main(int argc, char **argv) {
 			exit(EXIT_FAILURE);
 		}
 	}
+	// }}}
 
+	// Setup
+	// {{{
 	if (debug_flag) {
 		printf("Opening Bus-master with\n");
 		// printf("\tDebug Access port = %d\n", FPGAPORT);
 		printf("\tVCD File         = %s\n", trace_file);
 	} if (trace_file)
 		tb->opentrace(trace_file);
-
+	// }}}
 	tb->reset();
 
 	//
 	// Test the AXIMM2S
-	//
+	// {{{
 	memset(tb->TBRAM, -1, RAMSIZE);
 	for(int k=0; k<MM2S_LENGTHW; k++)
 		tb->TBRAM[k+MM2S_START_ADDRW] = k;
@@ -143,9 +158,9 @@ int	main(int argc, char **argv) {
 	tb->writeio(R_STREAMSINK_BEATS, 0);
 	start_counts = tb->tickcount();
 	tb->writeio(R_MM2SCTRL, MM2S_START_CMD);
-	while((tb->readio(R_MM2SCTRL) & 0x80000000)==0)
+	while((tb->readio(R_MM2SCTRL) & MM2S_BUSY)==0)
 		;
-	while(tb->readio(R_MM2SCTRL) & 0x80000000)
+	while(tb->readio(R_MM2SCTRL) & MM2S_BUSY)
 		;
 	printf("AXIMM2S Check:\n");
 	printf("\tBEATS:  0x%08x\n", tb->readio(R_STREAMSINK_BEATS));
@@ -161,12 +176,12 @@ int	main(int argc, char **argv) {
 	tb->writeio(R_STREAMSINK_BEATS, 0);
 	start_counts = tb->tickcount();
 	tb->writeio(R_MM2SCTRL, MM2S_START_CMD);
-	while((tb->readio(R_MM2SCTRL) & 0x80000000)==0)
+	while((tb->readio(R_MM2SCTRL) & MM2S_BUSY)==0)
 		;
 	tb->idle(425);
 	tb->writeio(R_MM2SCTRL, MM2S_ABORT_CMD);
 
-	while(tb->readio(R_MM2SCTRL) & 0x80000000)
+	while(tb->readio(R_MM2SCTRL) & MM2S_BUSY)
 		;
 	printf("AXIMM2S (abort) Check:\n");
 	printf("\tBEATS:  0x%08x\n", tb->readio(R_STREAMSINK_BEATS));
@@ -183,9 +198,9 @@ int	main(int argc, char **argv) {
 		tb->writeio(R_STREAMSINK_BEATS, 0);
 		start_counts = tb->tickcount();
 		tb->writeio(R_MM2SCTRL, MM2S_START_CMD);
-		while((tb->readio(R_MM2SCTRL) & 0x80000000)==0)
+		while((tb->readio(R_MM2SCTRL) & MM2S_BUSY)==0)
 			;
-		while(tb->readio(R_MM2SCTRL) & 0x80000000)
+		while(tb->readio(R_MM2SCTRL) & MM2S_BUSY)
 			;
 		printf("AXIMM2S (unaligned) Check:\n");
 		printf("\tBEATS:  0x%08x\n", tb->readio(R_STREAMSINK_BEATS));
@@ -203,9 +218,9 @@ int	main(int argc, char **argv) {
 	tb->writeio(R_STREAMSINK_BEATS, 0);
 	start_counts = tb->tickcount();
 	tb->writeio(R_MM2SCTRL, MM2S_START_CMD | MM2S_CONTINUOUS);
-	while((tb->readio(R_MM2SCTRL) & 0x80000000)==0)
+	while((tb->readio(R_MM2SCTRL) & MM2S_BUSY)==0)
 		;
-	while(tb->readio(R_MM2SCTRL) & 0x80000000)
+	while(tb->readio(R_MM2SCTRL) & MM2S_BUSY)
 		;
 	printf("AXIMM2S (continuous) Midway:\n");
 	printf("\tBEATS:  0x%08x\n", tb->readio(R_STREAMSINK_BEATS));
@@ -220,27 +235,27 @@ int	main(int argc, char **argv) {
 	tb->writeio(R_MM2SCTRL, MM2S_START_CMD | MM2S_CONTINUOUS);
 	while((tb->readio(R_MM2SCTRL) & 0xc0000000)==0)
 		;
-	while(tb->readio(R_MM2SCTRL) & 0x80000000)
+	while(tb->readio(R_MM2SCTRL) & MM2S_BUSY)
 		;
 	printf("AXIMM2S (continuous) Midway:\n");
 	printf("\tSTATUS: 0x%08x\n", tb->readio(R_MM2SCTRL));
 	printf("\tBEATS:  0x%08x\n", tb->readio(R_STREAMSINK_BEATS));
 	printf("\tCLOCKS: 0x%08x\n", tb->readio(R_STREAMSINK_CLOCKS));
 	printf("\tCOUNTS: 0x%08lx\n", tb->tickcount()-start_counts);
-
+	// }}}
 
 
 	//
 	// Test the AXIS2MM
-	//
+	// {{{
 	memset(tb->TBRAM, -1, RAMSIZE);
 	tb->write64(R_S2MMADDRLO, (uint64_t)S2MM_START_ADDR + R_AXIRAM);
 	tb->write64(R_S2MMLENLO,  (uint64_t)S2MM_LENGTH);
 	start_counts = tb->tickcount();
 	tb->writeio(R_S2MMCTRL, S2MM_START_CMD);
-	while((tb->readio(R_S2MMCTRL) & 0x80000000)==0)
+	while((tb->readio(R_S2MMCTRL) & S2MM_BUSY)==0)
 		;
-	while(tb->readio(R_S2MMCTRL) & 0x80000000)
+	while(tb->readio(R_S2MMCTRL) & S2MM_BUSY)
 		;
 	printf("AXIS2MM Check:\n");
 	// printf("\tBEATS:  0x%08x\n", tb->readio(R_STREAMSINK_BEATS));
@@ -265,12 +280,12 @@ int	main(int argc, char **argv) {
 	tb->write64(R_S2MMLENLO,  (uint64_t)S2MM_LENGTH);
 	start_counts = tb->tickcount();
 	tb->writeio(R_S2MMCTRL, S2MM_START_CMD);
-	while((tb->readio(R_S2MMCTRL) & 0x80000000)==0)
+	while((tb->readio(R_S2MMCTRL) & S2MM_BUSY)==0)
 		;
 	tb->idle(425);
 	tb->writeio(R_S2MMCTRL, S2MM_ABORT_CMD);
 
-	while(tb->readio(R_S2MMCTRL) & 0x80000000)
+	while(tb->readio(R_S2MMCTRL) & S2MM_BUSY)
 		;
 	printf("AXIS2MM (abort) Check:\n");
 	printf("\tCOUNTS: 0x%08lx\n", tb->tickcount()-start_counts);
@@ -285,19 +300,61 @@ int	main(int argc, char **argv) {
 	tb->writeio(R_S2MMLEN,  S2MM_LENGTH);
 	start_counts = tb->tickcount();
 	tb->writeio(R_S2MMCTRL, S2MM_START_CMD);
-	while((tb->readio(R_S2MMCTRL) & 0x80000000)==0)
+	while((tb->readio(R_S2MMCTRL) & S2MM_BUSY)==0)
 		;
-	while(tb->readio(R_S2MMCTRL) & 0x80000000)
+	while(tb->readio(R_S2MMCTRL) & S2MM_BUSY)
 		;
 	printf("AXIS2MM (err) Check:\n");
 	printf("\tCOUNTS: 0x%08lx\n", tb->tickcount()-start_counts);
 	printf("\tERR-CODE: %d\n", (tb->readio(R_S2MMCTRL)>>23)&0x07);
 */
 
+	// Testing (continuous)
+	{
+		printf("AXIS2MM (continuous):\n");
+		unsigned	requested = 0, read_data;
+		uint64_t	mskl, incl, next_len;
+
+		memset(tb->TBRAM, -1, RAMSIZE);
+		tb->write64(R_S2MMLENLO,  (uint64_t)-1);
+		mskl = tb->read64(R_S2MMLENLO);
+		incl = (~mskl + 1ul) & mskl;
+		tb->write64(R_S2MMADDRLO, (uint64_t)S2MM_START_ADDR + R_AXIRAM);
+		start_counts = tb->tickcount();
+		while(requested < S2MM_LENGTH && !fail) {
+			next_len = (unsigned)rand() + incl;
+			next_len &= (unsigned)mskl;
+			next_len &= 255;
+
+			if (next_len + requested >= S2MM_LENGTH)
+				next_len = S2MM_LENGTH - requested;
+			if (next_len == 0)
+				continue;
+
+			tb->write64(R_S2MMLENLO, next_len);
+			requested += next_len;
+			tb->writeio(R_S2MMCTRL, S2MM_START_CMD|S2MM_CONTINUOUS);
+			while((read_data = tb->readio(R_S2MMCTRL)) & S2MM_BUSY)
+				;
+
+			if (S2MM_CONTINUOUS != (read_data & S2MM_CONTINUOUS)) {
+				printf("ERROR: Continuous flag dropped!\n");
+				fail = true;
+			} if (0 != (read_data & S2MM_ERR)) {
+				printf("ERROR: ERR flag set!\n");
+				fail = true;
+			}
+			if (rand() & 1) {
+				tb->idle(425);
+			}
+		}
+	}
+	// }}}
+
 
 	//
 	// Test the AXIDMA
-	//
+	// {{{
 	printf("Running AXI DMA test\n");
 	memset(tb->TBRAM, -1, RAMSIZE);
 	tb->write64(R_AXIDMASRCLO,  (uint64_t)DMA_SRC_ADDR + R_AXIRAM);
@@ -316,6 +373,7 @@ int	main(int argc, char **argv) {
 		if (tb->tickcount() >= 400000)
 			return EXIT_FAILURE;
 	}
+	// }}}
 	printf("AXIDMA Check:\n");
 
 	VerilatedCov::write("logs/coverage.dat");
