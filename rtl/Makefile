@@ -140,8 +140,10 @@ clean:
 # we need to rebuild.
 DEPS := $(wildcard $(VDIRFB)/*.d)
 
+ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(DEPS),)
 include $(DEPS)
+endif
 endif
 include make.inc
 ## }}}

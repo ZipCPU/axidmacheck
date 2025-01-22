@@ -147,4 +147,6 @@ tags:	$(SOURCES) $(HEADERS)
 	@ctags $(SOURCES) $(HEADERS)
 
 
+ifneq ($(MAKECMDGOALS),clean)
 -include $(OBJDIR)/depends.txt
+endif
