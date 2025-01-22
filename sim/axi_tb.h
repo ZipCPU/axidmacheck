@@ -219,7 +219,7 @@ public:
 	// {{{
 	uint64_t read64(BUSW a) {
 		uint64_t	result;
-		int32_t		buf[2];
+		uint32_t	buf[2];
 
 		readv(a, 2, buf);
 		result = buf[1];
@@ -246,10 +246,10 @@ public:
 
 			m_tb->m_core->S_AXI_ARVALID = 1;
 			s = ((m_tb->m_core->S_AXI_ARVALID)
-				&&(m_tb->m_core->S_AXI_ARREADY==0))?0:1;
+				&&(m_tb->m_core->S_AXI_ARREADY)) ? 1:0;
 			tick();
-			m_tb->m_core->S_AXI_ARADDR += (inc&(s^1))?4:0;
-			cnt += (s^1);
+			m_tb->m_core->S_AXI_ARADDR += (inc&s)?4:0;
+			cnt += s;
 			if (m_tb->m_core->S_AXI_RVALID)
 				buf[rdidx++] = m_tb->m_core->S_AXI_RDATA;
 			if (m_tb->m_core->S_AXI_RVALID
